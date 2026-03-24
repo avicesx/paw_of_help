@@ -1,0 +1,32 @@
+"""Хэширование паролей (bcrypt) и выпуск JWT (HS256)."""
+
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
+
+import bcrypt
+import jwt
+
+from backend.app.core.config import settings
+
+
+def get_password_hash(password: str) -> str:
+    """Возвращает bcrypt-хэш пароля для хранения в БД."""
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Проверяет пароль против сохранённого bcrypt-хэша."""
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"),
+        hashed_password.encode("utf-8"),
+    )
+
+
+def create_access_token(subject: str) -> str:
+    """
+    Формирует access JWT с полями ``sub`` (идентификатор пользователя) и ``exp``.
+    """
+    expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + expires_delta
+    payload: Dict[str, Any] = {"sub": subject, "exp": expire}
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
