@@ -9,11 +9,9 @@ from unittest.mock import AsyncMock, MagicMock
 from fastapi.testclient import TestClient
 import jwt as pyjwt
 
-from backend.app.core.config import settings
-from backend.app.core.database import get_db
-from backend.app.core.security import create_access_token, get_password_hash
-from backend.app.main import app
-from backend.app.models.user import User
+from app.core import settings, get_db, create_access_token, get_password_hash
+from app.main import app
+from app.models import User
 
 
 async def _session_register_success():

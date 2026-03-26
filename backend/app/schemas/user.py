@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from backend.app.core.ru_identity import normalize_ru_mobile, validate_ru_person_name
+from app.core import normalize_ru_mobile, validate_ru_person_name
 
 
 class UserBase(BaseModel):

@@ -6,9 +6,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.security import create_access_token, get_password_hash, verify_password
-from backend.app.models.user import User
-from backend.app.schemas.auth import LoginRequest, RegisterRequest
+from app.core import create_access_token, get_password_hash, verify_password
+from app.models import User
+from app.schemas import LoginRequest, RegisterRequest
 
 
 async def register_user(payload: RegisterRequest, db: AsyncSession) -> str:

@@ -2,13 +2,11 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from backend.app.api.auth import router as auth_router
-from backend.app.core.config import settings
-from backend.app.core.rate_limit import limiter
+from app.api import auth_router
+from app.core import settings, limiter
 
 
 def _cors_allow_credentials() -> bool:
@@ -54,30 +52,6 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
-
-
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
-        routes=app.routes,
-    )
-    openapi_schema.setdefault("components", {}).setdefault("securitySchemes", {})[
-        "BearerAuth"
-    ] = {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "Токен из `access_token` в ответе POST /auth/login или /auth/register",
-    }
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-app.openapi = custom_openapi
 
 
 @app.get("/")

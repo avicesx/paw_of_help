@@ -2,8 +2,8 @@ import unittest
 
 from pydantic import ValidationError
 
-from backend.app.core.ru_identity import normalize_ru_mobile, validate_ru_person_name
-from backend.app.schemas.auth import LoginRequest, RegisterRequest
+from app.core import normalize_ru_mobile, validate_ru_person_name
+from app.schemas import LoginRequest, RegisterRequest
 
 
 class TestNormalizePhone(unittest.TestCase):

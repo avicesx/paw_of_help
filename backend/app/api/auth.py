@@ -5,13 +5,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.config import settings
-from backend.app.core.database import get_db
-from backend.app.core.deps import get_current_user
-from backend.app.core.rate_limit import limiter
-from backend.app.models.user import User
-from backend.app.schemas.auth import LoginRequest, MeResponse, RegisterRequest, TokenResponse
-from backend.app.services.auth_service import login_user, register_user
+from app.core import settings, get_db, get_current_user, limiter
+from app.models import User
+from app.schemas import LoginRequest, MeResponse, RegisterRequest, TokenResponse
+from app.services import login_user, register_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

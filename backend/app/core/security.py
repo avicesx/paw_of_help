@@ -6,7 +6,7 @@ from typing import Any, Dict
 import bcrypt
 import jwt
 
-from backend.app.core.config import settings
+from app.core import settings
 
 
 def get_password_hash(password: str) -> str:
