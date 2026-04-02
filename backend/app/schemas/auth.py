@@ -70,6 +70,8 @@ class MeResponse(BaseModel):
 
     id: int
     name: str
+    last_name: Optional[str] = None
+    username: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     is_active: bool

@@ -14,6 +14,7 @@ class Animal(Base):
     owner_id = Column(Integer, nullable=False)
     name = Column(String(255), nullable=False)
     photos = Column(JSON, default=lambda: [])
+    description = Column(Text, nullable=True)
     species = Column(String(255), nullable=True)
     breed = Column(String(255), nullable=True)
     age = Column(String(50), nullable=True)
