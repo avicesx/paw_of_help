@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Enum, Float, Integer, JSON, String, Text
 from sqlalchemy.sql import func
 from backend.app.core import Base
 
@@ -11,6 +11,9 @@ class Organization(Base):
     description = Column(Text, nullable=True)
     inn = Column(String(50), nullable=True)
     address = Column(Text, nullable=True)
+    address_lat = Column(Float, nullable=True, index=True)
+    address_lng = Column(Float, nullable=True, index=True)
+    address_components = Column(JSON, default=lambda: {})
     contacts = Column(JSON, default=lambda: {})
     documents = Column(JSON, default=lambda: [])
     logo_url = Column(Text, nullable=True)

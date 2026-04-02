@@ -8,6 +8,9 @@ class OrganizationCreate(BaseModel):
     description: Optional[str] = None
     inn: Optional[str] = None
     address: Optional[str] = None
+    address_lat: Optional[float] = None
+    address_lng: Optional[float] = None
+    address_components: Dict[str, Any] = {}
     contacts: Dict[str, Any] = {}
     documents: List[str] = []
     logo_url: Optional[str] = None
@@ -20,6 +23,9 @@ class OrganizationResponse(BaseModel):
     description: Optional[str] = None
     inn: Optional[str] = None
     address: Optional[str] = None
+    address_lat: Optional[float] = None
+    address_lng: Optional[float] = None
+    address_components: Dict[str, Any] = {}
     contacts: Dict[str, Any] = {}
     logo_url: Optional[str] = None
     photos: List[str] = []

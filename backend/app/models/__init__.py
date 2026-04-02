@@ -1,6 +1,7 @@
 from app.models.user import User
 from backend.app.models.organization import Organization, OrganizationUser
 from backend.app.models.animal import Animal
+from backend.app.models.animal_species import AnimalSpecies
 from backend.app.models.volunteer import VolunteerProfile, Skill, VolunteerSkill
 from backend.app.models.task import Task, TaskResponse, TaskCompletionReport
 from backend.app.models.foster import FosterRequest, FosterOffer, FosterPlacement
@@ -37,6 +38,7 @@ __all__ = [
     "User",
     'Organization', 'OrganizationUser',
     'Animal',
+    'AnimalSpecies',
     'VolunteerProfile', 'Skill', 'VolunteerSkill',
     'Task', 'TaskResponse', 'TaskCompletionReport',
     'FosterRequest', 'FosterOffer', 'FosterPlacement',

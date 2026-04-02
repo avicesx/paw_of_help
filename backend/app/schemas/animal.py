@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class AnimalBase(BaseModel):
     name: str
+    description: Optional[str] = None
     species: Optional[str] = None
     breed: Optional[str] = None
     age: Optional[str] = None
