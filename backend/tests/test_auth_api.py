@@ -27,10 +27,9 @@ async def _session_register_success():
     yield session
 
 
-async def _session_register_conflict_email():
+async def _session_register_conflict_username():
     existing = MagicMock()
-    existing.email = "conflict@test.ru"
-    existing.phone = None
+    existing.username = "conflictuser"
     session = AsyncMock()
     session.scalar = AsyncMock(return_value=existing)
     yield session
@@ -41,8 +40,9 @@ async def _session_login_success():
         id=55,
         email="login@test.ru",
         phone=None,
+        username="testuser",
         password_hash=get_password_hash("CorrectHorse-99"),
-        name="Иван",
+        name=None,
         is_active=True,
     )
     session = AsyncMock()
@@ -62,8 +62,9 @@ async def _session_login_inactive():
         id=55,
         email="blocked@test.ru",
         phone=None,
+        username="blockeduser",
         password_hash=get_password_hash("SamePass-1"),
-        name="Иван",
+        name=None,
         is_active=False,
     )
     session = AsyncMock()
@@ -75,9 +76,10 @@ async def _session_login_inactive():
 async def _session_me_user():
     u = User(
         id=77,
-        name="Мария",
+        name=None,
         email="maria@test.ru",
         phone=None,
+        username="mariauser",
         password_hash="x",
         is_active=True,
     )
@@ -90,14 +92,13 @@ class TestAuthAPI(unittest.TestCase):
     def tearDown(self):
         app.dependency_overrides.clear()
 
-    def test_register_validation_422_phone(self):
+    def test_register_validation_422_username(self):
         app.dependency_overrides[get_db] = _session_register_success
         with TestClient(app) as client:
             r = client.post(
                 "/auth/register",
                 json={
-                    "name": "Иван",
-                    "phone": "42352435 353",
+                    "username": "Иван123",
                     "password": "secret12",
                 },
             )
@@ -109,8 +110,7 @@ class TestAuthAPI(unittest.TestCase):
             r = client.post(
                 "/auth/register",
                 json={
-                    "name": "Пётр",
-                    "email": "new@test.ru",
+                    "username": "newuser",
                     "password": "secret12",
                 },
             )
@@ -125,13 +125,12 @@ class TestAuthAPI(unittest.TestCase):
         self.assertEqual(decoded["sub"], "101")
 
     def test_register_conflict_409(self):
-        app.dependency_overrides[get_db] = _session_register_conflict_email
+        app.dependency_overrides[get_db] = _session_register_conflict_username
         with TestClient(app) as client:
             r = client.post(
                 "/auth/register",
                 json={
-                    "name": "Иван",
-                    "email": "conflict@test.ru",
+                    "username": "conflictuser",
                     "password": "secret12",
                 },
             )
@@ -142,7 +141,7 @@ class TestAuthAPI(unittest.TestCase):
         with TestClient(app) as client:
             r = client.post(
                 "/auth/login",
-                json={"login": "login@test.ru", "password": "CorrectHorse-99"},
+                json={"login": "testuser", "password": "CorrectHorse-99"},
             )
         self.assertEqual(r.status_code, 200, r.text)
         decoded = pyjwt.decode(
@@ -157,7 +156,7 @@ class TestAuthAPI(unittest.TestCase):
         with TestClient(app) as client:
             r = client.post(
                 "/auth/login",
-                json={"login": "nobody@test.ru", "password": "any"},
+                json={"login": "nobody", "password": "any"},
             )
         self.assertEqual(r.status_code, 401)
 
@@ -166,7 +165,7 @@ class TestAuthAPI(unittest.TestCase):
         with TestClient(app) as client:
             r = client.post(
                 "/auth/login",
-                json={"login": "blocked@test.ru", "password": "SamePass-1"},
+                json={"login": "blockeduser", "password": "SamePass-1"},
             )
         self.assertEqual(r.status_code, 403)
 
@@ -181,7 +180,8 @@ class TestAuthAPI(unittest.TestCase):
         self.assertEqual(r.status_code, 200, r.text)
         data = r.json()
         self.assertEqual(data["id"], 77)
-        self.assertEqual(data["name"], "Мария")
+        self.assertEqual(data["name"], None)
+        self.assertEqual(data["username"], "mariauser")
         self.assertEqual(data["email"], "maria@test.ru")
 
 

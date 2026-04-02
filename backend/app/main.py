@@ -24,7 +24,7 @@ def _cors_origins() -> list[str]:
 API_DESCRIPTION = """
 ## Авторизация (ЕУЗ)
 
-1. **Регистрация / вход:** `POST /auth/register`, `POST /auth/login` — в JSON ответа поле `access_token`.
+1. **Регистрация / вход:** `POST /auth/register` (только username и password), `POST /auth/login` (login: username, email или phone) — в JSON ответа поле `access_token`.
 2. **Остальные защищённые методы:** заголовок `Authorization: Bearer <access_token>`.
 3. **Текущий пользователь:** `GET /auth/me`.
 

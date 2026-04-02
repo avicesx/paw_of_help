@@ -39,25 +39,21 @@ class TestPersonName(unittest.TestCase):
 class TestRegisterSchema(unittest.TestCase):
     def test_register_ok(self):
         r = RegisterRequest(
-            name="Дамир",
-            email="a@b.co",
-            phone="+7 922 1112233",
+            username="damir123",
             password="secret12",
         )
-        self.assertEqual(r.phone, "+79221112233")
-        self.assertEqual(r.name, "Дамир")
+        self.assertEqual(r.username, "damir123")
 
-    def test_register_invalid_phone(self):
+    def test_register_invalid_username(self):
         with self.assertRaises(ValidationError):
             RegisterRequest(
-                name="Дамир",
-                phone=" 42352435 353",
+                username="Дамир123",
                 password="secret12",
             )
 
-    def test_login_email_normalized(self):
-        l = LoginRequest(login="  Test@Mail.RU ", password="x")
-        self.assertEqual(l.login, "test@mail.ru")
+    def test_login_request(self):
+        l = LoginRequest(login="testuser", password="x")
+        self.assertEqual(l.login, "testuser")
 
 
 if __name__ == "__main__":
