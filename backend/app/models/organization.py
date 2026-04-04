@@ -1,6 +1,6 @@
 from sqlalchemy import Boolean, Column, DateTime, Enum, Float, Integer, JSON, String, Text
 from sqlalchemy.sql import func
-from backend.app.core import Base
+from app.core import Base
 
 
 class Organization(Base):

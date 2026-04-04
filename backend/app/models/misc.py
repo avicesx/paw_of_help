@@ -1,6 +1,6 @@
 from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, String, Text
 from sqlalchemy.sql import func
-from backend.app.core.database import Base
+from app.core.database import Base
 
 
 class Review(Base):
