@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.api import auth_router, organizations_router
+from app.api import auth_router, organizations_router, volunteer_router
 from app.core import settings, limiter
 
 
@@ -29,6 +29,12 @@ API_DESCRIPTION = """
 3. **Текущий пользователь:** `GET /auth/me`.
 
 Ограничение частоты запросов к `/auth/register` и `/auth/login` задаётся переменной `AUTH_RATE_LIMIT` (по умолчанию `10/minute` на IP).
+
+## Профиль волонтёра
+
+- **Профиль:** `GET /volunteer/profile` — получить профиль с статистикой, `PATCH /volunteer/profile` — обновить, `DELETE /volunteer/profile` — деактивировать.
+- **Навыки:** `GET /volunteer/skills` — список всех навыков, `GET /volunteer/my-skills` — мои навыки, `POST /volunteer/my-skills` — установить навыки, `DELETE /volunteer/my-skills/{skill_id}` — удалить навык.
+- **Задачи:** `GET /volunteer/tasks?status=active|completed` — задачи волонтёра (активные или завершённые).
 """.strip()
 
 app = FastAPI(
@@ -53,6 +59,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(organizations_router)
+app.include_router(volunteer_router)
 
 
 @app.get("/")
