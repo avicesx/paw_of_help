@@ -1,11 +1,11 @@
 from app.models.user import User
-from backend.app.models.organization import Organization, OrganizationUser
-from backend.app.models.animal import Animal
-from backend.app.models.animal_species import AnimalSpecies
-from backend.app.models.volunteer import VolunteerProfile, Skill, VolunteerSkill
-from backend.app.models.task import Task, TaskResponse, TaskCompletionReport
-from backend.app.models.foster import FosterRequest, FosterOffer, FosterPlacement
-from backend.app.models.blog import (
+from app.models.organization import Organization, OrganizationUser
+from app.models.animal import Animal
+from app.models.animal_species import AnimalSpecies
+from app.models.volunteer import VolunteerProfile, Skill, VolunteerSkill
+from app.models.task import Task, TaskResponse, TaskCompletionReport
+from app.models.foster import FosterRequest, FosterOffer, FosterPlacement
+from app.models.blog import (
     Tag,
     OrganizationBlogPost,
     BlogPostTag,
@@ -14,14 +14,14 @@ from backend.app.models.blog import (
     ArticleTag,
     ArticleRating
 )
-from backend.app.models.communication import (
+from app.models.communication import (
     Event,
     EventParticipant,
     Notification,
     Chat,
     ChatMessage
 )
-from backend.app.models.misc import (
+from app.models.misc import (
     Review,
     Report,
     Subscription,
@@ -40,7 +40,7 @@ __all__ = [
     'Animal',
     'AnimalSpecies',
     'VolunteerProfile', 'Skill', 'VolunteerSkill',
-    'Task', 'TaskResponse', 'TaskCompletionReport',
+    'Task', 'TaskResponse', 'TaskCompletionReport', 'Achievement', 'UserAchievement',
     'FosterRequest', 'FosterOffer', 'FosterPlacement',
 
     'Tag', 'OrganizationBlogPost', 'BlogPostTag', 'BlogComment', 
