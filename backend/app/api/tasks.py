@@ -46,7 +46,7 @@ async def list_tasks(
     radius_km: Optional[float] = None,
     db: AsyncSession = Depends(get_db),
 ):
-    """Публичная лента задач (фильтры опциональны)."""
+    """Публичная лента задач, фильтры опциональные"""
     q = select(Task).order_by(Task.id.desc())
     if organization_id is not None:
         q = q.where(Task.organization_id == organization_id)
