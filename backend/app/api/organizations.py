@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import get_current_user, get_db
-from app.models import Organization, OrganizationUser, User
+from app.models import Notification, Organization, OrganizationUser, User
 from app.schemas.organization import (
     InviteUserRequest,
     OrganizationCreate,
@@ -200,4 +200,15 @@ async def invite_user(
     db.add(ou)
     await db.commit()
     await db.refresh(ou)
+
+    db.add(
+        Notification(
+            user_id=user.id,
+            type="organization_invite",
+            title="Приглашение в организацию",
+            body=f"Вас пригласили в организацию «{org.name}» с ролью {payload.role}.",
+            data={"organization_id": org_id, "role": payload.role},
+        )
+    )
+    await db.commit()
     return OrganizationUserResponse.model_validate(ou)
