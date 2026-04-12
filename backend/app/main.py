@@ -11,6 +11,7 @@ from app.api import (
     organizations_router,
     tasks_router,
     volunteer_router,
+    animal_router,
 )
 from app.core import settings, limiter
 
@@ -68,6 +69,7 @@ app.include_router(notifications_router)
 app.include_router(organizations_router)
 app.include_router(tasks_router)
 app.include_router(volunteer_router)
+app.include_router(animal_router)
 
 
 @app.get("/")
