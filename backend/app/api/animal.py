@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import get_current_user, get_db
 from app.models.user import User
 from app.schemas.animal import AnimalCreate, AnimalUpdate, AnimalResponse
-from app.services.animal import (
+from app.services.animal_service import (
     create_animal as create_animal_service,
     get_animal as get_animal_service,
     update_animal as update_animal_service,
