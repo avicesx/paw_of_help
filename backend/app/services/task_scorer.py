@@ -63,6 +63,7 @@ class HeuristicTaskScorer(BaseTaskScorer):
             q = q.outerjoin(Animal, Task.animal_id == Animal.id).where(
                 or_(
                     Task.animal_id.is_(None),
+                    Animal.id.is_(None),
                     Animal.species.in_(profile.preferred_animal_types)
                 )
             )
