@@ -23,6 +23,17 @@ class Settings(BaseSettings):
         description="Лимит slowapi для POST /auth/login и /auth/register (например 10/minute)",
     )
 
+    # Кэш редиски
+    REDIS_URL: str = Field("redis://localhost:6379/0", env="REDIS_URL", description="URL для Redis")
+    FEED_CACHE_TTL: int = Field(300, env="FEED_CACHE_TTL", description="TTL кэша ленты в секундах (по умолчанию 5 мин)")
+
+    # Веса для алгоритма умной ленты (Эвристика)
+    WEIGHT_URGENCY: float = Field(50.0, env="WEIGHT_URGENCY", description="Бонус за срочность")
+    WEIGHT_DISTANCE: float = Field(20.0, env="WEIGHT_DISTANCE", description="Максимальный балл за близость (0 км)")
+    WEIGHT_SKILL: float = Field(15.0, env="WEIGHT_SKILL", description="Бонус за совпадение навыков")
+    WEIGHT_FOSTER: float = Field(15.0, env="WEIGHT_FOSTER", description="Бонус за готовность к передержке")
+    WEIGHT_TIME: float = Field(10.0, env="WEIGHT_TIME", description="Бонус за совпадение времени")
+
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
         extra="ignore",

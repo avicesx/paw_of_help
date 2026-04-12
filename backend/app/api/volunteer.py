@@ -1,7 +1,7 @@
 """API для профиля волонтёра."""
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_db, get_current_user
@@ -14,6 +14,8 @@ from app.services.volunteer_service import (
     get_or_create_profile, update_profile, deactivate_profile, get_volunteer_stats,
     get_active_tasks, get_completed_tasks, get_skills, get_my_skills, set_my_skills, delete_my_skill
 )
+from app.services.task_scorer import default_scorer
+from app.services.feed_cache import get_cached_feed, set_cached_feed
 
 router = APIRouter(prefix="/volunteer", tags=["volunteer"])
 
@@ -135,14 +137,19 @@ async def delete_my_skill_endpoint(
     openapi_extra={"security": [{"BearerAuth": []}]}
 )
 async def get_volunteer_tasks(
-    status: Optional[str] = None,
+    background_tasks: BackgroundTasks,
+    status: Optional[str] = "active",
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Получить задачи волонтёра."""
     if status == "active" or status is None:
-        tasks = await get_active_tasks(current_user.id, db)
-        return [TaskBriefResponse(
+        cached_feed = await get_cached_feed(current_user.id)
+        if cached_feed is not None:
+            return cached_feed
+
+        tasks = await default_scorer.get_feed(current_user.id, db)
+        result = [TaskBriefResponse(
             id=task.id,
             title=task.title,
             description=task.description,
@@ -151,6 +158,9 @@ async def get_volunteer_tasks(
             end_date=task.end_date,
             author_id=task.created_by
         ) for task in tasks]
+
+        background_tasks.add_task(set_cached_feed, current_user.id, result)
+        return result
     elif status == "completed":
         task_reviews = await get_completed_tasks(current_user.id, db)
         result = []

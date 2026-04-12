@@ -12,3 +12,4 @@ python-multipart
 email-validator
 slowapi
 httpx
+redis>=4.6.0
