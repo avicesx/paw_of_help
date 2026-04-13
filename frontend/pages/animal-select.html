@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Выбор животного</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <div class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </div>
+
+      <div class="topbar-side profile-icons">🔔 👤</div>
+    </header>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="#" class="side-link">База знаний</a>
+        <a href="#" class="side-link">Лента</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="#" class="side-link">Организации</a>
+      </div>
+    </aside>
+
+    <section class="animal-select-screen">
+      <h1 class="screen-title">Выбрать профиль животного</h1>
+
+      <div class="back-row">
+        <a href="task-create.html" class="back-link">⬅</a>
+        <div class="back-title">Ваши животные</div>
+      </div>
+
+      <input id="animalSearch" class="field animal-search" type="text" placeholder="Поиск" oninput="renderAnimals()" />
+
+      <div id="animalsList" class="animals-list"></div>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/tasks.js"></script>
+  <script>
+    initTaskStorage();
+    renderAnimals();
+  </script>
+</body>
+</html>
