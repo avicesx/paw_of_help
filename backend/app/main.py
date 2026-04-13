@@ -13,6 +13,7 @@ from app.api import (
     volunteer_router,
 )
 from app.core import settings, limiter
+from app.core.database import create_db_and_tables
 
 
 def _cors_allow_credentials() -> bool:
@@ -50,6 +51,12 @@ app = FastAPI(
 )
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.on_event("startup")
+async def on_startup() -> None:
+    await create_db_and_tables()
+
 
 _origins = _cors_origins()
 _credentials = _cors_allow_credentials()

@@ -1,7 +1,7 @@
 """API для профиля волонтёра."""
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_db, get_current_user
@@ -14,6 +14,8 @@ from app.services.volunteer_service import (
     get_or_create_profile, update_profile, deactivate_profile, get_volunteer_stats,
     get_active_tasks, get_completed_tasks, get_skills, get_my_skills, set_my_skills, delete_my_skill
 )
+from app.services.task_scorer import default_scorer
+from app.services.feed_cache import get_cached_feed, set_cached_feed
 
 router = APIRouter(prefix="/volunteer", tags=["volunteer"])
 
@@ -131,11 +133,11 @@ async def delete_my_skill_endpoint(
     "/tasks",
     response_model=List[TaskBriefResponse],
     summary="Получить задачи волонтёра",
-    description="Возвращает список задач волонтёра. По умолчанию активные задачи (в работе). Используйте query параметр status=active или status=completed для фильтрации.",
+    description="Возвращает список задач волонтёра. По умолчанию активные задачи (в работе) или завершённые. Без ранжирования рекомендациями.",
     openapi_extra={"security": [{"BearerAuth": []}]}
 )
 async def get_volunteer_tasks(
-    status: Optional[str] = None,
+    status: Optional[str] = "active",
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -180,3 +182,36 @@ async def get_volunteer_tasks(
         return result
     else:
         raise HTTPException(status_code=400, detail="Неверный статус")
+
+
+@router.get(
+    "/feed",
+    response_model=List[TaskBriefResponse],
+    summary="Получить рекомендованные задачи",
+    description="Возвращает список открытых задач, отсортированных по рекомендациям для текущего волонтёра (срочность, навыки, расстояние, доступность).",
+    openapi_extra={"security": [{"BearerAuth": []}]}
+)
+async def get_volunteer_feed(
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Получить рекомендованные задачи волонтёра."""
+    await get_or_create_profile(current_user.id, db)
+    cached_feed = await get_cached_feed(current_user.id)
+    if cached_feed is not None:
+        return cached_feed
+
+    tasks = await default_scorer.get_feed(current_user.id, db)
+    result = [TaskBriefResponse(
+        id=task.id,
+        title=task.title,
+        description=task.description,
+        status=task.status,
+        created_at=task.created_at,
+        end_date=task.end_date,
+        author_id=task.created_by
+    ) for task in tasks]
+
+    background_tasks.add_task(set_cached_feed, current_user.id, result)
+    return result

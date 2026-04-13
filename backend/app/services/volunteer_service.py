@@ -54,7 +54,8 @@ async def get_volunteer_stats(user_id: int, db: AsyncSession) -> dict:
     reviews_query = select(func.avg(Review.rating), func.count(Review.id)).where(
         and_(Review.reviewee_id == user_id, Review.target_type == 'volunteer')
     )
-    avg_rating, count_reviews = await db.execute(reviews_query).first() or (0.0, 0)
+    result = await db.execute(reviews_query)
+    avg_rating, count_reviews = result.first() or (0.0, 0)
     rating_by_reviews = float(avg_rating) if avg_rating else 0.0
     total_reviews_count = count_reviews
 
