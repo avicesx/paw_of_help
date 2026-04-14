@@ -14,6 +14,7 @@ from app.api import (
     volunteer_router,
     animal_router,
     users_router,
+    reviews_router,
 )
 from app.core import settings, limiter
 from app.core.database import create_db_and_tables
@@ -81,6 +82,7 @@ app.include_router(tasks_router)
 app.include_router(volunteer_router)
 app.include_router(animal_router)
 app.include_router(users_router)
+app.include_router(reviews_router)
 
 
 @app.get("/")
