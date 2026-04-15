@@ -53,6 +53,10 @@ class TaskResponseCreate(BaseModel):
     message: Optional[str] = None
 
 
+class TaskResponseUpdate(BaseModel):
+    status: str
+
+
 class TaskResponseResponse(BaseModel):
     id: int
     task_id: int
