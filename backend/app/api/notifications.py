@@ -25,7 +25,6 @@ async def _get_notification_or_404(db: AsyncSession, notification_id: int) -> No
 async def list_notifications(
     current: Annotated[User, Depends(get_current_user)],
     is_read: Optional[bool] = None,
-    current: Annotated[User, Depends(get_current_user)],
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
