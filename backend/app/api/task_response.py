@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_current_user, get_db
 from app.models.user import User
-from app.schemas.task import TaskResponseCreate, TaskResponseResponse
+from app.schemas.task import TaskResponseCreate, TaskResponseUpdate, TaskResponseResponse
 from app.services.task_response import (
     create_task_response,
     get_task_responses_for_curator,
