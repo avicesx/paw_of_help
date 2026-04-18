@@ -185,9 +185,9 @@ async def get_chat(
 )
 async def list_messages(
     chat_id: int,
+    current: Annotated[User, Depends(get_current_user)],
     limit: int = 50,
     offset: int = 0,
-    current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
     chat = await _get_chat_or_404(db, chat_id)

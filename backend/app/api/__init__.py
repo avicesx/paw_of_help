@@ -10,6 +10,7 @@ from app.api.users import router as users_router
 from app.api.reviews import router as reviews_router
 from app.api.task_response import router as task_responses_router
 
+
 __all__ = [
     "auth_router",
     "chats_router",
