@@ -34,3 +34,20 @@ async def invalidate_cached_feed(user_id: int) -> None:
     client = get_redis()
     cache_key = f"feed:volunteer:{user_id}"
     await client.delete(cache_key)
+
+
+async def set_cached_feed(user_id: int, tasks: List[TaskBriefResponse]) -> None:
+    """Сохраняет ленту в кэш с заданным TTL."""
+    client = get_redis()
+    cache_key = f"feed:volunteer:{user_id}"
+    tasks_dicts = [task.model_dump(mode='json') for task in tasks]
+    await client.set(cache_key, json.dumps(tasks_dicts), ex=settings.FEED_CACHE_TTL)
+
+
+async def invalidate_all_cached_feeds() -> None:
+    """Удаляет все кэши лент волонтёров."""
+    client = get_redis()
+    # Удалить все ключи с префиксом feed:volunteer:*
+    keys = await client.keys("feed:volunteer:*")
+    if keys:
+        await client.delete(*keys)

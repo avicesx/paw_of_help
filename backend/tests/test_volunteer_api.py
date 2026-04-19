@@ -336,9 +336,10 @@ class TestVolunteerProfileValidation(unittest.TestCase):
     """Тесты валидации данных профиля."""
 
     def test_profile_with_invalid_radius(self):
-        """Тест что радиус может быть любым числом."""
-        profile = VolunteerProfileUpdate(radius_km=-5)
-        self.assertEqual(profile.radius_km, -5)
+        """Тест что отрицательный радиус вызывает ValidationError."""
+        from pydantic import ValidationError
+        with self.assertRaises(ValidationError):
+            VolunteerProfileUpdate(radius_km=-5)
 
     def test_profile_with_large_radius(self):
         """Тест с большим радиусом."""

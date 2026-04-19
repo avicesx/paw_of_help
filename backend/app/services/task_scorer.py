@@ -43,6 +43,8 @@ class HeuristicTaskScorer(BaseTaskScorer):
         "repair": ["ремонт"],
         "photography": ["фотосъёмка"],
         "fundraising": ["фандрайзинг"],
+        "care": ["уход", "выгул"],
+        "other": [],
     }
 
     async def get_feed(self, user_id: int, db: AsyncSession) -> List[Task]:
@@ -75,7 +77,6 @@ class HeuristicTaskScorer(BaseTaskScorer):
             q = q.outerjoin(Animal, Task.animal_id == Animal.id).where(
                 or_(
                     Task.animal_id.is_(None),
-                    Animal.id.is_(None),
                     Animal.species.in_(profile.preferred_animal_types)
                 )
             )

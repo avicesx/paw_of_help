@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import get_current_user, get_db
 from app.models import OrganizationUser, Task, User
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
+from app.services.feed_cache import invalidate_all_cached_feeds
 
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -116,6 +117,8 @@ async def create_task(
     db.add(task)
     await db.commit()
     await db.refresh(task)
+    # Инвалидируем кэш лент всех волонтёров, так как задача изменилась
+    await invalidate_all_cached_feeds()
     return TaskResponse.model_validate(task)
 
 
@@ -144,6 +147,8 @@ async def update_task(
         setattr(task, k, v)
     await db.commit()
     await db.refresh(task)
+    # Инвалидируем кэш лент всех волонтёров, так как задача изменилась
+    await invalidate_all_cached_feeds()
     return TaskResponse.model_validate(task)
 
 
@@ -167,5 +172,7 @@ async def delete_task(
     )
     await db.delete(task)
     await db.commit()
+    # Инвалидируем кэш лент всех волонтёров, так как задача удалена
+    await invalidate_all_cached_feeds()
     return None
 
