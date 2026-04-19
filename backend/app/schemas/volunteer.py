@@ -1,7 +1,7 @@
 """Pydantic схемы для профиля волонтёра."""
 
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 
@@ -10,7 +10,7 @@ class VolunteerProfileCreate(BaseModel):
     location: Optional[str] = None
     location_lat: Optional[float] = None
     location_lng: Optional[float] = None
-    radius_km: Optional[int] = None
+    radius_km: Optional[int] = Field(None, ge=0)
     availability: Dict[str, Any] = {}
     preferred_animal_types: List[str] = []
     ready_for_foster: bool = False
@@ -26,7 +26,7 @@ class VolunteerProfileUpdate(BaseModel):
     location: Optional[str] = None
     location_lat: Optional[float] = None
     location_lng: Optional[float] = None
-    radius_km: Optional[int] = None
+    radius_km: Optional[int] = Field(None, ge=0)
     availability: Optional[Dict[str, Any]] = None
     preferred_animal_types: Optional[List[str]] = None
     ready_for_foster: Optional[bool] = None
