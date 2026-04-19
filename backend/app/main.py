@@ -7,10 +7,15 @@ from slowapi.errors import RateLimitExceeded
 
 from app.api import (
     auth_router,
+    chats_router,
     notifications_router,
     organizations_router,
     tasks_router,
     volunteer_router,
+    animal_router,
+    users_router,
+    reviews_router,
+    task_responses_router,
 )
 from app.core import settings, limiter
 from app.core.database import create_db_and_tables
@@ -71,10 +76,15 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(chats_router)
 app.include_router(notifications_router)
 app.include_router(organizations_router)
 app.include_router(tasks_router)
 app.include_router(volunteer_router)
+app.include_router(animal_router)
+app.include_router(users_router)
+app.include_router(reviews_router)
+app.include_router(task_responses_router)
 
 
 @app.get("/")

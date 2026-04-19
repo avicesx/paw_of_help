@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Профиль Paw</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <div class="topbar-side">☰</div>
+      <div class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </div>
+      <div class="topbar-side profile-icons">🔔 👤</div>
+    </header>
+
+    <section class="profile-screen">
+      <h1 class="screen-title">Мой профиль</h1>
+
+      <div class="profile-head">
+        <div class="avatar"></div>
+        <div class="profile-meta">
+          <div id="username" class="profile-name">Загрузка...</div>
+          <div class="profile-rating">0 ⭐ <span>0 отзыва</span></div>
+        </div>
+      </div>
+
+      <div class="section-label">Профиль автора</div>
+
+      <div class="empty-state">
+        Вы пока не писали статьи
+      </div>
+
+      <div class="paw-bg paw-bg-profile">🐾</div>
+      <button class="settings-btn" type="button" onclick="logout()">⚙</button>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script>
+    loadProfile();
+  </script>
+</body>
+</html>

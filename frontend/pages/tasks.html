@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Задачи</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <div class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </div>
+
+      <div class="topbar-side profile-icons">🔔 👤</div>
+    </header>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="#" class="side-link">База знаний</a>
+        <a href="#" class="side-link">Лента</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="#" class="side-link">Организации</a>
+      </div>
+    </aside>
+
+    <section class="tasks-screen">
+      <h1 class="screen-title">Задачи</h1>
+
+      <div class="task-tabs">
+        <button id="activeTabBtn" class="task-tab active" type="button" onclick="switchTaskTab('active')">
+          Активные задачи
+        </button>
+        <button id="doneTabBtn" class="task-tab" type="button" onclick="switchTaskTab('done')">
+          Завершённые
+        </button>
+      </div>
+
+      <div class="tasks-toolbar">
+        <div class="tasks-toolbar-title">Предложные заявки</div>
+        <button class="filter-btn" type="button" onclick="toggleFilter()">Фильтр</button>
+      </div>
+
+      <div id="filterPanel" class="filter-panel hidden">
+        <input id="taskSearch" class="field" type="text" placeholder="Поиск по заголовку" oninput="renderTasks()" />
+        <select id="taskTypeFilter" class="field" onchange="renderTasks()">
+          <option value="">Все типы</option>
+          <option value="transport">Перевозка</option>
+          <option value="foster">Передержка</option>
+          <option value="care">Уход</option>
+          <option value="other">Другое</option>
+        </select>
+        <select id="taskStatusFilter" class="field" onchange="renderTasks()">
+          <option value="">Все статусы</option>
+          <option value="open">Открыта</option>
+          <option value="in_progress">В работе</option>
+          <option value="done">Завершена</option>
+          <option value="cancelled">Отменена</option>
+        </select>
+      </div>
+
+      <div class="task-create-wrap">
+        <a href="task-create.html" class="primary-action-link">Создать задачу</a>
+      </div>
+
+      <div id="tasksList" class="tasks-list"></div>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/tasks.js"></script>
+  <script>
+    initTaskStorage();
+    renderTasks();
+  </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Создание задачи</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <div class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </div>
+
+      <div class="topbar-side profile-icons">🔔 👤</div>
+    </header>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="#" class="side-link">База знаний</a>
+        <a href="#" class="side-link">Лента</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="#" class="side-link">Организации</a>
+      </div>
+    </aside>
+
+    <section class="create-task-screen">
+      <div class="back-row">
+        <a href="tasks.html" class="back-link">⬅</a>
+      </div>
+
+      <form class="task-form-card" onsubmit="createTask(event)">
+        <label class="form-label">
+          Заголовок:
+          <input id="taskTitle" class="field" type="text" placeholder="Например: Помогите бедной Мусе" />
+        </label>
+
+        <label class="form-label">
+          Описание:
+          <textarea id="taskDescription" class="field textarea" placeholder="Кратко опиши задачу"></textarea>
+        </label>
+
+        <label class="form-label">
+          Профиль животного:
+          <div class="animal-attach-row">
+            <div id="selectedAnimalLabel" class="selected-animal-box">Животное не выбрано</div>
+            <a href="animal-select.html" class="attach-animal-btn">Прикрепить профиль животного</a>
+          </div>
+        </label>
+
+        <div class="double-grid">
+          <label class="form-label">
+            С
+            <input id="taskDateFrom" class="field" type="date" />
+          </label>
+
+          <label class="form-label">
+            До
+            <input id="taskDateTo" class="field" type="date" />
+          </label>
+        </div>
+
+        <label class="form-label">
+          Местоположение:
+          <input id="taskLocation" class="field" type="text" placeholder="Адрес или район" />
+        </label>
+
+        <label class="form-label">
+          Условия для волонтёра:
+          <textarea id="taskConditions" class="field textarea" placeholder="Что важно знать волонтёру"></textarea>
+        </label>
+
+        <label class="form-label">
+          Компетенции:
+          <select id="taskType" class="field">
+            <option value="transport">Перевозка</option>
+            <option value="foster">Передержка</option>
+            <option value="care">Уход</option>
+            <option value="other">Другое</option>
+          </select>
+        </label>
+
+        <label class="form-label">
+          Срочность:
+          <select id="taskUrgency" class="field">
+            <option value="low">Низкая</option>
+            <option value="medium" selected>Средняя</option>
+            <option value="high">Высокая</option>
+          </select>
+        </label>
+
+        <button class="submit-btn full-width" type="submit">Сохранить</button>
+        <p id="taskCreateStatus" class="save-status"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/tasks.js"></script>
+  <script>
+    initTaskStorage();
+    restoreSelectedAnimal();
+  </script>
+</body>
+</html>
