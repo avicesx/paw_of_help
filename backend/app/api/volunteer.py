@@ -15,7 +15,7 @@ from app.services.volunteer_service import (
     get_active_tasks, get_completed_tasks, get_skills, get_my_skills, set_my_skills, delete_my_skill
 )
 from app.services.task_scorer import default_scorer
-from app.services.feed_cache import get_cached_feed, set_cached_feed
+from app.services.feed_cache import get_cached_feed, set_cached_feed, invalidate_cached_feed
 
 router = APIRouter(prefix="/volunteer", tags=["volunteer"])
 
@@ -52,6 +52,8 @@ async def update_volunteer_profile(
     """Обновить профиль волонтёра."""
     profile = await update_profile(current_user.id, data.model_dump(exclude_unset=True), db)
     stats = await get_volunteer_stats(current_user.id, db)
+    # Инвалидируем кэш ленты, так как профиль изменился
+    await invalidate_cached_feed(current_user.id)
     return VolunteerProfileFullResponse(**profile.__dict__, stats=stats)
 
 
@@ -193,6 +195,8 @@ async def get_volunteer_tasks(
 )
 async def get_volunteer_feed(
     background_tasks: BackgroundTasks,
+    limit: int = 20,
+    offset: int = 0,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -200,7 +204,7 @@ async def get_volunteer_feed(
     await get_or_create_profile(current_user.id, db)
     cached_feed = await get_cached_feed(current_user.id)
     if cached_feed is not None:
-        return cached_feed
+        return cached_feed[offset:offset + limit]
 
     tasks = await default_scorer.get_feed(current_user.id, db)
     result = [TaskBriefResponse(
@@ -214,4 +218,4 @@ async def get_volunteer_feed(
     ) for task in tasks]
 
     background_tasks.add_task(set_cached_feed, current_user.id, result)
-    return result
+    return result[offset:offset + limit]

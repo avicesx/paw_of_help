@@ -33,6 +33,20 @@ class BaseTaskScorer(ABC):
 class HeuristicTaskScorer(BaseTaskScorer):
     """Эвристический алгоритм ранжирования (MVP)."""
 
+    # Маппинг типов задач к требуемым навыкам (русские названия)
+    TASK_SKILL_MAP = {
+        "walking": ["прогулки"],
+        "foster": ["передержка"],
+        "transport": ["транспортировка"],
+        "vet_help": ["ветпомощь", "инъекции"],
+        "socialization": ["социализация", "дрессировка"],
+        "repair": ["ремонт"],
+        "photography": ["фотосъёмка"],
+        "fundraising": ["фандрайзинг"],
+        "care": ["уход", "выгул"],
+        "other": [],
+    }
+
     async def get_feed(self, user_id: int, db: AsyncSession) -> List[Task]:
         profile = await db.scalar(
             select(VolunteerProfile).where(VolunteerProfile.user_id == user_id)
@@ -63,7 +77,6 @@ class HeuristicTaskScorer(BaseTaskScorer):
             q = q.outerjoin(Animal, Task.animal_id == Animal.id).where(
                 or_(
                     Task.animal_id.is_(None),
-                    Animal.id.is_(None),
                     Animal.species.in_(profile.preferred_animal_types)
                 )
             )
@@ -80,13 +93,22 @@ class HeuristicTaskScorer(BaseTaskScorer):
 
             if v_lat is not None and v_lng is not None and task.location_lat is not None and task.location_lng is not None:
                 dist = haversine_distance(v_lat, v_lng, task.location_lat, task.location_lng)
-                if dist <= v_radius:
-                    score += (1 - (dist / v_radius)) * settings.WEIGHT_DISTANCE
+                if v_radius > 0:
+                    if dist <= v_radius:
+                        score += (1 - (dist / v_radius)) * settings.WEIGHT_DISTANCE
+                    else:
+                        continue
+                elif dist == 0:
+                    # Если радиус 0, и задача в той же точке, полный бонус
+                    score += settings.WEIGHT_DISTANCE
                 else:
                     continue
 
-            if task.task_type and task.task_type in volunteer_skills:
-                score += settings.WEIGHT_SKILL
+            # Бонус за навыки: если task_type соответствует навыкам волонтёра
+            if task.task_type and task.task_type in self.TASK_SKILL_MAP:
+                required_skills = set(self.TASK_SKILL_MAP[task.task_type])
+                if volunteer_skills & required_skills:
+                    score += settings.WEIGHT_SKILL
 
             if task.task_type == "foster" and profile.ready_for_foster:
                 score += settings.WEIGHT_FOSTER
