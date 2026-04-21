@@ -15,6 +15,7 @@ from app.models import (
     User,
 )
 from app.schemas.communication import ChatMessageCreate, ChatMessageResponse, ChatResponse
+from app.services import create_unread_notification_once, mark_notification_read_by_data
 
 
 router = APIRouter(prefix="/chats", tags=["chats"])
@@ -234,6 +235,51 @@ async def send_message(
     db.add(msg)
     await db.commit()
     await db.refresh(msg)
+
+    # Системное уведомление "есть новые сообщения" (не на каждое сообщение)
+    if chat.context_type == "task":
+        task = await db.get(Task, chat.context_id)
+        if task:
+            staff_ids = (
+                await db.scalars(
+                    select(OrganizationUser.user_id).where(
+                        OrganizationUser.organization_id == task.organization_id,
+                        OrganizationUser.invitation_status == "accepted",
+                    )
+                )
+            ).all()
+            volunteer_ids = (
+                await db.scalars(
+                    select(TaskResponse.volunteer_id).where(TaskResponse.task_id == task.id)
+                )
+            ).all()
+            recipients = set(staff_ids) | set(volunteer_ids)
+        else:
+            recipients = set()
+    elif chat.context_type == "foster_request":
+        fr = await db.get(FosterRequest, chat.context_id)
+        if fr:
+            offer_ids = (
+                await db.scalars(
+                    select(FosterOffer.volunteer_id).where(FosterOffer.foster_request_id == fr.id)
+                )
+            ).all()
+            recipients = {fr.owner_id} | set(offer_ids)
+        else:
+            recipients = set()
+    else:
+        recipients = set()
+
+    recipients.discard(current.id)
+    for uid in recipients:
+        await create_unread_notification_once(
+            db,
+            user_id=uid,
+            type="chat_unread",
+            dedupe_data={"chat_id": chat.id},
+            title="Новые сообщения",
+            body="У вас есть новые сообщения в чате",
+        )
     return ChatMessageResponse.model_validate(msg)
 
 
@@ -262,4 +308,10 @@ async def mark_chat_read(
         .values(is_read=True)
     )
     await db.commit()
+    await mark_notification_read_by_data(
+        db,
+        user_id=current.id,
+        type="chat_unread",
+        data={"chat_id": chat_id},
+    )
     return None
