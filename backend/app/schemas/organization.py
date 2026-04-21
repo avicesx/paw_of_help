@@ -75,6 +75,6 @@ class InviteUserRequest(BaseModel):
 
 
 class OrganizationUserRoleUpdate(BaseModel):
-    """Смена роли сотрудника организации (только админ)."""
+    """Смена роли сотрудника организации (только админ)"""
 
     role: str = Field(..., description="admin|curator")

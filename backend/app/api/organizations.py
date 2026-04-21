@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import get_current_user, get_db
-from app.models import Notification, Organization, OrganizationUser, User
+from app.models import Organization, OrganizationUser, User
+from app.services import create_notification
 from app.schemas.organization import (
     InviteUserRequest,
     OrganizationCreate,
@@ -50,7 +51,7 @@ async def _require_org_role(
 
 @router.get("", response_model=list[OrganizationResponse])
 async def list_organizations(db: AsyncSession = Depends(get_db)):
-    """Публичный каталог организаций."""
+    """Публичный каталог организаций"""
     orgs = (await db.scalars(select(Organization).order_by(Organization.id.desc()))).all()
     return [OrganizationResponse.model_validate(o) for o in orgs]
 
@@ -72,7 +73,7 @@ async def create_organization(
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    """Создать заявку на организацию. Статус верификации всегда pending до модерации."""
+    """Создать заявку на организацию. Статус верификации всегда pending до модерации"""
     org = Organization(
         name=payload.name,
         description=payload.description,
@@ -117,7 +118,7 @@ async def update_organization(
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    """Обновить профиль организации. Админ организации — все поля из схемы; куратор — только logo_url и photos."""
+    """Обновить профиль организации. Админ организации — все поля из схемы; куратор — только logo_url и photos"""
     org = await _get_org_or_404(db, org_id)
     ou = await _require_org_role(
         db, org_id=org_id, user_id=current.id, roles={"admin", "curator"}
@@ -202,16 +203,15 @@ async def invite_user(
     await db.commit()
     await db.refresh(ou)
 
-    db.add(
-        Notification(
-            user_id=user.id,
-            type="organization_invite",
-            title="Приглашение в организацию",
-            body=f"Вас пригласили в организацию «{org.name}» с ролью {payload.role}.",
-            data={"organization_id": org_id, "role": payload.role},
-        )
+    await create_notification(
+        db,
+        user_id=user.id,
+        type="organization_invite",
+        title="Приглашение в организацию",
+        body=f"Вас пригласили в организацию «{org.name}» с ролью {payload.role}.",
+        data={"organization_id": org_id, "role": payload.role},
+        commit=True,
     )
-    await db.commit()
     return OrganizationUserResponse.model_validate(ou)
 
 
@@ -225,7 +225,7 @@ async def my_organizations(
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    """Организации, где пользователь состоит (invitation_status=accepted)."""
+    """Организации, где пользователь состоит"""
     org_ids = (
         await db.scalars(
             select(OrganizationUser.organization_id).where(
@@ -250,7 +250,7 @@ async def my_org_invites(
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    """Список pending-приглашений пользователя в организации."""
+    """Список pending-приглашений пользователя в организации"""
     rows = (
         await db.scalars(
             select(OrganizationUser).where(
@@ -273,7 +273,7 @@ async def accept_invite(
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    """Пользователь принимает своё приглашение (pending -> accepted)."""
+    """Пользователь принимает своё приглашение"""
     await _get_org_or_404(db, org_id)
     ou = await db.scalar(
         select(OrganizationUser).where(
@@ -302,7 +302,7 @@ async def decline_invite(
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    """Пользователь отклоняет своё приглашение (pending -> declined)."""
+    """Пользователь отклоняет своё приглашение"""
     await _get_org_or_404(db, org_id)
     ou = await db.scalar(
         select(OrganizationUser).where(
@@ -347,8 +347,8 @@ async def remove_org_user(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Админ может удалить любого участника.
-    Пользователь может удалить себя (выйти из организации).
+    Админ может удалить любого участника
+    Пользователь может удалить себя (выйти из организации)
     """
     await _get_org_or_404(db, org_id)
     if current.id != user_id:
@@ -384,7 +384,9 @@ async def update_org_user_role(
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    """Только админ. Роли: admin/curator. Нельзя лишить организацию последнего админа."""
+    """Только админ
+    Роли: admin/curator
+    Нельзя лишить организацию последнего админа"""
     await _get_org_or_404(db, org_id)
     await _require_org_role(db, org_id=org_id, user_id=current.id, roles={"admin"})
 
