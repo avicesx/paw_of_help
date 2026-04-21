@@ -13,6 +13,7 @@ from app.schemas.organization import (
     OrganizationUserResponse,
     OrganizationUserRoleUpdate,
 )
+from app.models import Subscription
 
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
@@ -60,6 +61,45 @@ async def list_organizations(db: AsyncSession = Depends(get_db)):
 async def get_organization(org_id: int, db: AsyncSession = Depends(get_db)):
     org = await _get_org_or_404(db, org_id)
     return OrganizationResponse.model_validate(org)
+
+
+@router.post(
+    "/{org_id}/subscribe",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Подписаться на организацию",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def subscribe(
+    org_id: int,
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    await _get_org_or_404(db, org_id)
+    existing = await db.get(Subscription, {"user_id": current.id, "organization_id": org_id})
+    if existing:
+        return None
+    db.add(Subscription(user_id=current.id, organization_id=org_id))
+    await db.commit()
+    return None
+
+
+@router.delete(
+    "/{org_id}/subscribe",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Отписаться от организации",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def unsubscribe(
+    org_id: int,
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    sub = await db.get(Subscription, {"user_id": current.id, "organization_id": org_id})
+    if sub is None:
+        return None
+    await db.delete(sub)
+    await db.commit()
+    return None
 
 
 @router.post(

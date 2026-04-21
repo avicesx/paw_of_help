@@ -14,6 +14,15 @@ class EventCreate(BaseModel):
     location: Optional[str] = None
 
 
+class EventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    event_type: Optional[str] = None
+    start_datetime: Optional[datetime] = None
+    end_datetime: Optional[datetime] = None
+    location: Optional[str] = None
+
+
 class EventResponse(EventCreate):
     id: int
     organization_id: int
