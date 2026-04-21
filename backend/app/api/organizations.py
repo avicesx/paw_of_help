@@ -10,6 +10,7 @@ from app.schemas.organization import (
     OrganizationResponse,
     OrganizationUpdate,
     OrganizationUserResponse,
+    OrganizationUserRoleUpdate,
 )
 
 
@@ -211,4 +212,200 @@ async def invite_user(
         )
     )
     await db.commit()
+    return OrganizationUserResponse.model_validate(ou)
+
+
+@router.get(
+    "/my",
+    response_model=list[OrganizationResponse],
+    summary="Мои организации",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def my_organizations(
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """Организации, где пользователь состоит (invitation_status=accepted)."""
+    org_ids = (
+        await db.scalars(
+            select(OrganizationUser.organization_id).where(
+                OrganizationUser.user_id == current.id,
+                OrganizationUser.invitation_status == "accepted",
+            )
+        )
+    ).all()
+    if not org_ids:
+        return []
+    orgs = (await db.scalars(select(Organization).where(Organization.id.in_(org_ids)))).all()
+    return [OrganizationResponse.model_validate(o) for o in orgs]
+
+
+@router.get(
+    "/invites",
+    response_model=list[OrganizationUserResponse],
+    summary="Мои приглашения в организации",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def my_org_invites(
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """Список pending-приглашений пользователя в организации."""
+    rows = (
+        await db.scalars(
+            select(OrganizationUser).where(
+                OrganizationUser.user_id == current.id,
+                OrganizationUser.invitation_status == "pending",
+            )
+        )
+    ).all()
+    return [OrganizationUserResponse.model_validate(r) for r in rows]
+
+
+@router.post(
+    "/{org_id}/accept-invite",
+    response_model=OrganizationUserResponse,
+    summary="Принять приглашение в организацию",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def accept_invite(
+    org_id: int,
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """Пользователь принимает своё приглашение (pending -> accepted)."""
+    await _get_org_or_404(db, org_id)
+    ou = await db.scalar(
+        select(OrganizationUser).where(
+            OrganizationUser.organization_id == org_id,
+            OrganizationUser.user_id == current.id,
+        )
+    )
+    if ou is None:
+        raise HTTPException(status_code=404, detail="Приглашение не найдено")
+    if ou.invitation_status != "pending":
+        raise HTTPException(status_code=400, detail="Приглашение уже обработано")
+    ou.invitation_status = "accepted"
+    await db.commit()
+    await db.refresh(ou)
+    return OrganizationUserResponse.model_validate(ou)
+
+
+@router.post(
+    "/{org_id}/decline-invite",
+    response_model=OrganizationUserResponse,
+    summary="Отклонить приглашение в организацию",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def decline_invite(
+    org_id: int,
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """Пользователь отклоняет своё приглашение (pending -> declined)."""
+    await _get_org_or_404(db, org_id)
+    ou = await db.scalar(
+        select(OrganizationUser).where(
+            OrganizationUser.organization_id == org_id,
+            OrganizationUser.user_id == current.id,
+        )
+    )
+    if ou is None:
+        raise HTTPException(status_code=404, detail="Приглашение не найдено")
+    if ou.invitation_status != "pending":
+        raise HTTPException(status_code=400, detail="Приглашение уже обработано")
+    ou.invitation_status = "declined"
+    await db.commit()
+    await db.refresh(ou)
+    return OrganizationUserResponse.model_validate(ou)
+
+
+async def _ensure_not_last_admin(db: AsyncSession, org_id: int, user_id: int) -> None:
+    admins = (
+        await db.scalars(
+            select(OrganizationUser.user_id).where(
+                OrganizationUser.organization_id == org_id,
+                OrganizationUser.role == "admin",
+                OrganizationUser.invitation_status == "accepted",
+            )
+        )
+    ).all()
+    if len(admins) <= 1 and user_id in set(admins):
+        raise HTTPException(status_code=400, detail="Нельзя удалить последнего администратора")
+
+
+@router.delete(
+    "/{org_id}/users/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Удалить сотрудника из организации",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def remove_org_user(
+    org_id: int,
+    user_id: int,
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Админ может удалить любого участника.
+    Пользователь может удалить себя (выйти из организации).
+    """
+    await _get_org_or_404(db, org_id)
+    if current.id != user_id:
+        await _require_org_role(db, org_id=org_id, user_id=current.id, roles={"admin"})
+
+    ou = await db.scalar(
+        select(OrganizationUser).where(
+            OrganizationUser.organization_id == org_id,
+            OrganizationUser.user_id == user_id,
+        )
+    )
+    if ou is None:
+        raise HTTPException(status_code=404, detail="Пользователь не найден в организации")
+
+    if ou.role == "admin" and ou.invitation_status == "accepted":
+        await _ensure_not_last_admin(db, org_id=org_id, user_id=user_id)
+
+    await db.delete(ou)
+    await db.commit()
+    return None
+
+
+@router.patch(
+    "/{org_id}/users/{user_id}/role",
+    response_model=OrganizationUserResponse,
+    summary="Сменить роль сотрудника",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def update_org_user_role(
+    org_id: int,
+    user_id: int,
+    payload: OrganizationUserRoleUpdate,
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """Только админ. Роли: admin/curator. Нельзя лишить организацию последнего админа."""
+    await _get_org_or_404(db, org_id)
+    await _require_org_role(db, org_id=org_id, user_id=current.id, roles={"admin"})
+
+    if payload.role not in {"admin", "curator"}:
+        raise HTTPException(status_code=400, detail="Неверная роль")
+
+    ou = await db.scalar(
+        select(OrganizationUser).where(
+            OrganizationUser.organization_id == org_id,
+            OrganizationUser.user_id == user_id,
+        )
+    )
+    if ou is None:
+        raise HTTPException(status_code=404, detail="Пользователь не найден в организации")
+    if ou.invitation_status != "accepted":
+        raise HTTPException(status_code=400, detail="Нельзя менять роль до принятия приглашения")
+
+    if ou.role == "admin" and payload.role != "admin":
+        await _ensure_not_last_admin(db, org_id=org_id, user_id=user_id)
+
+    ou.role = payload.role
+    await db.commit()
+    await db.refresh(ou)
     return OrganizationUserResponse.model_validate(ou)
