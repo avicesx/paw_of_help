@@ -17,7 +17,7 @@ from app.api import (
     reviews_router,
     task_responses_router,
     events_router,
-    complaints_router
+    reports_router,
 )
 from app.core import settings, limiter
 from app.core.database import create_db_and_tables
@@ -88,7 +88,7 @@ app.include_router(users_router)
 app.include_router(reviews_router)
 app.include_router(task_responses_router)
 app.include_router(events_router)
-app.include_router(complaints_router)
+app.include_router(reports_router)
 
 
 @app.get("/")

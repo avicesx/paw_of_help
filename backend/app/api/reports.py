@@ -4,18 +4,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_current_user, get_db
 from app.models.user import User
-from app.schemas.complaint import ComplaintCreate, ComplaintResponse
-from app.services.complaint_service import create_complaint
+from app.schemas.report import ReportCreate, ReportResponse
+from app.services.report_service import create_report
 
-router = APIRouter(prefix="/complaints", tags=["complaints"])
+router = APIRouter(prefix="/reports", tags=["reports"])
 
 
-@router.post("/", response_model=ComplaintResponse, status_code=status.HTTP_201_CREATED)
-async def submit_complaint(
-    payload: ComplaintCreate,
+@router.post("/", response_model=ReportResponse, status_code=status.HTTP_201_CREATED)
+async def submit_report(
+    payload: ReportCreate,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
     """Отправить жалобу на отзыв, статью, сообщение, пользователя или организацию."""
-    complaint = await create_complaint(db, payload, current_user.id)
-    return ComplaintResponse.model_validate(complaint)
+    report = await create_report(db, payload, current_user.id)
+    return ReportResponse.model_validate(report)
