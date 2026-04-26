@@ -13,7 +13,7 @@ class Task(Base):
     created_by = Column(Integer, nullable=False)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    task_type = Column(String(100), nullable=True)
+    task_type = Column(String(100), nullable=True, index=True)
     urgency = Column(
         Enum("normal", "urgent", name="task_urgency"),
         nullable=False,
@@ -28,6 +28,7 @@ class Task(Base):
         Enum("open", "in_progress", "done", "cancelled", name="task_status"),
         nullable=False,
         default="open",
+        index=True,
     )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -72,3 +72,9 @@ class OrganizationUserResponse(BaseModel):
 class InviteUserRequest(BaseModel):
     username: str = Field(..., description="логин пользователя")
     role: str = "curator"
+
+
+class OrganizationUserRoleUpdate(BaseModel):
+    """Смена роли сотрудника организации (только админ)"""
+
+    role: str = Field(..., description="admin|curator")

@@ -6,6 +6,7 @@ from app.models.user import User
 from app.models.organization import OrganizationUser
 from app.models import Skill, VolunteerSkill
 from app.schemas.task import TaskResponseCreate
+from app.services import create_notification
 
 
 async def create_task_response(
@@ -67,6 +68,28 @@ async def create_task_response(
     db.add(response)
     await db.commit()
     await db.refresh(response)
+
+    # Уведомление сотрудникам организации о новом отклике
+    staff_ids = (
+        await db.scalars(
+            select(OrganizationUser.user_id).where(
+                OrganizationUser.organization_id == task.organization_id,
+                OrganizationUser.invitation_status == "accepted",
+                OrganizationUser.role.in_(["admin", "curator"]),
+            )
+        )
+    ).all()
+    for uid in set(staff_ids):
+        await create_notification(
+            db,
+            user_id=uid,
+            type="task_response_created",
+            title="Новый отклик на задачу",
+            body=f"Поступил новый отклик на задачу «{task.title}»",
+            data={"task_id": task.id, "response_id": response.id, "volunteer_id": volunteer.id},
+            commit=False,
+        )
+    await db.commit()
     return response
 
 
@@ -131,6 +154,17 @@ async def update_task_response_status(
     resp.status = new_status
     await db.commit()
     await db.refresh(resp)
+
+    # Уведомление волонтёру об изменении статуса отклика
+    await create_notification(
+        db,
+        user_id=resp.volunteer_id,
+        type="task_response_status",
+        title="Статус отклика изменён",
+        body=f"Ваш отклик на задачу «{task.title}»: {new_status}",
+        data={"task_id": task.id, "response_id": resp.id, "status": new_status},
+        commit=True,
+    )
 
     if new_status == "accepted":
         task.status = "in_progress"
