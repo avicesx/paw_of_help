@@ -123,12 +123,13 @@ async def publish_request(*, request_id: int, owner_id: int, db: AsyncSession) -
     matches = await match_volunteers(request_id=request_id, db=db)
     for match in matches:
         await create_notification(
+            db=db,
             user_id=match.id,
-            notification_type="foster_request_published",
+            type="foster_request_published",
             title="Новая заявка на передержку",
             body=f"Появилась подходящая заявка на передержку #{foster_request.id}",
             data={"foster_request_id": foster_request.id, "match_score": match.match_score},
-            db=db,
+            commit=True,
         )
     return foster_request
 
@@ -247,12 +248,13 @@ async def create_offer(
     await db.refresh(offer)
 
     await create_notification(
+        db=db,
         user_id=foster_request.owner_id,
-        notification_type="foster_offer_created",
+        type="foster_offer_created",
         title="Новый отклик на передержку",
         body=f"По вашей заявке #{foster_request.id} появился отклик",
         data={"foster_request_id": foster_request.id, "offer_id": offer.id},
-        db=db,
+        commit=True,
     )
     return offer
 
@@ -327,12 +329,13 @@ async def accept_offer(
         db=db,
     )
     await create_notification(
+        db=db,
         user_id=offer.volunteer_id,
-        notification_type="foster_offer_accepted",
+        type="foster_offer_accepted",
         title="Ваш отклик принят",
         body=f"Вас выбрали для передержки по заявке #{foster_request.id}",
         data={"foster_request_id": foster_request.id, "offer_id": offer.id, "placement_id": placement.id},
-        db=db,
+        commit=True,
     )
     return placement
 
