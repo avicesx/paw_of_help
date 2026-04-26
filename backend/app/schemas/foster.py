@@ -54,7 +54,6 @@ class FosterOfferResponse(BaseModel):
     id: int
     foster_request_id: int
     volunteer_id: int
-    type: str
     status: str
     message: Optional[str] = None
     proposed_start_date: Optional[date] = None
@@ -76,3 +75,11 @@ class FosterPlacementResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class FosterVolunteerMatchResponse(BaseModel):
+    id: int
+    name: Optional[str] = None
+    rating: float = 0.0
+    distance: Optional[float] = None
+    match_score: float

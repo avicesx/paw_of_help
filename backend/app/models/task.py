@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Date, DateTime, Enum, Float, Integer, JSON, String, Text
+from sqlalchemy import Column, Date, DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
 
@@ -8,7 +9,7 @@ class Task(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     organization_id = Column(Integer, nullable=False, index=True)
-    animal_id = Column(Integer, nullable=True)
+    animal_id = Column(Integer, ForeignKey("animals.id"), nullable=True)
     created_by = Column(Integer, nullable=False)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
@@ -30,6 +31,7 @@ class Task(Base):
     )
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    animal = relationship("Animal", back_populates="tasks")
 
 
 class TaskResponse(Base):

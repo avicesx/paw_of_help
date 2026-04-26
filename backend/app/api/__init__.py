@@ -8,7 +8,8 @@ from app.api.volunteer import router as volunteer_router
 from app.api.tasks import router as tasks_router
 from app.api.users import router as users_router
 from app.api.reviews import router as reviews_router
-from app.api.task_responses import router as task_responses_router
+from app.api.task_response import router as task_responses_router
+from app.api.foster import router as foster_router
 
 __all__ = [
     "auth_router",
@@ -21,4 +22,5 @@ __all__ = [
     "users_router",
     "reviews_router",
     "task_responses_router",
+    "foster_router",
 ]
