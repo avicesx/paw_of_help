@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, JSON, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Integer, JSON, String, Text, Enum as SQLEnum
 from sqlalchemy.sql import func
 from app.core.database import Base
 
@@ -64,6 +64,13 @@ class KnowledgeBaseArticle(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     moderated_at = Column(DateTime(timezone=True), nullable=True)
     moderated_by = Column(Integer, nullable=True)
+
+    status = Column(
+        SQLEnum("draft", "on_moderation", "published", "rejected", name="article_status"),
+        default="on_moderation",
+        nullable=False
+    )
+    rejection_reason = Column(Text, nullable=True)
 
 
 class ArticleTag(Base):
