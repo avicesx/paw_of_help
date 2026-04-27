@@ -1,4 +1,5 @@
 from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core import Base
 
@@ -25,3 +26,4 @@ class User(Base):
     role = Column(String(20), nullable=False, default="user")
     is_expert = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
+    tickets = relationship("SupportTicket", back_populates="user")
