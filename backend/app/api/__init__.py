@@ -10,6 +10,7 @@ from app.api.users import router as users_router
 from app.api.reviews import router as reviews_router
 from app.api.task_response import router as task_responses_router
 from app.api.events import router as events_router
+from app.api.reports import router as reports_router
 
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "reviews_router",
     "task_responses_router",
     "events_router",
+    "reports_router",
 ]
