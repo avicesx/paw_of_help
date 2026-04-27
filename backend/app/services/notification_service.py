@@ -16,7 +16,6 @@ async def create_notification(
 ) -> Notification:
     """
     Создаёт уведомление для пользователя
-    Не является публичным api
     """
     n = Notification(
         user_id=user_id,
@@ -43,9 +42,6 @@ async def create_unread_notification_once(
 ) -> Notification | None:
     """
     Создаёт ОДНО непрочитанное уведомление с данным type+dedupe_data.
-    Если уже есть непрочитанное — новое не создаём
-
-    Возвращает созданное уведомление или None, если пропустили из-за дедупликации
     """
     existing = await db.scalar(
         select(Notification.id).where(
@@ -75,7 +71,7 @@ async def mark_notification_read_by_data(
     type: str,
     data: Dict[str, Any],
 ) -> None:
-    """Пометить непрочитанные уведомления данного типа с точным data как прочитанные"""
+    """Пометить непрочитанные уведомления как прочитанные"""
     await db.execute(
         update(Notification)
         .where(

@@ -16,6 +16,7 @@ from app.api import (
     users_router,
     reviews_router,
     task_responses_router,
+    foster_router,
     events_router,
     knowledge_base_router,
     encyclopedia_router,
@@ -91,6 +92,7 @@ app.include_router(animal_router)
 app.include_router(users_router)
 app.include_router(reviews_router)
 app.include_router(task_responses_router)
+app.include_router(foster_router)
 app.include_router(events_router)
 app.include_router(knowledge_base_router)
 app.include_router(encyclopedia_router)

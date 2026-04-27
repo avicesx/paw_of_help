@@ -38,6 +38,7 @@ class FosterOffer(Base):
     type = Column(
         Enum("offer", "response", name="foster_offer_type"),
         nullable=False,
+        default="response",
     )
     status = Column(
         Enum("pending", "accepted", "declined", name="foster_offer_status"),
