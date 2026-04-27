@@ -18,6 +18,7 @@ from app.api import (
     task_responses_router,
     events_router,
     support_tickets_router,
+    reports_router,
 )
 from app.core import settings, limiter
 from app.core.database import create_db_and_tables
@@ -89,6 +90,7 @@ app.include_router(reviews_router)
 app.include_router(task_responses_router)
 app.include_router(events_router)
 app.include_router(support_tickets_router)
+app.include_router(reports_router)
 
 
 @app.get("/")

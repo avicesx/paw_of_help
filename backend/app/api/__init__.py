@@ -11,6 +11,7 @@ from app.api.reviews import router as reviews_router
 from app.api.task_response import router as task_responses_router
 from app.api.events import router as events_router
 from app.api.support_tickets import router as support_tickets_router
+from app.api.reports import router as reports_router
 
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "task_responses_router",
     "events_router",
     "support_tickets_router",
+    "reports_router",
 ]
