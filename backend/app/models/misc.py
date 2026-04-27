@@ -1,5 +1,6 @@
 from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, String, Text
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
@@ -93,6 +94,7 @@ class SupportTicket(Base):
     related_entity_id = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    user = relationship("User", foreign_keys=[user_id], back_populates="tickets")
 
 
 class SupportTicketMessage(Base):
