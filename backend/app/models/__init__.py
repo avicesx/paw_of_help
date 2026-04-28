@@ -7,9 +7,10 @@ from app.models.task import Task, TaskResponse, TaskCompletionReport
 from app.models.foster import FosterRequest, FosterOffer, FosterPlacement
 from app.models.blog import (
     Tag,
-    OrganizationBlogPost,
+    Post,
     BlogPostTag,
     BlogComment,
+    BlogCommentReaction,
     KnowledgeBaseArticle,
     ArticleTag,
     ArticleRating
@@ -24,6 +25,7 @@ from app.models.communication import (
 from app.models.misc import (
     Review,
     Report,
+    ReportReason,
     Subscription,
     Sighting,
     SupportTicket,
@@ -43,11 +45,11 @@ __all__ = [
     'Task', 'TaskResponse', 'TaskCompletionReport', 'Achievement', 'UserAchievement',
     'FosterRequest', 'FosterOffer', 'FosterPlacement',
 
-    'Tag', 'OrganizationBlogPost', 'BlogPostTag', 'BlogComment', 
+    'Tag', 'Post', 'BlogPostTag', 'BlogComment', 'BlogCommentReaction',
     'KnowledgeBaseArticle', 'ArticleTag', 'ArticleRating',
 
     'Event', 'EventParticipant', 'Notification', 'Chat', 'ChatMessage'
 
-    'Review', 'Report', 'Subscription', 'Sighting', 'SupportTicket', 
+    'Review', 'Report', 'ReportReason', 'Subscription', 'Sighting', 'SupportTicket', 
     'SupportTicketMessage', 'AuditLog', 'Achievement', 'UserAchievement'
     ]

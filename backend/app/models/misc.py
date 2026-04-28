@@ -30,12 +30,13 @@ class Report(Base):
     reporter_id = Column(Integer, nullable=False)
     target_type = Column(
         Enum(
-            "user", "organization", "task", "review", "post", "comment",
+            "user", "organization", "task", "review", "post", "comment", "article",
             name="report_target_type",
         ),
         nullable=False,
     )
     target_id = Column(Integer, nullable=False)
+    reason_code = Column(String(100), nullable=True)
     reason = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
     status = Column(String(30), default="pending")
@@ -43,6 +44,29 @@ class Report(Base):
     moderation_comment = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class ReportReason(Base):
+    __tablename__ = "report_reasons"
+
+    id = Column(Integer, primary_key=True, index=True)
+    target_type = Column(
+        Enum(
+            "user",
+            "organization",
+            "article",
+            "post",
+            "comment",
+            name="report_reason_target_type",
+        ),
+        nullable=False,
+        index=True,
+    )
+    code = Column(String(100), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class Subscription(Base):

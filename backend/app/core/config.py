@@ -23,6 +23,12 @@ class Settings(BaseSettings):
         description="Лимит slowapi для POST /auth/login и /auth/register (например 10/minute)",
     )
 
+    APP_TIMEZONE: str = Field(
+        "Europe/Moscow",
+        env="APP_TIMEZONE",
+        description="Таймзона приложения для календарных ограничений (например Europe/Moscow)",
+    )
+
     # Кэш редиски
     REDIS_URL: str = Field("redis://localhost:6379/0", env="REDIS_URL", description="URL для Redis")
     FEED_CACHE_TTL: int = Field(300, env="FEED_CACHE_TTL", description="TTL кэша ленты в секундах (по умолчанию 5 мин)")

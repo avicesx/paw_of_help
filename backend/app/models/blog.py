@@ -27,6 +27,23 @@ class OrganizationBlogPost(Base):
     moderated_by = Column(Integer, nullable=True)
 
 
+class Post(Base):
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    organization_id = Column(Integer, nullable=True, index=True)
+    author_user_id = Column(Integer, nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=True)
+    attachments = Column(JSON, default=lambda: [])
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    published_at = Column(DateTime(timezone=True), nullable=True)
+    is_published = Column(Boolean, default=False)
+    moderated_at = Column(DateTime(timezone=True), nullable=True)
+    moderated_by = Column(Integer, nullable=True)
+
+
 class BlogPostTag(Base):
     __tablename__ = "blog_post_tags"
 
@@ -40,10 +57,22 @@ class BlogComment(Base):
     id = Column(Integer, primary_key=True, index=True)
     post_id = Column(Integer, nullable=False, index=True)
     user_id = Column(Integer, nullable=False)
+    parent_id = Column(Integer, nullable=True, index=True)
+    organization_id = Column(Integer, nullable=True, index=True)
     content = Column(Text, nullable=False)
     is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+
+class BlogCommentReaction(Base):
+    __tablename__ = "blog_comment_reactions"
+
+    comment_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, primary_key=True, index=True)
+    # 1 = лайк, -1 = дизлайк
+    vote = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class KnowledgeBaseArticle(Base):
