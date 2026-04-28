@@ -23,9 +23,13 @@ from app.api import (
     moderation_router,
     support_tickets_router,
     reports_router,
+    posts_router,
+    comments_router,
 )
 from app.core import settings, limiter
 from app.core.database import create_db_and_tables
+from app.core.database import AsyncSessionLocal
+from app.core.report_reasons_seed import seed_report_reasons_if_empty
 
 
 def _cors_allow_credentials() -> bool:
@@ -68,6 +72,8 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 @app.on_event("startup")
 async def on_startup() -> None:
     await create_db_and_tables()
+    async with AsyncSessionLocal() as db:
+        await seed_report_reasons_if_empty(db)
 
 
 _origins = _cors_origins()
@@ -99,6 +105,8 @@ app.include_router(encyclopedia_router)
 app.include_router(moderation_router)
 app.include_router(support_tickets_router)
 app.include_router(reports_router)
+app.include_router(posts_router)
+app.include_router(comments_router)
 
 
 @app.get("/")

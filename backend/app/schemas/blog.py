@@ -3,25 +3,26 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
 
-# блог организации
-class BlogPostCreate(BaseModel):
+# посты (пользователь/организация)
+class PostCreate(BaseModel):
     title: str
     content: Optional[str] = None
     attachments: List[Any] = []
-    tag_ids: List[int] = []
+    # если указан organization_id, пост будет опубликован от имени организации (проверка прав в API)
+    organization_id: Optional[int] = None
 
 
-class BlogPostUpdate(BaseModel):
+class PostUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
     attachments: Optional[List[Any]] = None
     is_published: Optional[bool] = None
 
 
-class BlogPostResponse(BaseModel):
+class PostResponse(BaseModel):
     id: int
-    organization_id: int
-    author_id: int
+    organization_id: Optional[int] = None
+    author_user_id: int
     title: str
     content: Optional[str] = None
     attachments: List[Any] = []
@@ -36,18 +37,34 @@ class BlogPostResponse(BaseModel):
 
 class BlogCommentCreate(BaseModel):
     content: str
+    parent_id: Optional[int] = None
+    organization_id: Optional[int] = None
+
+
+class BlogCommentUpdate(BaseModel):
+    content: str
 
 
 class BlogCommentResponse(BaseModel):
     id: int
     post_id: int
     user_id: int
+    parent_id: Optional[int] = None
+    organization_id: Optional[int] = None
     content: str
     is_deleted: bool
     created_at: datetime
+    updated_at: Optional[datetime] = None
+    likes: int = 0
+    dislikes: int = 0
+    my_vote: Optional[int] = None
 
     class Config:
         from_attributes = True
+
+
+class CommentReactionRequest(BaseModel):
+    vote: int  # 1 (лайк) или -1 (дизлайк); 0 = снять реакцию
 
 
 # статьи в базе знаний

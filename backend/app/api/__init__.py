@@ -16,6 +16,8 @@ from app.api.encyclopedia import router as encyclopedia_router
 from app.api.moderation import router as moderation_router
 from app.api.support_tickets import router as support_tickets_router
 from app.api.reports import router as reports_router
+from app.api.posts import router as posts_router
+from app.api.comments import router as comments_router
 
 
 __all__ = [
@@ -36,4 +38,6 @@ __all__ = [
     "moderation_router",
     "support_tickets_router",
     "reports_router",
+    "posts_router",
+    "comments_router",
 ]
