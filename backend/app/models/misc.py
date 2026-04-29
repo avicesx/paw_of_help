@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -95,7 +95,7 @@ class SupportTicket(Base):
     __tablename__ = "support_tickets"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     subject = Column(String(255), nullable=False)
     body = Column(Text, nullable=False)
     status = Column(
@@ -125,8 +125,8 @@ class SupportTicketMessage(Base):
     __tablename__ = "support_ticket_messages"
 
     id = Column(Integer, primary_key=True, index=True)
-    ticket_id = Column(Integer, nullable=False, index=True)
-    sender_id = Column(Integer, nullable=False)
+    ticket_id = Column(Integer, ForeignKey("support_tickets.id"), nullable=False, index=True)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     body = Column(Text, nullable=False)
     is_staff = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -11,6 +11,9 @@ class Breed(Base):
     name = Column(String(100), nullable=False)
     description_short = Column(Text, nullable=True)
 
+    species = relationship("AnimalSpecies", back_populates="breeds")
+    card = relationship("BreedCard", back_populates="breed", uselist=False, cascade="all, delete-orphan")
+
 
 class BreedCard(Base):
     __tablename__ = "breed_cards"
