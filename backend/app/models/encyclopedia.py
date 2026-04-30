@@ -10,6 +10,8 @@ class Breed(Base):
     species_id = Column(Integer, ForeignKey("animal_species.id"), nullable=False)
     name = Column(String(100), nullable=False)
     description_short = Column(Text, nullable=True)
+    card = relationship("BreedCard", uselist=False, back_populates="breed")
+    species = relationship("AnimalSpecies", back_populates="breeds")
 
 
 class BreedCard(Base):
