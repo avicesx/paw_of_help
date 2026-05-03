@@ -24,6 +24,8 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     last_login = Column(DateTime(timezone=True), nullable=True)
     role = Column(String(20), nullable=False, default="user")
+    is_superadmin = Column(Boolean, default=False)
+    staff_role = Column(String(30), nullable=True)
     is_expert = Column(Boolean, default=False)
     avatar_url = Column(String, nullable=True)
     tickets = relationship("SupportTicket", back_populates="user")

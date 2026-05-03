@@ -20,6 +20,9 @@ class Review(Base):
     target_id = Column(Integer, nullable=False, index=True)
     rating = Column(Integer, nullable=False)
     comment = Column(Text, nullable=True)
+    is_hidden = Column(Boolean, default=False)
+    moderation_status = Column(String(30), default="approved")
+    moderation_reason = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

@@ -40,6 +40,9 @@ class Post(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     published_at = Column(DateTime(timezone=True), nullable=True)
     is_published = Column(Boolean, default=False)
+    is_hidden = Column(Boolean, default=False)
+    moderation_status = Column(String(30), default="approved")
+    moderation_reason = Column(Text, nullable=True)
     moderated_at = Column(DateTime(timezone=True), nullable=True)
     moderated_by = Column(Integer, nullable=True)
 
@@ -61,6 +64,9 @@ class BlogComment(Base):
     organization_id = Column(Integer, nullable=True, index=True)
     content = Column(Text, nullable=False)
     is_deleted = Column(Boolean, default=False)
+    is_hidden = Column(Boolean, default=False)
+    moderation_status = Column(String(30), default="approved")
+    moderation_reason = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
