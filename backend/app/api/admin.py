@@ -27,8 +27,6 @@ from app.schemas.admin import (
     ReportListItem,
     RejectContentRequest,
     RoleUpdateRequest,
-    StaffRoleItem,
-    StaffRoleUpdateRequest,
     SupportTicketDetail,
     SupportTicketListItem,
     SupportTicketReplyRequest,
@@ -41,32 +39,34 @@ from app.services import create_notification
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-def _require_admin(current_user: User) -> None:
-    if current_user.role != "admin" and not current_user.is_superadmin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
-
-
-def _require_full_admin(current_user: User) -> None:
-    _require_admin(current_user)
-    if current_user.staff_role is not None and not current_user.is_superadmin:
+def _require_admin_access(current_user: User) -> None:
+    """Доступ к админке: admin, moderator, support_agent, superadmin."""
+    if current_user.role not in {"admin", "moderator", "support_agent", "superadmin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
 
 
 def _require_moderation_access(current_user: User) -> None:
-    _require_admin(current_user)
-    if current_user.staff_role not in {None, "moderator"} and not current_user.is_superadmin:
+    """Доступ к контент-ревью и репортам: admin, moderator, superadmin."""
+    if current_user.role not in {"admin", "moderator", "superadmin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
 
 
 def _require_support_access(current_user: User) -> None:
-    _require_admin(current_user)
-    if current_user.staff_role not in {None, "support_agent"} and not current_user.is_superadmin:
+    """Доступ к поддержке: admin, support_agent, superadmin."""
+    if current_user.role not in {"admin", "support_agent", "superadmin"}:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
 
 
-def _require_superadmin(current_user: User) -> None:
-    if not current_user.is_superadmin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Требуется супер админ")
+def _require_user_management_access(current_user: User) -> None:
+    """Доступ к управлению пользователями/организациями: admin, superadmin."""
+    if current_user.role not in {"admin", "superadmin"}:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Недостаточно прав")
+
+
+def _require_superadmin_only(current_user: User) -> None:
+    """Только для суперадмина."""
+    if current_user.role != "superadmin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Требуется суперадмин")
 
 
 async def _get_user_or_404(db: AsyncSession, user_id: int) -> User:
@@ -153,7 +153,7 @@ async def dashboard(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_admin(current_user)
+    _require_admin_access(current_user)
     week_ago = datetime.utcnow() - timedelta(days=7)
 
     total_users = await db.scalar(select(func.count()).select_from(User))
@@ -192,7 +192,7 @@ async def list_users(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_admin(current_user)
+    _require_admin_access(current_user)
 
     completed_tasks_subquery = (
         select(func.count(Task.id))
@@ -256,7 +256,7 @@ async def block_user(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_full_admin(current_user)
+    _require_user_management_access(current_user)
     user = await _get_user_or_404(db, user_id)
     before = {"is_active": user.is_active}
     user.is_active = False
@@ -288,7 +288,7 @@ async def unblock_user(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_full_admin(current_user)
+    _require_user_management_access(current_user)
     user = await _get_user_or_404(db, user_id)
     before = {"is_active": user.is_active}
     user.is_active = True
@@ -321,12 +321,10 @@ async def change_user_role(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_superadmin(current_user)
+    _require_superadmin_only(current_user)
     user = await _get_user_or_404(db, user_id)
-    before = {"role": user.role, "staff_role": user.staff_role}
+    before = {"role": user.role}
     user.role = payload.role
-    if user.role != "admin":
-        user.staff_role = None
     await _log_action(
         db,
         actor_id=current_user.id,
@@ -334,7 +332,7 @@ async def change_user_role(
         entity_type="user",
         entity_id=user.id,
         before_state=before,
-        after_state={"role": user.role, "staff_role": user.staff_role},
+        after_state={"role": user.role},
     )
     await create_notification(
         db,
@@ -354,7 +352,7 @@ async def delete_user(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_superadmin(current_user)
+    _require_superadmin_only(current_user)
     user = await _get_user_or_404(db, user_id)
     await _log_action(
         db,
@@ -384,7 +382,7 @@ async def list_organizations(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_admin(current_user)
+    _require_admin_access(current_user)
 
     stmt = select(Organization)
     if status:
@@ -415,7 +413,7 @@ async def verify_organization(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_full_admin(current_user)
+    _require_user_management_access(current_user)
     org = await _get_org_or_404(db, organization_id)
     before = {"status": org.status}
     org.status = "active"
@@ -448,7 +446,7 @@ async def reject_organization(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_full_admin(current_user)
+    _require_user_management_access(current_user)
     org = await _get_org_or_404(db, organization_id)
     before = {"status": org.status, "rejection_reason": org.rejection_reason}
     org.status = "blocked"
@@ -480,7 +478,7 @@ async def block_organization(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_full_admin(current_user)
+    _require_user_management_access(current_user)
     org = await _get_org_or_404(db, organization_id)
     before = {"status": org.status}
     org.status = "blocked"
@@ -1043,7 +1041,7 @@ async def list_audit_logs(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    _require_superadmin(current_user)
+    _require_superadmin_only(current_user)
     stmt = select(AuditLog).order_by(AuditLog.created_at.desc())
     if entity_type:
         stmt = stmt.where(AuditLog.entity_type == entity_type)
@@ -1052,48 +1050,3 @@ async def list_audit_logs(
     stmt = stmt.limit(limit)
     rows = (await db.scalars(stmt)).all()
     return [AuditLogItem.model_validate(r) for r in rows]
-
-
-@router.get("/staff-roles", response_model=list[StaffRoleItem])
-async def list_staff_roles(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    _require_superadmin(current_user)
-    rows = (await db.scalars(select(User).where(User.role == "admin").order_by(User.id.desc()))).all()
-    return [
-        StaffRoleItem(
-            id=user.id,
-            username=user.username,
-            email=user.email,
-            staff_role=user.staff_role,
-            is_superadmin=user.is_superadmin,
-        )
-        for user in rows
-    ]
-
-
-@router.patch("/users/{user_id}/staff-role")
-async def update_staff_role(
-    user_id: int,
-    payload: StaffRoleUpdateRequest,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    _require_superadmin(current_user)
-    user = await _get_user_or_404(db, user_id)
-    if user.role != "admin":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Пользователь не является администратором")
-    before = {"staff_role": user.staff_role}
-    user.staff_role = payload.staff_role
-    await _log_action(
-        db,
-        actor_id=current_user.id,
-        action="update_staff_role",
-        entity_type="user",
-        entity_id=user.id,
-        before_state=before,
-        after_state={"staff_role": user.staff_role},
-    )
-    await db.commit()
-    return {"detail": "Роль сотрудника обновлена"}

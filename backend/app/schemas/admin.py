@@ -17,11 +17,7 @@ class UserListItem(BaseModel):
 
 
 class RoleUpdateRequest(BaseModel):
-    role: Literal["admin", "user"]
-
-
-class StaffRoleUpdateRequest(BaseModel):
-    staff_role: Optional[Literal["moderator", "support_agent"]]
+    role: Literal["user", "admin", "moderator", "support_agent", "superadmin"]
 
 
 class OrganizationListItem(BaseModel):
@@ -103,11 +99,3 @@ class AuditLogItem(BaseModel):
     before_state: Optional[dict]
     after_state: Optional[dict]
     created_at: datetime
-
-
-class StaffRoleItem(BaseModel):
-    id: int
-    username: Optional[str]
-    email: Optional[str]
-    staff_role: Optional[str]
-    is_superadmin: bool
