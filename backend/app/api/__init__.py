@@ -17,6 +17,7 @@ from app.api.moderation import router as moderation_router
 from app.api.support_tickets import router as support_tickets_router
 from app.api.reports import router as reports_router
 from app.api.posts import router as posts_router
+from app.api.admin import router as admin_router
 from app.api.comments import router as comments_router
 
 
@@ -40,4 +41,5 @@ __all__ = [
     "reports_router",
     "posts_router",
     "comments_router",
+    "admin_router",
 ]
