@@ -28,15 +28,8 @@ class Report(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     reporter_id = Column(Integer, nullable=False)
-    target_type = Column(
-        Enum(
-            "user", "organization", "task", "review", "post", "comment", "article",
-            name="report_target_type",
-        ),
-        nullable=False,
-    )
+    target_type = Column(String(50), nullable=False)
     target_id = Column(Integer, nullable=False)
-    reason_code = Column(String(100), nullable=True)
     reason = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
     status = Column(String(30), default="pending")
