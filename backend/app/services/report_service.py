@@ -1,9 +1,12 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 from sqlalchemy import select
-from app.models.misc import Report, ReportReason
+from app.models.misc import Report
 from app.schemas.report import ReportCreate
 from fastapi import HTTPException, status
+from app.services.ml_guard import get_moderation_agent
 
+logger = logging.getLogger(__name__)
 
 async def create_report(
     db: AsyncSession,
@@ -23,29 +26,34 @@ async def create_report(
             detail="Вы уже отправляли жалобу на этот контент."
         )
 
-    rr = await db.scalar(
-        select(ReportReason).where(
-            ReportReason.target_type == report_data.target_type,
-            ReportReason.code == report_data.reason_code,
-            ReportReason.is_active.is_(True),
-        )
-    )
-    if rr is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неизвестная причина жалобы",
-        )
+    reason_text = (report_data.reason or "") + " " + (report_data.description or "")
+
+    ml = get_moderation_agent()
+    status_ = "pending"
+    moderation_comment = None
+
+    if ml:
+        try:
+            result = ml.evaluate(reason_text)
+            if result["verdict"] == "BLOCK":
+                status_ = "rejected"
+                moderation_comment = f"AI-отклонение: {result.get('details', {}).get('reason', 'Оскорбительный/спамовый контент')}"
+            else:
+                status_ = "pending"
+                moderation_comment = "AI-проверка пройдена: контент соответствует правилам"
+        except Exception as e:
+            logger.error(f"❌ Ошибка в AI-модерации: {e}", exc_info=True)
+            moderation_comment = f"Ошибка модерации: {str(e)[:100]}"
 
     report = Report(
         reporter_id=reporter_id,
         target_type=report_data.target_type,
         target_id=report_data.target_id,
-        reason_code=report_data.reason_code,
-        reason=rr.title,
+        reason=report_data.reason,
         description=report_data.description,
-        status="pending",
+        status=status_,
+        moderation_comment=moderation_comment,
     )
-
     db.add(report)
     await db.commit()
     await db.refresh(report)

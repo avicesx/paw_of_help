@@ -8,20 +8,19 @@ ReportReasonTargetType = Literal["user", "organization", "article", "post", "com
 
 
 class ReportCreate(BaseModel):
-    target_type: ReportTargetType
+    target_type: str
     target_id: int
-    reason_code: str
+    reason: Optional[str] = None
     description: Optional[str] = None
 
 
 class ReportResponse(BaseModel):
     id: int
     reporter_id: int
-    target_type: ReportTargetType
+    target_type: str
     target_id: int
-    reason_code: Optional[str] = None
-    reason: Optional[str]
-    description: Optional[str]
+    reason: Optional[str] = None
+    description: Optional[str] = None
     status: str
     moderator_id: Optional[int] = None
     moderation_comment: Optional[str] = None

@@ -32,6 +32,8 @@ from app.core.database import create_db_and_tables
 from app.core.database import AsyncSessionLocal
 from app.core.report_reasons_seed import seed_report_reasons_if_empty
 
+from app.services.ml_guard import init_moderation_agent
+
 
 def _cors_allow_credentials() -> bool:
     raw = settings.CORS_ORIGINS.strip()
@@ -75,6 +77,7 @@ async def on_startup() -> None:
     await create_db_and_tables()
     async with AsyncSessionLocal() as db:
         await seed_report_reasons_if_empty(db)
+    init_moderation_agent()
 
 
 _origins = _cors_origins()
