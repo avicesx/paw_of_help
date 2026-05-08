@@ -26,6 +26,7 @@ from app.api import (
     posts_router,
     comments_router,
     admin_router,
+    location_router,
 )
 from app.core import settings, limiter
 from app.core.database import create_db_and_tables
@@ -109,6 +110,7 @@ app.include_router(reports_router)
 app.include_router(posts_router)
 app.include_router(comments_router)
 app.include_router(admin_router)
+app.include_router(location_router)
 
 @app.get("/")
 async def root():
