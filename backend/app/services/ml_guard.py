@@ -10,8 +10,14 @@ def init_moderation_agent():
     if _moderation_agent is not None:
         return
 
-    base_path = os.getenv("CONTENT_MODEL_BASE", "models/rubert-base-cased")
-    tiny_path = os.getenv("CONTENT_MODEL_TINY", "models/rubert-tiny2")
+    base_path = os.getenv(
+        "CONTENT_MODEL_BASE",
+        "weeqeen/rubert-base-cased-finetuned-moderation",
+    )
+    tiny_path = os.getenv(
+        "CONTENT_MODEL_TINY",
+        "weeqeen/rubert-tiny2-moderation",
+    )
     threshold = float(os.getenv("CONTENT_THRESHOLD", "0.55"))
     base_weight = float(os.getenv("CONTENT_BASE_WEIGHT", "0.3"))
     tiny_weight = float(os.getenv("CONTENT_TINY_WEIGHT", "0.7"))

@@ -38,6 +38,9 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Moscow}
       DATABASE_ECHO: ${DATABASE_ECHO:-false}
+      HF_HOME: /var/cache/huggingface
+    volumes:
+      - huggingface_hub:/var/cache/huggingface
     ports:
       - "8000:8000"
     depends_on:
@@ -63,3 +66,4 @@ services:
 volumes:
   paw_db:
   paw_redis:
+  huggingface_hub:
