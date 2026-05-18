@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Мероприятия</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+      <div class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </div>
+      <div class="topbar-side profile-icons">🔔 👤</div>
+    </header>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="#" class="side-link">Организации</a>
+        <a href="#" class="side-link">База знаний</a>
+      </div>
+    </aside>
+
+    <section class="events-screen">
+      <h1 class="screen-title">Мероприятия</h1>
+      <div class="back-row compact-back-row">
+        <a href="profile.html" class="back-link">⬅</a>
+        <a href="event-create.html" class="primary-action-link small-action-link">Создать мероприятие</a>
+      </div>
+
+      <div class="filter-panel visible-panel">
+        <input id="eventsSearch" class="field" type="text" placeholder="Поиск" oninput="loadEventsPage()" />
+        <input id="eventsOrgFilter" class="field" type="number" placeholder="ID организации, если нужен фильтр" onchange="loadEventsPage()" />
+        <select id="eventsTypeFilter" class="field" onchange="loadEventsPage()">
+          <option value="">Все типы</option>
+          <option value="adoption">Пристройство</option>
+          <option value="fundraising">Сбор помощи</option>
+          <option value="volunteer">Волонтёрство</option>
+          <option value="meeting">Встреча</option>
+          <option value="other">Другое</option>
+        </select>
+      </div>
+
+      <div id="eventsList" class="events-list"></div>
+
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/events.js"></script>
+  <script>loadEventsPage();</script>
+</body>
+</html>
