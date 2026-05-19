@@ -3,20 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Профиль Paw</title>
+  <title>Календарь событий</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
 <body>
   <main class="phone-shell">
     <header class="topbar">
-      <button class="icon-btn topbar-side menu-button" type="button" onclick="toggleMenu()">☰</button>
-
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
       <div class="topbar-logo">
         <div class="paw-icon">🐾</div>
         <div class="paw-title">Paw</div>
       </div>
-
-      <div class="topbar-side profile-icons">🔔 <span id="notificationBadge" class="badge-dot">0</span> 👤</div>
+      <div class="topbar-side profile-icons">🔔 👤</div>
     </header>
 
     <aside id="sideMenu" class="side-menu">
@@ -35,41 +33,27 @@
       </div>
     </aside>
 
-    <section class="profile-screen">
-      <h1 class="screen-title">Мой профиль</h1>
-
-      <div class="profile-head">
-        <div class="avatar"></div>
-
-        <div class="profile-meta">
-          <div id="username" class="profile-name">Загрузка...</div>
-          <div id="contactLine" class="profile-subtitle">—</div>
-          <div class="profile-rating">0 ⭐ <span>0 отзыва</span></div>
+    <section class="calendar-screen">
+      <h1 class="screen-title">Календарь событий</h1>
+      <div class="calendar-panel">
+        <div class="calendar-head">
+          <button class="icon-btn" type="button" onclick="changeCalendarMonth(-1)">←</button>
+          <strong id="calendarMonthLabel">Месяц</strong>
+          <button class="icon-btn" type="button" onclick="changeCalendarMonth(1)">→</button>
         </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+      </div>
+      <div class="calendar-events-panel">
+        <h2 id="calendarSelectedTitle">Мероприятия месяца</h2>
+        <div id="calendarEventsList"></div>
       </div>
 
-      <div class="section-label">Профиль автора</div>
-
-      <div class="empty-state">
-        Вы пока не писали статьи
-      </div>
-
-      <div class="quick-links">
-        <a href="settings.html" class="primary-action-link">Настройки</a>
-        <a href="reviews.html" class="primary-action-link">Отзывы</a>
-        <a href="complaints.html" class="primary-action-link">Жалобы</a>
-      </div>
-
-      <div class="paw-bg paw-bg-profile">🐾</div>
-      <button class="settings-btn" type="button" onclick="window.location.href='settings.html'">⚙</button>
     </section>
   </main>
 
   <script src="../js/script.js"></script>
   <script src="../js/menu.js"></script>
-  <script>
-    loadProfile();
-    loadNotificationsCount();
-  </script>
+  <script src="../js/events.js"></script>
+  <script>loadCalendarPage();</script>
 </body>
 </html>

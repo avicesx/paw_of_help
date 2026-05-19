@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Создание профиля животного</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+      <div class="topbar-logo"><div class="paw-icon">🐾</div><div class="paw-title">Paw</div></div>
+      <div class="topbar-side profile-icons">🔔 👤</div>
+    </header>
+
+    <aside id="sideMenu" class="side-menu"><div class="side-menu-inner">
+      <a href="profile.html" class="side-link">Профиль</a>
+      <a href="settings.html" class="side-link">Настройки</a>
+      <a href="tasks.html" class="side-link">Задачи</a>
+      <a href="feed.html" class="side-link">Лента задач</a>
+      <a href="events.html" class="side-link">Мероприятия</a>
+      <a href="calendar.html" class="side-link">Календарь</a>
+      <a href="reviews.html" class="side-link">Отзывы</a>
+      <a href="complaints.html" class="side-link">Жалобы</a>
+      <a href="animal-select.html" class="side-link">Животные</a>
+    </div></aside>
+
+    <section class="create-task-screen">
+      <div class="back-row">
+        <a id="animalCreateBackLink" href="animal-select.html" class="back-link">⬅</a>
+        <div class="back-title">Создание животного</div>
+      </div>
+
+      <form class="task-form-card" onsubmit="createAnimal(event)">
+        <label class="form-label">Имя животного:
+          <input id="animalName" class="field" type="text" placeholder="Например: Муся" />
+        </label>
+
+        <label class="form-label">Вид:
+          <input id="animalSpecies" class="field" type="text" placeholder="Кошка, собака..." />
+        </label>
+
+        <label class="form-label">Порода:
+          <input id="animalBreed" class="field" type="text" placeholder="Если известна" />
+        </label>
+
+        <div class="double-grid">
+          <label class="form-label">Возраст:
+            <input id="animalAge" class="field" type="text" placeholder="Например: 2 года" />
+          </label>
+          <label class="form-label">Пол:
+            <select id="animalGender" class="field">
+              <option value="unknown">Неизвестно</option>
+              <option value="female">Самка</option>
+              <option value="male">Самец</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="form-label">Размер:
+          <select id="animalSize" class="field">
+            <option value="">Не указан</option>
+            <option value="small">Маленький</option>
+            <option value="medium">Средний</option>
+            <option value="large">Большой</option>
+            <option value="extra_large">Очень большой</option>
+          </select>
+        </label>
+
+        <label class="form-label">Описание:
+          <textarea id="animalDescription" class="field textarea" placeholder="Кратко опиши животное"></textarea>
+        </label>
+
+        <label class="form-label">Характер:
+          <textarea id="animalCharacter" class="field textarea" placeholder="Спокойный, активный, осторожный..."></textarea>
+        </label>
+
+        <label class="form-label">Здоровье:
+          <textarea id="animalHealth" class="field textarea" placeholder="Лечение, вакцинация, особенности"></textarea>
+        </label>
+
+        <label class="form-label">Особые потребности:
+          <textarea id="animalSpecialNeeds" class="field textarea" placeholder="Если есть"></textarea>
+        </label>
+
+        <button class="submit-btn full-width" type="submit">Сохранить животное</button>
+        <p id="animalCreateStatus" class="save-status"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/tasks.js"></script>
+  <script>setupAnimalCreatePage();</script>
+</body>
+</html>

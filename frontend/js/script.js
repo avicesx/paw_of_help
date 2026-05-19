@@ -1,5 +1,56 @@
-const API_URL = "http://127.0.0.1:8000";
-const VOLUNTEER_PROFILE_KEY = "volunteerProfileDraft";
+const API_URL = window.API_URL || (window.location.protocol === "file:"
+  ? "http://127.0.0.1:8000"
+  : `${window.location.protocol}//${window.location.hostname}:8000`);
+const ORG_ID_KEY = "paw_org_id";
+const SELECTED_ANIMAL_KEY = "paw_selected_animal";
+const COMPLAINTS_KEY = "paw_complaints";
+
+function getToken() {
+  return localStorage.getItem("token");
+}
+
+function ensureAuth(redirect = "login.html") {
+  const token = getToken();
+  if (!token) {
+    window.location.href = redirect;
+    return null;
+  }
+  return token;
+}
+
+async function apiRequest(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (!headers["Content-Type"] && !(options.body instanceof FormData) && options.method && options.method !== "GET") {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (options.auth) {
+    const token = getToken();
+    if (!token) {
+      throw new Error("Нужна авторизация");
+    }
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+
+  if (res.status === 204) {
+    return { ok: true, status: res.status, data: null };
+  }
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
+  }
+
+  if (!res.ok) {
+    throw new Error(parseErrorDetail(data, `Ошибка ${res.status}`));
+  }
+
+  return { ok: true, status: res.status, data };
+}
 
 function parseErrorDetail(data, fallback) {
   if (!data) return fallback;
@@ -7,44 +58,24 @@ function parseErrorDetail(data, fallback) {
   if (Array.isArray(data.detail)) {
     return data.detail.map(item => item.msg || JSON.stringify(item)).join("\n");
   }
+  if (typeof data.message === "string") return data.message;
   return fallback;
 }
 
 async function register() {
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
+  const username = document.getElementById("username").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if (!name || !password) {
-    alert("Нужно указать имя и пароль.");
-    return;
-  }
-
-  if (!email && !phone) {
-    alert("Укажи email или телефон.");
+  if (!username || !password) {
+    alert("Нужно указать логин и пароль.");
     return;
   }
 
   try {
-    const res = await fetch(`${API_URL}/auth/register`, {
+    const { data } = await apiRequest("/auth/register", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        email: email || null,
-        phone: phone || null,
-        password
-      }),
+      body: JSON.stringify({ username, password }),
     });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(parseErrorDetail(data, "Ошибка регистрации"));
-    }
 
     localStorage.setItem("token", data.access_token);
     window.location.href = "profile.html";
@@ -64,22 +95,13 @@ async function login() {
   }
 
   try {
-    const res = await fetch(`${API_URL}/auth/login`, {
+    const { data } = await apiRequest("/auth/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({
         login: loginValue,
         password
       }),
     });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(parseErrorDetail(data, "Ошибка входа"));
-    }
 
     localStorage.setItem("token", data.access_token);
     window.location.href = "profile.html";
@@ -90,25 +112,11 @@ async function login() {
 }
 
 async function loadProfile() {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    window.location.href = "login.html";
-    return;
-  }
+  const token = ensureAuth("login.html");
+  if (!token) return;
 
   try {
-    const res = await fetch(`${API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const user = await res.json();
-
-    if (!res.ok) {
-      throw new Error(parseErrorDetail(user, "Ошибка загрузки профиля"));
-    }
+    const { data: user } = await apiRequest("/auth/me", { auth: true });
 
     const usernameNode = document.getElementById("username");
     const contactLineNode = document.getElementById("contactLine");
@@ -128,54 +136,282 @@ async function loadProfile() {
   }
 }
 
-function loadVolunteerProfile() {
-  const raw = localStorage.getItem(VOLUNTEER_PROFILE_KEY);
-  if (!raw) return;
+async function loadSettingsPage() {
+  const token = ensureAuth("login.html");
+  if (!token) return;
 
   try {
-    const data = JSON.parse(raw);
+    const [{ data: user }, { data: volunteer }] = await Promise.all([
+      apiRequest("/users/me", { auth: true }),
+      apiRequest("/volunteer/profile", { auth: true }),
+    ]);
 
-    setValue("location", data.location);
-    setValue("radius_km", data.radius_km);
-    setValue("housing_type", data.housing_type);
-    setValue("preferred_animal_types", Array.isArray(data.preferred_animal_types) ? data.preferred_animal_types.join(", ") : "");
-    setValue("availability", JSON.stringify(data.availability || {}, null, 2));
-    setChecked("ready_for_foster", !!data.ready_for_foster);
-    setChecked("has_children", !!data.has_children);
-    setValue("has_other_pets", JSON.stringify(data.has_other_pets || {}, null, 2));
-    setValue("foster_restrictions", data.foster_restrictions || "");
+    setValue("settings_name", user.name);
+    setValue("settings_last_name", user.last_name);
+    setValue("settings_username", user.username);
+    setValue("settings_email", user.email);
+    setValue("settings_phone", user.phone);
+
+    setValue("vol_location", volunteer.location);
+    setValue("vol_radius_km", volunteer.radius_km);
+    setValue("vol_housing_type", volunteer.housing_type);
+    setValue("vol_preferred_animal_types", Array.isArray(volunteer.preferred_animal_types) ? volunteer.preferred_animal_types.join(", ") : "");
+    setValue("vol_availability", JSON.stringify(volunteer.availability || {}, null, 2));
+    setChecked("vol_ready_for_foster", !!volunteer.ready_for_foster);
+    setChecked("vol_has_children", !!volunteer.has_children);
+    setValue("vol_has_other_pets", JSON.stringify(volunteer.has_other_pets || {}, null, 2));
+    setValue("vol_foster_restrictions", volunteer.foster_restrictions || "");
+
+    const statsNode = document.getElementById("volunteerStats");
+    if (statsNode && volunteer.stats) {
+      statsNode.textContent = `Задач: ${volunteer.stats.total_completed_tasks} · Рейтинг: ${volunteer.stats.rating_by_reviews} · Отзывов: ${volunteer.stats.total_reviews_count}`;
+    }
   } catch (err) {
-    console.error("VOLUNTEER PROFILE LOAD ERROR:", err);
+    setStatus("settingsStatus", err.message || "Ошибка загрузки настроек");
+    console.error("SETTINGS LOAD ERROR:", err);
   }
 }
 
-function saveVolunteerProfile(event) {
+async function saveAccountSettings(event) {
+  event.preventDefault();
+  try {
+    const payload = {
+      name: nullIfEmpty(getValue("settings_name")),
+      last_name: nullIfEmpty(getValue("settings_last_name")),
+      username: nullIfEmpty(getValue("settings_username")),
+      email: nullIfEmpty(getValue("settings_email")),
+      phone: nullIfEmpty(getValue("settings_phone")),
+    };
+    const { data } = await apiRequest("/users/me", {
+      method: "PATCH",
+      auth: true,
+      body: JSON.stringify(payload),
+    });
+    setStatus("settingsStatus", "Настройки аккаунта сохранены.");
+    const usernameNode = document.getElementById("username");
+    if (usernameNode) {
+      usernameNode.textContent = [data.name, data.last_name].filter(Boolean).join(" ");
+    }
+  } catch (err) {
+    setStatus("settingsStatus", err.message || "Ошибка сохранения");
+  }
+}
+
+async function changePassword(event) {
+  event.preventDefault();
+  try {
+    const oldPassword = getValue("old_password");
+    const newPassword = getValue("new_password");
+    const repeatPassword = getValue("repeat_new_password");
+
+    if (!oldPassword || !newPassword || !repeatPassword) {
+      throw new Error("Заполни все поля пароля.");
+    }
+    if (newPassword !== repeatPassword) {
+      throw new Error("Новые пароли не совпадают.");
+    }
+
+    await apiRequest("/users/me/change-password", {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify({
+        current_password: oldPassword,
+        new_password: newPassword
+      }),
+    });
+    setStatus("passwordStatus", "Пароль обновлён.");
+    ["old_password", "new_password", "repeat_new_password"].forEach(id => setValue(id, ""));
+  } catch (err) {
+    setStatus("passwordStatus", err.message || "Ошибка смены пароля");
+  }
+}
+
+async function saveVolunteerProfile(event) {
   if (event) event.preventDefault();
 
   const profile = {
-    location: getValue("location"),
-    radius_km: toNumberOrNull(getValue("radius_km")),
-    housing_type: getValue("housing_type") || null,
-    preferred_animal_types: splitCsv(getValue("preferred_animal_types")),
-    availability: parseJsonOrFallback(getValue("availability"), {}),
-    ready_for_foster: getChecked("ready_for_foster"),
-    has_children: getChecked("has_children"),
-    has_other_pets: parseJsonOrFallback(getValue("has_other_pets"), {}),
-    foster_restrictions: getValue("foster_restrictions") || null,
+    location: nullIfEmpty(getValue("vol_location")),
+    radius_km: toNumberOrNull(getValue("vol_radius_km")),
+    housing_type: nullIfEmpty(getValue("vol_housing_type")),
+    preferred_animal_types: splitCsv(getValue("vol_preferred_animal_types")),
+    availability: parseJsonOrFallback(getValue("vol_availability"), {}),
+    ready_for_foster: getChecked("vol_ready_for_foster"),
+    has_children: getChecked("vol_has_children"),
+    has_other_pets: parseJsonOrFallback(getValue("vol_has_other_pets"), {}),
+    foster_restrictions: nullIfEmpty(getValue("vol_foster_restrictions")),
     foster_photos: []
   };
 
-  localStorage.setItem(VOLUNTEER_PROFILE_KEY, JSON.stringify(profile));
-
-  const status = document.getElementById("saveStatus");
-  if (status) {
-    status.textContent = "Сохранено локально. Как только на бэке появятся эндпоинты профиля волонтёра, это можно будет отправлять на сервер.";
+  try {
+    await apiRequest("/volunteer/profile", {
+      method: "PATCH",
+      auth: true,
+      body: JSON.stringify(profile),
+    });
+    setStatus("volunteerStatus", "Профиль волонтёра сохранён.");
+  } catch (err) {
+    setStatus("volunteerStatus", err.message || "Ошибка сохранения профиля");
   }
+}
+
+async function loadReviewsPage() {
+  const params = new URLSearchParams(window.location.search);
+  const targetType = params.get("target_type") || "organization";
+  const targetId = params.get("target_id") || localStorage.getItem(ORG_ID_KEY) || "1";
+  const revieweeId = params.get("reviewee_id") || "";
+
+  setValue("review_target_type", targetType);
+  setValue("review_target_id", targetId);
+  setValue("review_reviewee_id", revieweeId);
+
+  await fetchReviews();
+}
+
+async function fetchReviews() {
+  try {
+    const targetType = getValue("review_target_type");
+    const targetId = getValue("review_target_id");
+
+    if (!targetType || !targetId) {
+      throw new Error("Укажи target_type и target_id.");
+    }
+
+    const { data } = await apiRequest(`/reviews?target_type=${encodeURIComponent(targetType)}&target_id=${encodeURIComponent(targetId)}`);
+    renderReviewsList(data || []);
+  } catch (err) {
+    setStatus("reviewsStatus", err.message || "Ошибка загрузки отзывов");
+    renderReviewsList([]);
+  }
+}
+
+function renderReviewsList(reviews) {
+  const list = document.getElementById("reviewsList");
+  if (!list) return;
+
+  if (!reviews.length) {
+    list.innerHTML = '<div class="empty-small">Отзывов пока нет</div>';
+    return;
+  }
+
+  list.innerHTML = reviews.map((review) => `
+    <div class="review-card">
+      <div class="review-card-head">
+        <div class="review-rating">${"⭐".repeat(review.rating)}</div>
+        <div class="review-date">${formatDateTime(review.created_at)}</div>
+      </div>
+      <div class="review-meta">Отзыв #${review.id} · reviewer_id: ${review.reviewer_id}</div>
+      <div class="review-comment">${escapeHtml(review.comment || "Без комментария")}</div>
+    </div>
+  `).join("");
+}
+
+async function submitReview(event) {
+  event.preventDefault();
+  try {
+    const payload = {
+      reviewee_id: Number(getValue("review_reviewee_id")),
+      target_type: getValue("review_target_type"),
+      target_id: Number(getValue("review_target_id")),
+      rating: Number(getValue("review_rating")),
+      comment: nullIfEmpty(getValue("review_comment")),
+    };
+
+    if (!payload.reviewee_id || !payload.target_id || !payload.target_type || !payload.rating) {
+      throw new Error("Заполни обязательные поля отзыва.");
+    }
+
+    await apiRequest("/reviews", {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify(payload),
+    });
+    setStatus("reviewsStatus", "Отзыв отправлен.");
+    setValue("review_comment", "");
+    await fetchReviews();
+  } catch (err) {
+    setStatus("reviewsStatus", err.message || "Ошибка отправки отзыва");
+  }
+}
+
+async function loadComplaintsPage() {
+  const targetType = document.getElementById("complaint_target_type")?.value || "user";
+  setValue("complaint_target_type", targetType);
+  await loadReportReasons();
+  renderComplaintsInfo();
+}
+
+async function loadReportReasons() {
+  const select = document.getElementById("complaint_category");
+  if (!select) return;
+
+  const targetType = getValue("complaint_target_type") || "user";
+  select.innerHTML = '<option value="other">Другое</option>';
+
+  try {
+    const { data } = await apiRequest(`/reports/reasons?target_type=${encodeURIComponent(targetType)}`);
+    const reasons = data || [];
+    if (reasons.length) {
+      select.innerHTML = reasons
+        .map((reason) => `<option value="${escapeHtml(reason.code)}">${escapeHtml(reason.title)}</option>`)
+        .join("");
+    }
+  } catch (err) {
+    console.warn("REPORT REASONS LOAD ERROR:", err);
+  }
+}
+
+function renderComplaintsInfo() {
+  const list = document.getElementById("complaintsList");
+  if (!list) return;
+  list.innerHTML = '<div class="empty-small">История отправленных жалоб на backend пока не возвращается. Новые жалобы отправляются через POST /reports.</div>';
+}
+
+async function submitComplaint(event) {
+  event.preventDefault();
+
+  try {
+    const payload = {
+      target_type: getValue("complaint_target_type"),
+      target_id: Number(getValue("complaint_target_id")),
+      reason_code: getValue("complaint_category"),
+      description: nullIfEmpty(getValue("complaint_text")),
+    };
+
+    if (!payload.target_type || !payload.target_id || !payload.reason_code) {
+      throw new Error("Заполни тип, ID сущности и причину жалобы.");
+    }
+
+    await apiRequest("/reports/", {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify(payload),
+    });
+
+    setStatus("complaintStatus", "Жалоба отправлена.");
+    ["complaint_target_id", "complaint_text"].forEach(id => setValue(id, ""));
+    renderComplaintsInfo();
+  } catch (err) {
+    setStatus("complaintStatus", err.message || "Ошибка отправки жалобы");
+  }
+}
+
+async function loadNotificationsCount() {
+  const badge = document.getElementById("notificationBadge");
+  if (!badge || !getToken()) return;
+  try {
+    const { data } = await apiRequest("/notifications?is_read=false", { auth: true });
+    badge.textContent = String((data || []).length);
+  } catch {}
 }
 
 function logout() {
   localStorage.removeItem("token");
   window.location.href = "login.html";
+}
+
+function setStatus(id, text) {
+  const node = document.getElementById(id);
+  if (node) node.textContent = text;
 }
 
 function getValue(id) {
@@ -218,4 +454,26 @@ function toNumberOrNull(value) {
   if (value === "") return null;
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
+}
+
+function nullIfEmpty(value) {
+  return value === "" ? null : value;
+}
+
+function formatDateTime(value) {
+  if (!value) return "—";
+  try {
+    return new Date(value).toLocaleString("ru-RU");
+  } catch {
+    return String(value);
+  }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }

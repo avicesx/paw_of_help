@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Создание мероприятия</title>
+  <link rel="stylesheet" href="../css/styles.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+      <div class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </div>
+      <div class="topbar-side profile-icons">🔔 👤</div>
+    </header>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="#" class="side-link">Организации</a>
+        <a href="#" class="side-link">База знаний</a>
+      </div>
+    </aside>
+
+    <section class="event-create-screen">
+      <div class="back-row">
+        <a href="events.html" class="back-link">⬅</a>
+        <div class="back-title">Создание мероприятия</div>
+      </div>
+
+      <form class="task-form-card" onsubmit="createEvent(event)">
+        <label class="form-label">Название мероприятия
+          <input id="eventTitle" class="field" type="text" placeholder="Например: День помощи животным" />
+        </label>
+        <label class="form-label">Описание
+          <textarea id="eventDescription" class="field textarea" placeholder="Кратко опиши мероприятие"></textarea>
+        </label>
+        <label class="form-label">Вид
+          <select id="eventType" class="field">
+            <option value="adoption">Пристройство</option>
+            <option value="fundraising">Сбор помощи</option>
+            <option value="volunteer">Волонтёрство</option>
+            <option value="meeting">Встреча</option>
+            <option value="other">Другое</option>
+          </select>
+        </label>
+        <label class="form-label">Местоположение
+          <input id="eventLocation" class="field" type="text" placeholder="Адрес или площадка" />
+        </label>
+        <div class="double-grid">
+          <label class="form-label">Дата и время начала
+            <input id="eventStart" class="field" type="datetime-local" />
+          </label>
+          <label class="form-label">Дата и время окончания
+            <input id="eventEnd" class="field" type="datetime-local" />
+          </label>
+        </div>
+        <button class="submit-btn full-width" type="submit">Опубликовать</button>
+        <p id="eventCreateStatus" class="save-status"></p>
+      </form>
+
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/events.js"></script>
+  
+</body>
+</html>

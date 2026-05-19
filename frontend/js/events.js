@@ -1,0 +1,320 @@
+const EVENT_ORG_ID_KEY = "paw_org_id";
+let currentEventsMonth = new Date();
+
+function getOrgId() {
+  const orgId = localStorage.getItem(EVENT_ORG_ID_KEY);
+  return orgId || "1";
+}
+
+function eventTypeLabel(type) {
+  const map = {
+    adoption: "Пристройство",
+    fundraising: "Сбор помощи",
+    volunteer: "Волонтёрство",
+    meeting: "Встреча",
+    other: "Другое"
+  };
+  return map[type] || type || "Мероприятие";
+}
+
+function eventDateLabel(value) {
+  if (!value) return "Дата не указана";
+  try {
+    return new Date(value).toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  } catch {
+    return String(value);
+  }
+}
+
+async function loadEventsPage() {
+  const list = document.getElementById("eventsList");
+  if (!list) return;
+
+  list.innerHTML = '<div class="empty-small">Загрузка мероприятий...</div>';
+
+  try {
+    const orgId = document.getElementById("eventsOrgFilter")?.value || "";
+    const type = document.getElementById("eventsTypeFilter")?.value || "";
+    const search = (document.getElementById("eventsSearch")?.value || "").trim().toLowerCase();
+    const path = orgId ? `/events?organization_id=${encodeURIComponent(orgId)}` : "/events";
+    const { data } = await apiRequest(path);
+    let events = data || [];
+
+    if (type) events = events.filter(event => event.event_type === type);
+    if (search) {
+      events = events.filter(event =>
+        (event.title || "").toLowerCase().includes(search) ||
+        (event.description || "").toLowerCase().includes(search) ||
+        (event.location || "").toLowerCase().includes(search)
+      );
+    }
+
+    renderEventsList(events);
+  } catch (err) {
+    list.innerHTML = `<div class="empty-small">${escapeHtml(err.message || "Ошибка загрузки мероприятий")}</div>`;
+  }
+}
+
+function renderEventsList(events) {
+  const list = document.getElementById("eventsList");
+  if (!list) return;
+
+  if (!events.length) {
+    list.innerHTML = '<div class="empty-small">Мероприятий пока нет</div>';
+    return;
+  }
+
+  list.innerHTML = events.map(event => `
+    <article class="event-card">
+      <div class="event-card-head">
+        <div class="event-date-box">${escapeHtml(shortEventDate(event.start_datetime))}</div>
+        <div class="event-info">
+          <h2>${escapeHtml(event.title || "Без названия")}</h2>
+          <div class="event-type">${escapeHtml(eventTypeLabel(event.event_type))}</div>
+        </div>
+      </div>
+      <p>${escapeHtml(event.description || "Описание не указано")}</p>
+      <div class="event-meta">Начало: ${escapeHtml(eventDateLabel(event.start_datetime))}</div>
+      <div class="event-meta">Окончание: ${escapeHtml(eventDateLabel(event.end_datetime))}</div>
+      <div class="event-meta">Место: ${escapeHtml(event.location || "Не указано")}</div>
+      <div class="event-actions">
+        <button class="task-primary-btn" type="button" onclick="registerForEvent(${event.id})">Участвовать</button>
+        <button class="task-outline-btn" type="button" onclick="cancelEventRegistration(${event.id})">Отменить участие</button>
+      </div>
+    </article>
+  `).join("");
+}
+
+function shortEventDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
+}
+
+async function eventGetCurrentUserSafe() {
+  try {
+    const { data } = await apiRequest("/users/me", { auth: true });
+    return data;
+  } catch {
+    const { data } = await apiRequest("/auth/me", { auth: true });
+    return data;
+  }
+}
+
+async function eventFindExistingUserOrganization() {
+  if (!getToken()) return null;
+  try {
+    const user = await eventGetCurrentUserSafe();
+    const { data } = await apiRequest("/organizations");
+    const orgs = Array.isArray(data) ? data : [];
+    return orgs.find((org) => Number(org.created_by) === Number(user.id)) || null;
+  } catch {
+    return null;
+  }
+}
+
+async function eventCreateFallbackOrganization() {
+  const stamp = new Date().toLocaleDateString("ru-RU");
+  const { data } = await apiRequest("/organizations", {
+    method: "POST",
+    auth: true,
+    body: JSON.stringify({
+      name: `Моя организация ${stamp}`,
+      description: "Временная организация для мероприятий",
+      address_components: {},
+      contacts: {},
+      documents: [],
+      photos: []
+    }),
+  });
+  return data;
+}
+
+async function eventGetWorkingOrganizationId({ createIfMissing = true } = {}) {
+  const saved = localStorage.getItem(EVENT_ORG_ID_KEY);
+  if (saved) return saved;
+
+  const existing = await eventFindExistingUserOrganization();
+  if (existing?.id) {
+    localStorage.setItem(EVENT_ORG_ID_KEY, String(existing.id));
+    return String(existing.id);
+  }
+
+  if (!createIfMissing) return null;
+
+  const created = await eventCreateFallbackOrganization();
+  if (!created?.id) throw new Error("Не удалось получить ID организации");
+  localStorage.setItem(EVENT_ORG_ID_KEY, String(created.id));
+  return String(created.id);
+}
+
+async function createEvent(event) {
+  event.preventDefault();
+  const token = ensureAuth("login.html");
+  if (!token) return;
+
+  const title = getValue("eventTitle");
+  const description = getValue("eventDescription");
+  const eventType = getValue("eventType");
+  const start = getValue("eventStart");
+  const end = getValue("eventEnd");
+  const location = getValue("eventLocation");
+
+  if (!title) {
+    setStatus("eventCreateStatus", "Укажи название мероприятия.");
+    return;
+  }
+
+  try {
+    let orgId = await eventGetWorkingOrganizationId({ createIfMissing: true });
+    const payload = {
+      title,
+      description: nullIfEmpty(description),
+      event_type: nullIfEmpty(eventType),
+      start_datetime: start ? new Date(start).toISOString() : null,
+      end_datetime: end ? new Date(end).toISOString() : null,
+      location: nullIfEmpty(location)
+    };
+
+    try {
+      await apiRequest(`/events/organizations/${encodeURIComponent(orgId)}`, {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      localStorage.removeItem(EVENT_ORG_ID_KEY);
+      orgId = await eventGetWorkingOrganizationId({ createIfMissing: true });
+      await apiRequest(`/events/organizations/${encodeURIComponent(orgId)}`, {
+        method: "POST",
+        auth: true,
+        body: JSON.stringify(payload)
+      });
+    }
+
+    setStatus("eventCreateStatus", "Мероприятие сохранено.");
+    setTimeout(() => window.location.href = "events.html", 600);
+  } catch (err) {
+    setStatus("eventCreateStatus", err.message || "Ошибка создания мероприятия");
+  }
+}
+
+async function registerForEvent(eventId) {
+  try {
+    await apiRequest(`/events/${eventId}/register`, { method: "POST", auth: true });
+    alert("Участие подтверждено.");
+  } catch (err) {
+    alert(err.message || "Ошибка регистрации на мероприятие");
+  }
+}
+
+async function cancelEventRegistration(eventId) {
+  try {
+    await apiRequest(`/events/${eventId}/register`, { method: "DELETE", auth: true });
+    alert("Участие отменено.");
+  } catch (err) {
+    alert(err.message || "Ошибка отмены участия");
+  }
+}
+
+async function loadCalendarPage() {
+  await renderCalendar();
+}
+
+async function renderCalendar() {
+  const grid = document.getElementById("calendarGrid");
+  const label = document.getElementById("calendarMonthLabel");
+  const list = document.getElementById("calendarEventsList");
+  if (!grid || !label || !list) return;
+
+  const year = currentEventsMonth.getFullYear();
+  const month = currentEventsMonth.getMonth();
+  label.textContent = currentEventsMonth.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+  grid.innerHTML = "";
+  list.innerHTML = '<div class="empty-small">Загрузка...</div>';
+
+  let events = [];
+  try {
+    const { data } = await apiRequest("/events");
+    events = data || [];
+  } catch (err) {
+    list.innerHTML = `<div class="empty-small">${escapeHtml(err.message || "Ошибка загрузки мероприятий")}</div>`;
+  }
+
+  const weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  weekdays.forEach(day => {
+    const cell = document.createElement("div");
+    cell.className = "calendar-weekday";
+    cell.textContent = day;
+    grid.appendChild(cell);
+  });
+
+  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const offset = (firstDay.getDay() + 6) % 7;
+
+  for (let i = 0; i < offset; i++) {
+    const empty = document.createElement("div");
+    empty.className = "calendar-day muted";
+    grid.appendChild(empty);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateKey = toDateKey(new Date(year, month, day));
+    const dayEvents = events.filter(event => toDateKey(event.start_datetime) === dateKey);
+    const cell = document.createElement("button");
+    cell.className = `calendar-day${dayEvents.length ? " has-events" : ""}`;
+    cell.type = "button";
+    cell.innerHTML = `<span>${day}</span>${dayEvents.length ? '<b></b>' : ''}`;
+    cell.onclick = () => renderDayEvents(dayEvents, dateKey);
+    grid.appendChild(cell);
+  }
+
+  const monthEvents = events.filter(event => {
+    const d = new Date(event.start_datetime);
+    return !Number.isNaN(d.getTime()) && d.getFullYear() === year && d.getMonth() === month;
+  });
+  renderDayEvents(monthEvents, null, "Мероприятия месяца");
+}
+
+function changeCalendarMonth(delta) {
+  currentEventsMonth = new Date(currentEventsMonth.getFullYear(), currentEventsMonth.getMonth() + delta, 1);
+  renderCalendar();
+}
+
+function renderDayEvents(events, dateKey, title = null) {
+  const list = document.getElementById("calendarEventsList");
+  const heading = document.getElementById("calendarSelectedTitle");
+  if (!list) return;
+  if (heading) heading.textContent = title || (dateKey ? `События на ${dateKey}` : "События");
+
+  if (!events.length) {
+    list.innerHTML = '<div class="empty-small">На выбранную дату событий нет</div>';
+    return;
+  }
+
+  list.innerHTML = events.map(event => `
+    <article class="compact-event-card">
+      <strong>${escapeHtml(event.title || "Без названия")}</strong>
+      <span>${escapeHtml(eventDateLabel(event.start_datetime))}</span>
+      <p>${escapeHtml(event.location || "Место не указано")}</p>
+    </article>
+  `).join("");
+}
+
+function toDateKey(value) {
+  if (!value) return "";
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}

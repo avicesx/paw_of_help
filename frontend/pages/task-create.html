@@ -22,11 +22,16 @@
     <aside id="sideMenu" class="side-menu">
       <div class="side-menu-inner">
         <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
         <a href="tasks.html" class="side-link">Задачи</a>
-        <a href="#" class="side-link">База знаний</a>
-        <a href="#" class="side-link">Лента</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
         <a href="animal-select.html" class="side-link">Животные</a>
         <a href="#" class="side-link">Организации</a>
+        <a href="#" class="side-link">База знаний</a>
       </div>
     </aside>
 
@@ -50,7 +55,7 @@
           Профиль животного:
           <div class="animal-attach-row">
             <div id="selectedAnimalLabel" class="selected-animal-box">Животное не выбрано</div>
-            <a href="animal-select.html" class="attach-animal-btn">Прикрепить профиль животного</a>
+            <a href="animal-select.html?back=task-create.html" class="attach-animal-btn">Прикрепить профиль животного</a>
           </div>
         </label>
 
@@ -89,9 +94,8 @@
         <label class="form-label">
           Срочность:
           <select id="taskUrgency" class="field">
-            <option value="low">Низкая</option>
-            <option value="medium" selected>Средняя</option>
-            <option value="high">Высокая</option>
+            <option value="normal" selected>Обычная</option>
+            <option value="urgent">Срочная</option>
           </select>
         </label>
 
