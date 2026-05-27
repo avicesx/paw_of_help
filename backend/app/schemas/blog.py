@@ -22,6 +22,8 @@ class PostUpdate(BaseModel):
 class PostResponse(BaseModel):
     id: int
     organization_id: Optional[int] = None
+    organization_name: Optional[str] = None
+    organization_icon_url: Optional[str] = None
     author_user_id: int
     title: str
     content: Optional[str] = None
@@ -30,6 +32,9 @@ class PostResponse(BaseModel):
     published_at: Optional[datetime] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
+    likes_count: int = 0
+    dislikes_count: int = 0
+    my_vote: Optional[int] = None
 
     class Config:
         from_attributes = True

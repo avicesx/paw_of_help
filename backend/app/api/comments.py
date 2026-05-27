@@ -4,7 +4,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core import get_current_user, get_db
+from app.core import get_current_user, get_db, get_optional_user
 from app.models import BlogComment, BlogCommentReaction, OrganizationUser, Post, User
 from app.schemas.blog import (
     BlogCommentCreate,
@@ -132,6 +132,7 @@ async def _to_response(
 async def list_post_comments(
     post_id: int,
     include_deleted: bool = False,
+    current: Annotated[Optional[User], Depends(get_optional_user)] = None,
     db: AsyncSession = Depends(get_db),
 ):
     await _get_post_or_404(db, post_id)
@@ -139,7 +140,7 @@ async def list_post_comments(
     if not include_deleted:
         q = q.where(BlogComment.is_deleted.is_(False))
     rows = (await db.scalars(q)).all()
-    return [await _to_response(db, r, current_user_id=None) for r in rows]
+    return [await _to_response(db, r, current_user_id=current.id if current else None) for r in rows]
 
 
 @router.post(

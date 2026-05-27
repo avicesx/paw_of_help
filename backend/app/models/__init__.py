@@ -8,6 +8,7 @@ from app.models.foster import FosterRequest, FosterOffer, FosterPlacement
 from app.models.blog import (
     Tag,
     Post,
+    PostReaction,
     BlogPostTag,
     BlogComment,
     BlogCommentReaction,
@@ -45,7 +46,7 @@ __all__ = [
     'Task', 'TaskResponse', 'TaskCompletionReport', 'Achievement', 'UserAchievement',
     'FosterRequest', 'FosterOffer', 'FosterPlacement',
 
-    'Tag', 'Post', 'BlogPostTag', 'BlogComment', 'BlogCommentReaction',
+    'Tag', 'Post', 'PostReaction', 'BlogPostTag', 'BlogComment', 'BlogCommentReaction',
     'KnowledgeBaseArticle', 'ArticleTag', 'ArticleRating',
 
     'Event', 'EventParticipant', 'Notification', 'Chat', 'ChatMessage'

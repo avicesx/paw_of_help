@@ -20,6 +20,7 @@ from app.api.posts import router as posts_router
 from app.api.admin import router as admin_router
 from app.api.comments import router as comments_router
 from app.api.location import router as location_router
+from app.api.uploads import router as uploads_router
 
 
 __all__ = [
@@ -44,4 +45,5 @@ __all__ = [
     "comments_router",
     "admin_router",
     "location_router",
+    "uploads_router",
 ]

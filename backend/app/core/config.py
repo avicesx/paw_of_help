@@ -40,6 +40,27 @@ class Settings(BaseSettings):
     WEIGHT_FOSTER: float = Field(15.0, env="WEIGHT_FOSTER", description="Бонус за готовность к передержке")
     WEIGHT_TIME: float = Field(10.0, env="WEIGHT_TIME", description="Бонус за совпадение времени")
 
+    UPLOAD_DIR: str = Field(
+        "/app/uploads",
+        env="UPLOAD_DIR",
+        description="Каталог для загруженных файлов (в Docker — volume)",
+    )
+    PUBLIC_BASE_URL: str = Field(
+        "http://localhost:8000",
+        env="PUBLIC_BASE_URL",
+        description="Базовый URL API для сборки ссылок на /media/...",
+    )
+    MEDIA_URL_PATH: str = Field(
+        "/media",
+        env="MEDIA_URL_PATH",
+        description="HTTP-префикс раздачи загруженных файлов",
+    )
+    UPLOAD_MAX_SIZE_MB: int = Field(
+        10,
+        env="UPLOAD_MAX_SIZE_MB",
+        description="Максимальный размер одного изображения в МБ",
+    )
+
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
         extra="ignore",

@@ -56,3 +56,7 @@ Thumbs.db
 *.log
 tmp/
 temp/
+
+# Загруженные пользователями файлы
+backend/uploads/
+uploads/

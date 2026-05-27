@@ -1,7 +1,9 @@
 """Точка входа FastAPI: маршруты приложения."""
 
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -27,8 +29,10 @@ from app.api import (
     comments_router,
     admin_router,
     location_router,
+    uploads_router,
 )
 from app.core import settings, limiter
+from app.services.upload_service import get_upload_dir
 from app.core.database import create_db_and_tables
 from app.core.database import AsyncSessionLocal
 from app.core.report_reasons_seed import seed_report_reasons_if_empty
@@ -75,6 +79,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.on_event("startup")
 async def on_startup() -> None:
+    get_upload_dir()
     await create_db_and_tables()
     async with AsyncSessionLocal() as db:
         await seed_report_reasons_if_empty(db)
@@ -114,6 +119,10 @@ app.include_router(posts_router)
 app.include_router(comments_router)
 app.include_router(admin_router)
 app.include_router(location_router)
+app.include_router(uploads_router)
+
+upload_path = settings.MEDIA_URL_PATH if settings.MEDIA_URL_PATH.startswith("/") else f"/{settings.MEDIA_URL_PATH}"
+app.mount(upload_path, StaticFiles(directory=str(Path(settings.UPLOAD_DIR))), name="media")
 
 @app.get("/")
 async def root():
