@@ -6,6 +6,21 @@ from typing import List, Optional
 class ArticleListResponse(BaseModel):
     id: int
     title: str
+    content_preview: Optional[str] = None
+    author_name: str
+    created_at: datetime
+    views: int
+    likes_count: int
+    dislikes_count: int
+    tags: List[str]
+
+    class Config:
+        from_attributes = True
+
+
+class ArticleCreateResponse(BaseModel):
+    id: int
+    title: str
     author_name: str
     created_at: datetime
     views: int

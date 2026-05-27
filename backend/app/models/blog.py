@@ -54,6 +54,16 @@ class BlogPostTag(Base):
     tag_id = Column(Integer, primary_key=True)
 
 
+class PostReaction(Base):
+    __tablename__ = "post_reactions"
+
+    post_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, primary_key=True, index=True)
+    # 1 = лайк, -1 = дизлайк
+    vote = Column(Integer, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class BlogComment(Base):
     __tablename__ = "blog_comments"
 

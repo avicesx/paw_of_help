@@ -8,6 +8,7 @@ from app.models.user import User
 from app.models.blog import KnowledgeBaseArticle, Tag, ArticleTag, ArticleRating
 from app.schemas.knowledge_base import (
     ArticleListResponse,
+    ArticleCreateResponse,
     ArticleDetailResponse,
     ArticleCreateRequest,
     ArticleUpdateRequest,
@@ -46,6 +47,7 @@ async def list_articles(
         ArticleListResponse(
             id=a.id,
             title=a.title,
+            content_preview=(a.content[:300] + "…") if a.content and len(a.content) > 300 else a.content,
             author_name=users_map.get(a.author_id, "Неизвестный"),
             created_at=a.created_at,
             views=a.views,
@@ -83,7 +85,7 @@ async def get_article(
     )
 
 
-@router.post("/articles", response_model=ArticleListResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/articles", response_model=ArticleCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_new_article(
     payload: ArticleCreateRequest,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -91,7 +93,7 @@ async def create_new_article(
 ):
     article = await create_article(db, payload, current_user.id)
     author_name = current_user.name or current_user.username
-    return ArticleListResponse(
+    return ArticleCreateResponse(
         id=article.id,
         title=article.title,
         author_name=author_name,

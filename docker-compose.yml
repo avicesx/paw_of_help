@@ -39,8 +39,12 @@ services:
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Moscow}
       DATABASE_ECHO: ${DATABASE_ECHO:-false}
       HF_HOME: /var/cache/huggingface
+      UPLOAD_DIR: /app/uploads
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8000}
+      UPLOAD_MAX_SIZE_MB: ${UPLOAD_MAX_SIZE_MB:-10}
     volumes:
       - huggingface_hub:/var/cache/huggingface
+      - paw_uploads:/app/uploads
     ports:
       - "8000:8000"
     depends_on:
@@ -67,3 +71,4 @@ volumes:
   paw_db:
   paw_redis:
   huggingface_hub:
+  paw_uploads:

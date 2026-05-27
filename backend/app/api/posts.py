@@ -5,9 +5,10 @@ from zoneinfo import ZoneInfo
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core import get_current_user, get_db, settings
-from app.models import OrganizationUser, Post, User
-from app.schemas.blog import PostCreate, PostResponse, PostUpdate
+from app.core import get_current_user, get_db, get_optional_user, settings
+from app.models import OrganizationUser, Post, PostReaction, User
+from app.models.organization import Organization
+from app.schemas.blog import CommentReactionRequest, PostCreate, PostResponse, PostUpdate
 
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -36,24 +37,93 @@ def _day_range_utc(now_utc: datetime) -> tuple[datetime, datetime]:
     return local_start.astimezone(timezone.utc), local_end.astimezone(timezone.utc)
 
 
+async def _enrich_posts(
+    db: AsyncSession,
+    posts: list[Post],
+    current_user_id: int | None = None,
+) -> list[PostResponse]:
+    """Обогащает список постов данными об организации и реакциях одним батчем запросов."""
+    if not posts:
+        return []
+
+    post_ids = [p.id for p in posts]
+    org_ids = list({p.organization_id for p in posts if p.organization_id is not None})
+
+    # организации одним запросом
+    orgs_map: dict[int, Organization] = {}
+    if org_ids:
+        orgs = (await db.scalars(select(Organization).where(Organization.id.in_(org_ids)))).all()
+        orgs_map = {o.id: o for o in orgs}
+
+    # лайки / дизлайки одним запросом
+    likes_rows = (
+        await db.execute(
+            select(PostReaction.post_id, func.count().label("cnt"))
+            .where(PostReaction.post_id.in_(post_ids), PostReaction.vote == 1)
+            .group_by(PostReaction.post_id)
+        )
+    ).all()
+    likes_map: dict[int, int] = {r.post_id: r.cnt for r in likes_rows}
+
+    dislikes_rows = (
+        await db.execute(
+            select(PostReaction.post_id, func.count().label("cnt"))
+            .where(PostReaction.post_id.in_(post_ids), PostReaction.vote == -1)
+            .group_by(PostReaction.post_id)
+        )
+    ).all()
+    dislikes_map: dict[int, int] = {r.post_id: r.cnt for r in dislikes_rows}
+
+    # голос текущего пользователя одним запросом
+    my_votes_map: dict[int, int] = {}
+    if current_user_id is not None:
+        votes_rows = (
+            await db.execute(
+                select(PostReaction.post_id, PostReaction.vote).where(
+                    PostReaction.post_id.in_(post_ids),
+                    PostReaction.user_id == current_user_id,
+                )
+            )
+        ).all()
+        my_votes_map = {r.post_id: r.vote for r in votes_rows}
+
+    result = []
+    for p in posts:
+        org = orgs_map.get(p.organization_id) if p.organization_id else None
+        r = PostResponse.model_validate(p)
+        r.organization_name = org.name if org else None
+        r.organization_icon_url = org.logo_url if org else None
+        r.likes_count = likes_map.get(p.id, 0)
+        r.dislikes_count = dislikes_map.get(p.id, 0)
+        r.my_vote = my_votes_map.get(p.id)
+        result.append(r)
+    return result
+
+
 @router.get("", response_model=list[PostResponse])
 async def list_posts(
     organization_id: Optional[int] = None,
+    current: Annotated[Optional[User], Depends(get_optional_user)] = None,
     db: AsyncSession = Depends(get_db),
 ):
     q = select(Post).order_by(Post.id.desc())
     if organization_id is not None:
         q = q.where(Post.organization_id == organization_id)
     rows = (await db.scalars(q)).all()
-    return [PostResponse.model_validate(r) for r in rows]
+    return await _enrich_posts(db, list(rows), current.id if current else None)
 
 
 @router.get("/{post_id}", response_model=PostResponse)
-async def get_post(post_id: int, db: AsyncSession = Depends(get_db)):
+async def get_post(
+    post_id: int,
+    current: Annotated[Optional[User], Depends(get_optional_user)] = None,
+    db: AsyncSession = Depends(get_db),
+):
     post = await db.get(Post, post_id)
     if post is None:
         raise HTTPException(status_code=404, detail="Пост не найден")
-    return PostResponse.model_validate(post)
+    enriched = await _enrich_posts(db, [post], current.id if current else None)
+    return enriched[0]
 
 
 @router.post(
@@ -99,7 +169,8 @@ async def create_post(
     db.add(post)
     await db.commit()
     await db.refresh(post)
-    return PostResponse.model_validate(post)
+    enriched = await _enrich_posts(db, [post], current.id)
+    return enriched[0]
 
 
 @router.patch(
@@ -127,7 +198,8 @@ async def update_post(
         setattr(post, k, v)
     await db.commit()
     await db.refresh(post)
-    return PostResponse.model_validate(post)
+    enriched = await _enrich_posts(db, [post], current.id)
+    return enriched[0]
 
 
 @router.delete(
@@ -152,3 +224,40 @@ async def delete_post(
     await db.delete(post)
     await db.commit()
     return None
+
+
+@router.post(
+    "/{post_id}/vote",
+    response_model=PostResponse,
+    summary="Проголосовать за пост",
+    description="vote: 1 (лайк), -1 (дизлайк), 0 — снять реакцию",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def vote_post(
+    post_id: int,
+    payload: CommentReactionRequest,
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    post = await db.get(Post, post_id)
+    if post is None:
+        raise HTTPException(status_code=404, detail="Пост не найден")
+
+    if payload.vote not in (-1, 0, 1):
+        raise HTTPException(status_code=400, detail="Неверное значение vote")
+
+    existing = await db.get(PostReaction, {"post_id": post_id, "user_id": current.id})
+
+    if payload.vote == 0:
+        if existing is not None:
+            await db.delete(existing)
+            await db.commit()
+    elif existing is None:
+        db.add(PostReaction(post_id=post_id, user_id=current.id, vote=payload.vote))
+        await db.commit()
+    else:
+        existing.vote = payload.vote
+        await db.commit()
+
+    enriched = await _enrich_posts(db, [post], current.id)
+    return enriched[0]

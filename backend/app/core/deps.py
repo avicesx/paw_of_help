@@ -45,6 +45,35 @@ async def get_current_user_id(
         )
 
 
+async def get_optional_user_id(
+    creds: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+) -> int | None:
+    """Возвращает id пользователя из JWT или None, если токена нет"""
+    if creds is None or creds.scheme.lower() != "bearer":
+        return None
+    try:
+        payload = jwt.decode(
+            creds.credentials,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+        sub = payload.get("sub")
+        return int(sub) if sub is not None else None
+    except (jwt.InvalidTokenError, ValueError, TypeError):
+        return None
+
+
+async def get_optional_user(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user_id: Annotated[int | None, Depends(get_optional_user_id)],
+) -> User | None:
+    """Возвращает пользователя из БД или None для анонимных запросов"""
+    if user_id is None:
+        return None
+    user = await db.get(User, user_id)
+    return user if (user and user.is_active) else None
+
+
 async def get_current_user(
     db: Annotated[AsyncSession, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)],
