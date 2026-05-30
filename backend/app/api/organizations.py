@@ -57,6 +57,77 @@ async def list_organizations(db: AsyncSession = Depends(get_db)):
     return [OrganizationResponse.model_validate(o) for o in orgs]
 
 
+@router.get(
+    "/my",
+    response_model=list[OrganizationResponse],
+    summary="Мои организации",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def my_organizations(
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """Организации, где пользователь состоит"""
+    org_ids = (
+        await db.scalars(
+            select(OrganizationUser.organization_id).where(
+                OrganizationUser.user_id == current.id,
+                OrganizationUser.invitation_status == "accepted",
+            )
+        )
+    ).all()
+    if not org_ids:
+        return []
+    orgs = (await db.scalars(select(Organization).where(Organization.id.in_(org_ids)))).all()
+    return [OrganizationResponse.model_validate(o) for o in orgs]
+
+
+@router.get(
+    "/invites",
+    response_model=list[OrganizationUserResponse],
+    summary="Мои приглашения в организации",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def my_org_invites(
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """Список pending-приглашений пользователя в организации"""
+    rows = (
+        await db.scalars(
+            select(OrganizationUser).where(
+                OrganizationUser.user_id == current.id,
+                OrganizationUser.invitation_status == "pending",
+            )
+        )
+    ).all()
+    return [OrganizationUserResponse.model_validate(r) for r in rows]
+
+
+@router.get(
+    "/subscriptions",
+    response_model=list[OrganizationResponse],
+    summary="Мои подписки",
+    openapi_extra={"security": [{"BearerAuth": []}]},
+)
+async def my_subscriptions(
+    current: Annotated[User, Depends(get_current_user)],
+    db: AsyncSession = Depends(get_db),
+):
+    """Организации, на которые подписан пользователь"""
+    org_ids = (
+        await db.scalars(
+            select(Subscription.organization_id).where(
+                Subscription.user_id == current.id
+            )
+        )
+    ).all()
+    if not org_ids:
+        return []
+    orgs = (await db.scalars(select(Organization).where(Organization.id.in_(org_ids)))).all()
+    return [OrganizationResponse.model_validate(o) for o in orgs]
+
+
 @router.get("/{org_id}", response_model=OrganizationResponse)
 async def get_organization(org_id: int, db: AsyncSession = Depends(get_db)):
     org = await _get_org_or_404(db, org_id)
@@ -213,7 +284,7 @@ async def invite_user(
     db: AsyncSession = Depends(get_db),
 ):
     """Пригласить пользователя по username (только админ)"""
-    await _get_org_or_404(db, org_id)
+    org = await _get_org_or_404(db, org_id)
     await _require_org_role(db, org_id=org_id, user_id=current.id, roles={"admin"})
 
     if payload.role not in {"admin", "curator"}:
@@ -253,53 +324,6 @@ async def invite_user(
         commit=True,
     )
     return OrganizationUserResponse.model_validate(ou)
-
-
-@router.get(
-    "/my",
-    response_model=list[OrganizationResponse],
-    summary="Мои организации",
-    openapi_extra={"security": [{"BearerAuth": []}]},
-)
-async def my_organizations(
-    current: Annotated[User, Depends(get_current_user)],
-    db: AsyncSession = Depends(get_db),
-):
-    """Организации, где пользователь состоит"""
-    org_ids = (
-        await db.scalars(
-            select(OrganizationUser.organization_id).where(
-                OrganizationUser.user_id == current.id,
-                OrganizationUser.invitation_status == "accepted",
-            )
-        )
-    ).all()
-    if not org_ids:
-        return []
-    orgs = (await db.scalars(select(Organization).where(Organization.id.in_(org_ids)))).all()
-    return [OrganizationResponse.model_validate(o) for o in orgs]
-
-
-@router.get(
-    "/invites",
-    response_model=list[OrganizationUserResponse],
-    summary="Мои приглашения в организации",
-    openapi_extra={"security": [{"BearerAuth": []}]},
-)
-async def my_org_invites(
-    current: Annotated[User, Depends(get_current_user)],
-    db: AsyncSession = Depends(get_db),
-):
-    """Список pending-приглашений пользователя в организации"""
-    rows = (
-        await db.scalars(
-            select(OrganizationUser).where(
-                OrganizationUser.user_id == current.id,
-                OrganizationUser.invitation_status == "pending",
-            )
-        )
-    ).all()
-    return [OrganizationUserResponse.model_validate(r) for r in rows]
 
 
 @router.post(
