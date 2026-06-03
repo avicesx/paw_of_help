@@ -36,6 +36,7 @@ class Post(Base):
     title = Column(String(255), nullable=False)
     content = Column(Text, nullable=True)
     attachments = Column(JSON, default=lambda: [])
+    tags = Column(JSON, default=lambda: [])
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     published_at = Column(DateTime(timezone=True), nullable=True)

@@ -160,3 +160,12 @@ class UserAchievement(Base):
     user_id = Column(Integer, nullable=False, index=True)
     achievement_id = Column(Integer, nullable=False)
     earned_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class PlatformSetting(Base):
+    """Ключ-значение для настроек платформы (админка)"""
+
+    __tablename__ = "platform_settings"
+
+    key = Column(String(64), primary_key=True)
+    value = Column(JSON, nullable=False)

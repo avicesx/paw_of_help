@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
-from sqlalchemy import select, func
-from app.models.blog import KnowledgeBaseArticle, Tag, ArticleTag, ArticleRating
+from sqlalchemy import select
+from app.models.blog import KnowledgeBaseArticle, ArticleTag, ArticleRating
 from app.schemas.knowledge_base import ArticleCreateRequest, ArticleUpdateRequest
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
 
 async def get_articles_list(
@@ -56,8 +56,8 @@ async def create_article(
         title=article_data.title,
         content=article_data.content,
         author_id=author_id,
-        tags=article_data.tags,
-        status="on_moderation"
+        tags=[],
+        status="on_moderation",
     )
     db.add(article)
     await db.commit()
@@ -78,12 +78,22 @@ async def update_article(
     if article.author_id != current_user_id:
         raise HTTPException(status_code=403, detail="Нет прав на редактирование")
 
-    for field, value in article_data.dict(exclude_unset=True).items():
+    data = article_data.model_dump(exclude_unset=True)
+    content_changed = "title" in data or "content" in data
+
+    if content_changed:
+        data["tags"] = []
+        if article.status != "published":
+            data["status"] = "on_moderation"
+            data["rejection_reason"] = None
+            data["moderated_at"] = None
+
+    for field, value in data.items():
         setattr(article, field, value)
 
     await db.commit()
     await db.refresh(article)
-    return article
+    return article, content_changed
 
 
 async def delete_article(
@@ -137,39 +147,3 @@ async def toggle_like_article(
             article.dislikes_count += 1
 
     await db.commit()
-
-
-async def get_all_tags(db: AsyncSession) -> List[Tag]:
-    result = await db.scalars(select(Tag))
-    return result.all()
-
-
-async def get_categories(db: AsyncSession):
-    return [
-        {"id": 1, "name": "Кошки"},
-        {"id": 2, "name": "Собаки"},
-        {"id": 3, "name": "Птицы"},
-        {"id": 4, "name": "Грызуны"},
-    ]
-
-
-async def get_breeds_by_category(category_id: int):
-    if category_id == 1:
-        return [
-            {"id": 101, "name": "Сиамская", "description": "Древняя порода с характерным окрасом."},
-            {"id": 102, "name": "Мейн-кун", "description": "Один из самых крупных домашних котов."},
-        ]
-    elif category_id == 2:
-        return [
-            {"id": 201, "name": "Лабрадор", "description": "Дружелюбная и умная порода."},
-            {"id": 202, "name": "Немецкая овчарка", "description": "Отличный сторож и компаньон."},
-        ]
-    return []
-
-
-async def get_breed_detail(breed_id: int):
-    breeds = {
-        101: {"id": 101, "name": "Сиамская", "description": "Древняя порода с характерным окрасом.", "health_issues": ["астма", "заболевания глаз"], "feeding_tips": "Кормить 3 раза в день", "socialization": "Рано приучать к людям"},
-        102: {"id": 102, "name": "Мейн-кун", "description": "Один из самых крупных домашних котов.", "health_issues": ["кардиомиопатия", "дисплазия бедра"], "feeding_tips": "Высококалорийный корм", "socialization": "Терпим к детям"},
-    }
-    return breeds.get(breed_id, None)

@@ -27,6 +27,24 @@ services:
       timeout: 3s
       retries: 30
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    environment:
+      OLLAMA_TAG_MODEL: ${OLLAMA_TAG_MODEL:-gemma2:9b}
+    volumes:
+      - ollama_data:/root/.ollama
+    # При первом старте тянет модель в volume ollama_data
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama serve &
+        sleep 3
+        ollama pull "$${OLLAMA_TAG_MODEL}" || true
+        wait
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -39,9 +57,14 @@ services:
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Moscow}
       DATABASE_ECHO: ${DATABASE_ECHO:-false}
       HF_HOME: /var/cache/huggingface
+      HF_TOKEN: ${HF_TOKEN:-}
       UPLOAD_DIR: /app/uploads
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8000}
       UPLOAD_MAX_SIZE_MB: ${UPLOAD_MAX_SIZE_MB:-10}
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_TAG_MODEL: ${OLLAMA_TAG_MODEL:-gemma2:9b}
+      CONTENT_MODEL_BASE: ${CONTENT_MODEL_BASE:-weeqeen/rubert-base-cased-finetuned-moderation}
+      CONTENT_MODEL_TINY: ${CONTENT_MODEL_TINY:-weeqeen/rubert-tiny2-moderation}
     volumes:
       - huggingface_hub:/var/cache/huggingface
       - paw_uploads:/app/uploads
@@ -52,6 +75,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      ollama:
+        condition: service_started
     restart: unless-stopped
 
     command: >
@@ -72,3 +97,4 @@ volumes:
   paw_redis:
   huggingface_hub:
   paw_uploads:
+  ollama_data:

@@ -1,10 +1,11 @@
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.blog import KnowledgeBaseArticle
 from app.models.misc import Report
 from app.schemas.moderation import ResolveArticleRequest, ResolveReportRequest
 from app.services.notification_service import create_notification
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
 
 async def get_articles_on_moderation(db: AsyncSession) -> list[KnowledgeBaseArticle]:
@@ -29,7 +30,7 @@ async def resolve_article(
             user_id=article.author_id,
             type="article_published",
             title="Статья опубликована",
-            body=f'Ваша статья "{article.title}" успешно опубликована.',
+            body=f'Ваша статья "{article.title}" успешно опубликована',
         )
     elif resolution.action == "reject":
         article.status = "rejected"
@@ -40,12 +41,12 @@ async def resolve_article(
             user_id=article.author_id,
             type="article_rejected",
             title="Статья отклонена",
-            body=f'Ваша статья "{article.title}" была отклонена модератором. Причина: {resolution.rejection_reason or "не указана."}',
+            body=f'Ваша статья "{article.title}" была отклонена модератором. Причина: {resolution.rejection_reason or "не указана"}',
         )
     else:
         raise HTTPException(status_code=400, detail="Недопустимое действие")
 
-    article.moderated_at = datetime.utcnow()
+    article.moderated_at = datetime.now(timezone.utc)
     article.moderated_by = moderator_id
 
     await db.commit()
@@ -76,7 +77,7 @@ async def resolve_report(
             user_id=report.reporter_id,
             type="complaint_rejected",
             title="Жалоба отклонена",
-            body=f'Ваша жалоба на {report.target_type} была отклонена модератором.',
+            body=f'Ваша жалоба на {report.target_type} была отклонена модератором',
         )
     else:
         raise HTTPException(status_code=400, detail="Недопустимое действие")

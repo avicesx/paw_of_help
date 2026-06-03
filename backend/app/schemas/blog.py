@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 from pydantic import BaseModel
 
 
@@ -28,6 +28,7 @@ class PostResponse(BaseModel):
     title: str
     content: Optional[str] = None
     attachments: List[Any] = []
+    tags: List[str] = []
     is_published: bool
     published_at: Optional[datetime] = None
     created_at: datetime

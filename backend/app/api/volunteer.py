@@ -1,13 +1,13 @@
 """API для профиля волонтёра."""
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_db, get_current_user
-from app.models import User, Task
+from app.models import User
 from app.schemas.volunteer import (
-    VolunteerProfileUpdate, VolunteerProfileFullResponse, SkillResponse, SkillListResponse,
+    VolunteerProfileUpdate, VolunteerProfileFullResponse, SkillListResponse,
     SkillIdsRequest, TaskBriefResponse, CompletedTaskResponse, ReviewResponse
 )
 from app.services.volunteer_service import (

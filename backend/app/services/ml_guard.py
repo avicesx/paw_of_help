@@ -1,9 +1,12 @@
+import logging
 import os
 from typing import Optional
-import logging
 from .content_moderation_agent import ContentModerationAgent
 
+logger = logging.getLogger(__name__)
+
 _moderation_agent: Optional[ContentModerationAgent] = None
+
 
 def init_moderation_agent():
     global _moderation_agent
@@ -30,11 +33,9 @@ def init_moderation_agent():
             base_weight=base_weight,
             tiny_weight=tiny_weight,
         )
-        logger = logging.getLogger(__name__)
-        logger.info("✅ Content moderation agent успешно загружен")
+        logger.info("Агент модерации контента загружен")
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"⚠️ Не удалось загрузить модератор: {e}")
+        logger.error("Не удалось загрузить агент модерации: %s", e)
         _moderation_agent = None
 
 def get_moderation_agent() -> Optional[ContentModerationAgent]:

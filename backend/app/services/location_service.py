@@ -1,4 +1,4 @@
-from sqlalchemy import select, func, text, null
+from sqlalchemy import select, func, null
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.volunteer import VolunteerProfile

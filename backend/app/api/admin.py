@@ -1,10 +1,8 @@
-from datetime import datetime, timedelta
-from typing import Annotated, Literal, Optional
-
+from datetime import datetime, timedelta, timezone
+from typing import Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, delete, func, or_, select, update
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core import get_current_user, get_db
 from app.models import (
     AuditLog,
@@ -20,6 +18,10 @@ from app.models import (
     Post,
 )
 from app.schemas.admin import (
+    AdminTagCreateRequest,
+    AdminTagItem,
+    ModerationSettingsResponse,
+    ModerationSettingsUpdateRequest,
     AuditLogItem,
     ContentReviewItem,
     OrganizationListItem,
@@ -29,10 +31,13 @@ from app.schemas.admin import (
     RoleUpdateRequest,
     SupportTicketDetail,
     SupportTicketListItem,
+    SupportTicketMessageItem,
     SupportTicketReplyRequest,
     SupportTicketStatusUpdateRequest,
     UserListItem,
 )
+from app.services.moderation_settings_service import get_moderation_settings, update_moderation_settings
+from app.services.tag_service import create_tag, delete_tag, list_tags
 from app.services import create_notification
 
 
@@ -731,11 +736,26 @@ async def _perform_content_review_action(
         content = await db.get(Post, content_id)
         if content is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Объект не найден")
-        before = {"moderation_status": content.moderation_status, "is_hidden": content.is_hidden}
+        before = {
+            "moderation_status": content.moderation_status,
+            "is_hidden": content.is_hidden,
+            "is_published": content.is_published,
+        }
         content.moderation_status = new_status
         content.is_hidden = new_status != "approved"
         content.moderation_reason = reason
-        after = {"moderation_status": content.moderation_status, "is_hidden": content.is_hidden}
+        if new_status == "approved":
+            content.is_published = True
+            if content.published_at is None:
+                content.published_at = datetime.now(timezone.utc)
+        else:
+            content.is_published = False
+            content.published_at = None
+        after = {
+            "moderation_status": content.moderation_status,
+            "is_hidden": content.is_hidden,
+            "is_published": content.is_published,
+        }
         author_id = content.author_user_id
         entity_type = "post"
     elif content_type == "comment":
@@ -939,11 +959,10 @@ async def _remove_reported_content(
     db: AsyncSession,
     report: Report,
     actor_id: int,
-) -> tuple[Optional[int], Optional[str], Optional[str]]:
+) -> tuple[Optional[int], Optional[str]]:
     target_type = report.target_type
     target_id = report.target_id
     author_id: Optional[int] = None
-    content_type = target_type
 
     if target_type == "post":
         post = await db.get(Post, target_id)
@@ -1001,7 +1020,7 @@ async def _remove_reported_content(
             user_id=author_id,
             type="content_removed",
             title="Контент удалён администратором",
-            body=f"Ваш контент, на который была подана жалоба, был удалён или скрыт.",
+            body="Ваш контент, на который была подана жалоба, был удалён или скрыт.",
             commit=False,
         )
     await _log_action(
@@ -1050,3 +1069,65 @@ async def list_audit_logs(
     stmt = stmt.limit(limit)
     rows = (await db.scalars(stmt)).all()
     return [AuditLogItem.model_validate(r) for r in rows]
+
+
+@router.get("/moderation-settings", response_model=ModerationSettingsResponse)
+async def admin_get_moderation_settings(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _require_admin_access(current_user)
+    data = await get_moderation_settings(db)
+    return ModerationSettingsResponse(**data)
+
+
+@router.patch("/moderation-settings", response_model=ModerationSettingsResponse)
+async def admin_update_moderation_settings(
+    payload: ModerationSettingsUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _require_admin_access(current_user)
+    if payload.post_auto_publish is None and payload.article_auto_publish is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Укажите post_auto_publish и/или article_auto_publish",
+        )
+    data = await update_moderation_settings(
+        db,
+        post_auto_publish=payload.post_auto_publish,
+        article_auto_publish=payload.article_auto_publish,
+    )
+    return ModerationSettingsResponse(**data)
+
+
+@router.get("/tags", response_model=list[AdminTagItem])
+async def admin_list_tags(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _require_admin_access(current_user)
+    tags = await list_tags(db)
+    return [AdminTagItem.model_validate(t) for t in tags]
+
+
+@router.post("/tags", response_model=AdminTagItem, status_code=status.HTTP_201_CREATED)
+async def admin_create_tag(
+    payload: AdminTagCreateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _require_admin_access(current_user)
+    tag = await create_tag(db, payload.name)
+    return AdminTagItem.model_validate(tag)
+
+
+@router.delete("/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def admin_delete_tag(
+    tag_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    _require_admin_access(current_user)
+    await delete_tag(db, tag_id)
+    return None

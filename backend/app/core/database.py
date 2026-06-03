@@ -1,5 +1,6 @@
 """Асинхронный движок SQLAlchemy и фабрика сессий для FastAPI Depends."""
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
@@ -28,8 +29,17 @@ async def get_db():
 
 async def create_db_and_tables() -> None:
     """Создаёт все таблицы для зарегистрированных моделей, если их нет."""
-    # Импорт моделей здесь нужен именно при вызове, чтобы избежать циклического импорта.
     import app.models  # noqa: F401
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(
+            text(
+                """
+                DO $$ BEGIN
+                    ALTER TABLE posts ADD COLUMN tags JSON DEFAULT '[]';
+                EXCEPTION WHEN duplicate_column THEN NULL;
+                END $$;
+                """
+            )
+        )

@@ -32,6 +32,28 @@ class OrganizationRejectRequest(BaseModel):
     reason: str
 
 
+class AdminTagItem(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
+class AdminTagCreateRequest(BaseModel):
+    name: str
+
+
+class ModerationSettingsResponse(BaseModel):
+    post_auto_publish: bool
+    article_auto_publish: bool
+
+
+class ModerationSettingsUpdateRequest(BaseModel):
+    post_auto_publish: Optional[bool] = None
+    article_auto_publish: Optional[bool] = None
+
+
 class SupportTicketListItem(BaseModel):
     id: int
     subject: str

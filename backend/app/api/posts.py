@@ -2,13 +2,15 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Annotated, Optional
 from zoneinfo import ZoneInfo
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import get_current_user, get_db, get_optional_user, settings
 from app.models import OrganizationUser, Post, PostReaction, User
 from app.models.organization import Organization
 from app.schemas.blog import CommentReactionRequest, PostCreate, PostResponse, PostUpdate
+from app.services.content_background_service import process_post_in_background
+from app.services.post_service import create_post_record, update_post_record
 
 
 router = APIRouter(prefix="/posts", tags=["posts"])
@@ -106,7 +108,7 @@ async def list_posts(
     current: Annotated[Optional[User], Depends(get_optional_user)] = None,
     db: AsyncSession = Depends(get_db),
 ):
-    q = select(Post).order_by(Post.id.desc())
+    q = select(Post).where(Post.is_published.is_(True)).order_by(Post.id.desc())
     if organization_id is not None:
         q = q.where(Post.organization_id == organization_id)
     rows = (await db.scalars(q)).all()
@@ -120,8 +122,24 @@ async def get_post(
     db: AsyncSession = Depends(get_db),
 ):
     post = await db.get(Post, post_id)
-    if post is None:
+    if post is None or post.is_hidden:
         raise HTTPException(status_code=404, detail="Пост не найден")
+    if not post.is_published:
+        if current is None or (
+            post.author_user_id != current.id
+            and not (
+                post.organization_id
+                and await db.scalar(
+                    select(OrganizationUser).where(
+                        OrganizationUser.organization_id == post.organization_id,
+                        OrganizationUser.user_id == current.id,
+                        OrganizationUser.invitation_status == "accepted",
+                        OrganizationUser.role.in_(["admin", "curator"]),
+                    )
+                )
+            )
+        ):
+            raise HTTPException(status_code=404, detail="Пост не найден")
     enriched = await _enrich_posts(db, [post], current.id if current else None)
     return enriched[0]
 
@@ -134,6 +152,7 @@ async def get_post(
 )
 async def create_post(
     payload: PostCreate,
+    background_tasks: BackgroundTasks,
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
@@ -157,18 +176,13 @@ async def create_post(
     if org_id is not None:
         await _require_org_staff(db, org_id=org_id, user_id=current.id)
 
-    post = Post(
-        organization_id=org_id,
+    post = await create_post_record(
+        db,
+        payload=payload,
         author_user_id=current.id,
-        title=payload.title,
-        content=payload.content,
-        attachments=payload.attachments,
-        is_published=True,
-        published_at=now,
+        organization_id=org_id,
     )
-    db.add(post)
-    await db.commit()
-    await db.refresh(post)
+    background_tasks.add_task(process_post_in_background, post.id)
     enriched = await _enrich_posts(db, [post], current.id)
     return enriched[0]
 
@@ -181,6 +195,7 @@ async def create_post(
 async def update_post(
     post_id: int,
     payload: PostUpdate,
+    background_tasks: BackgroundTasks,
     current: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
@@ -193,11 +208,9 @@ async def update_post(
             raise HTTPException(status_code=403, detail="Недостаточно прав")
         await _require_org_staff(db, org_id=post.organization_id, user_id=current.id)
 
-    data = payload.model_dump(exclude_unset=True)
-    for k, v in data.items():
-        setattr(post, k, v)
-    await db.commit()
-    await db.refresh(post)
+    post, reprocess = await update_post_record(db, post, payload)
+    if reprocess:
+        background_tasks.add_task(process_post_in_background, post.id)
     enriched = await _enrich_posts(db, [post], current.id)
     return enriched[0]
 

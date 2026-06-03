@@ -2,9 +2,8 @@
 
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
-from app.core import normalize_ru_mobile, validate_ru_person_name
 
 
 class LoginRequest(BaseModel):
