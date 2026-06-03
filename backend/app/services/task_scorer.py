@@ -4,7 +4,7 @@ import math
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
-from sqlalchemy import select, and_, or_
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings

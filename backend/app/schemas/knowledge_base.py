@@ -50,13 +50,11 @@ class ArticleDetailResponse(BaseModel):
 class ArticleCreateRequest(BaseModel):
     title: str
     content: str
-    tags: List[str] = []
 
 
 class ArticleUpdateRequest(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
-    tags: Optional[List[str]] = None
 
 
 class TagResponse(BaseModel):

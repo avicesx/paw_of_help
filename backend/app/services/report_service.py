@@ -42,7 +42,7 @@ async def create_report(
                 status_ = "pending"
                 moderation_comment = "AI-проверка пройдена: контент соответствует правилам"
         except Exception as e:
-            logger.error(f"❌ Ошибка в AI-модерации: {e}", exc_info=True)
+            logger.error("Ошибка AI-модерации жалобы: %s", e, exc_info=True)
             moderation_comment = f"Ошибка модерации: {str(e)[:100]}"
 
     report = Report(

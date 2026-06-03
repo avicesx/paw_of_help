@@ -1,9 +1,7 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from .content_safety_checker import ContentSafetyChecker
-import os
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -28,7 +26,7 @@ class ContentModerationAgent:
             tiny_weight=tiny_weight,
             threshold=threshold,
         )
-        logger.info("✅ ContentModerationAgent инициализирован")
+        logger.info("ContentModerationAgent инициализирован")
 
     def evaluate(self, text: str) -> Dict[str, Any]:
         """
@@ -53,7 +51,7 @@ class ContentModerationAgent:
                 "preview": (text[:100] + "...") if len(text) > 100 else text,
             }
         except Exception as e:
-            logger.error(f"❌ Ошибка при анализе текста: {e}")
+            logger.error("Ошибка при анализе текста: %s", e)
             return {
                 "verdict": "ERROR",
                 "confidence": 0.0,

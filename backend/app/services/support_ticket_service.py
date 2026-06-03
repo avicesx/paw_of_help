@@ -2,7 +2,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.misc import SupportTicket
 from app.schemas.support_ticket import SupportTicketCreate
-from fastapi import HTTPException, status
 
 
 async def create_support_ticket(

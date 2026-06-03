@@ -1,11 +1,10 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-
 from app.core import get_current_user, get_db
 from app.models.user import User
-from app.models.blog import KnowledgeBaseArticle, Tag, ArticleTag, ArticleRating
+from app.models.blog import ArticleRating
 from app.schemas.knowledge_base import (
     ArticleListResponse,
     ArticleCreateResponse,
@@ -14,6 +13,7 @@ from app.schemas.knowledge_base import (
     ArticleUpdateRequest,
     TagResponse,
 )
+from app.services.content_background_service import process_article_in_background
 from app.services.knowledge_base_service import (
     get_articles_list,
     get_article_detail,
@@ -21,8 +21,8 @@ from app.services.knowledge_base_service import (
     update_article,
     delete_article,
     toggle_like_article,
-    get_all_tags,
 )
+from app.services.tag_service import list_tags as fetch_tags
 
 router = APIRouter(prefix="/knowledge-base", tags=["knowledge-base"])
 
@@ -88,10 +88,12 @@ async def get_article(
 @router.post("/articles", response_model=ArticleCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_new_article(
     payload: ArticleCreateRequest,
+    background_tasks: BackgroundTasks,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
     article = await create_article(db, payload, current_user.id)
+    background_tasks.add_task(process_article_in_background, article.id)
     author_name = current_user.name or current_user.username
     return ArticleCreateResponse(
         id=article.id,
@@ -109,10 +111,13 @@ async def create_new_article(
 async def edit_article(
     article_id: int,
     payload: ArticleUpdateRequest,
+    background_tasks: BackgroundTasks,
     current_user: Annotated[User, Depends(get_current_user)],
     db: AsyncSession = Depends(get_db),
 ):
-    article = await update_article(db, article_id, payload, current_user.id)
+    article, reprocess = await update_article(db, article_id, payload, current_user.id)
+    if reprocess:
+        background_tasks.add_task(process_article_in_background, article.id)
     author_name = current_user.name or current_user.username
     return ArticleDetailResponse(
         id=article.id,
@@ -152,5 +157,5 @@ async def like_article(
 async def list_tags(
     db: AsyncSession = Depends(get_db),
 ):
-    tags = await get_all_tags(db)
+    tags = await fetch_tags(db)
     return [TagResponse(id=t.id, name=t.name) for t in tags]

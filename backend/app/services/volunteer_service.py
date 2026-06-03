@@ -1,6 +1,6 @@
 """Сервисы для работы с профилем волонтёра."""
 
-from typing import List, Optional
+from typing import List
 from sqlalchemy import select, func, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status

@@ -61,6 +61,10 @@ class Settings(BaseSettings):
         description="Максимальный размер одного изображения в МБ",
     )
 
+    OLLAMA_BASE_URL: str = Field("http://localhost:11434", env="OLLAMA_BASE_URL")
+    OLLAMA_TAG_MODEL: str = Field("gemma2:9b", env="OLLAMA_TAG_MODEL")
+    OLLAMA_TIMEOUT_SECONDS: float = Field(120.0, env="OLLAMA_TIMEOUT_SECONDS")
+
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
         extra="ignore",

@@ -1,12 +1,12 @@
 """Точка входа FastAPI: маршруты приложения."""
 
+import asyncio
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-
 from app.api import (
     auth_router,
     chats_router,
@@ -36,6 +36,8 @@ from app.services.upload_service import get_upload_dir
 from app.core.database import create_db_and_tables
 from app.core.database import AsyncSessionLocal
 from app.core.report_reasons_seed import seed_report_reasons_if_empty
+from app.services.moderation_settings_service import seed_moderation_settings_if_missing
+from app.services.tag_service import seed_initial_tags
 
 from app.services.ml_guard import init_moderation_agent
 
@@ -83,7 +85,10 @@ async def on_startup() -> None:
     await create_db_and_tables()
     async with AsyncSessionLocal() as db:
         await seed_report_reasons_if_empty(db)
-    init_moderation_agent()
+        await seed_initial_tags(db)
+        await seed_moderation_settings_if_missing(db)
+    # ML-модели грузятся в фоне — иначе API (auth и т.д.) недоступен минутами
+    asyncio.create_task(asyncio.to_thread(init_moderation_agent))
 
 
 _origins = _cors_origins()

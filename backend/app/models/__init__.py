@@ -33,7 +33,8 @@ from app.models.misc import (
     SupportTicketMessage,
     AuditLog,
     Achievement,
-    UserAchievement
+    UserAchievement,
+    PlatformSetting,
 )
 
 
@@ -49,8 +50,8 @@ __all__ = [
     'Tag', 'Post', 'PostReaction', 'BlogPostTag', 'BlogComment', 'BlogCommentReaction',
     'KnowledgeBaseArticle', 'ArticleTag', 'ArticleRating',
 
-    'Event', 'EventParticipant', 'Notification', 'Chat', 'ChatMessage'
-
-    'Review', 'Report', 'ReportReason', 'Subscription', 'Sighting', 'SupportTicket', 
-    'SupportTicketMessage', 'AuditLog', 'Achievement', 'UserAchievement'
-    ]
+    'Event', 'EventParticipant', 'Notification', 'Chat', 'ChatMessage',
+    'Review', 'Report', 'ReportReason', 'Subscription', 'Sighting', 'SupportTicket',
+    'SupportTicketMessage', 'AuditLog', 'Achievement', 'UserAchievement',
+    'PlatformSetting',
+]
