@@ -83,12 +83,58 @@ function renderEventsList(events) {
       <div class="event-meta">Начало: ${escapeHtml(eventDateLabel(event.start_datetime))}</div>
       <div class="event-meta">Окончание: ${escapeHtml(eventDateLabel(event.end_datetime))}</div>
       <div class="event-meta">Место: ${escapeHtml(event.location || "Не указано")}</div>
+      <div id="eventPreviewMap-${event.id}" class="event-preview-map" data-location="${escapeHtml(event.location || "")}"></div>
       <div class="event-actions">
         <button class="task-primary-btn" type="button" onclick="registerForEvent(${event.id})">Участвовать</button>
         <button class="task-outline-btn" type="button" onclick="cancelEventRegistration(${event.id})">Отменить участие</button>
       </div>
     </article>
   `).join("");
+
+  initEventPreviewMaps(events);
+}
+
+
+
+async function initEventPreviewMaps(events) {
+  if (typeof L === "undefined" || typeof geocodeAddress !== "function") return;
+
+  const candidates = (events || []).filter(event => event?.id && event?.location).slice(0, 8);
+
+  for (const event of candidates) {
+    const el = document.getElementById(`eventPreviewMap-${event.id}`);
+    if (!el || el.dataset.initialized === "1") continue;
+    el.dataset.initialized = "1";
+
+    try {
+      const found = await geocodeAddress(event.location);
+      if (!found) {
+        el.style.display = "none";
+        continue;
+      }
+
+      const map = L.map(el, {
+        zoomControl: false,
+        attributionControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        tap: false,
+      }).setView([found.lat, found.lng], 15);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+      }).addTo(map);
+
+      L.marker([found.lat, found.lng]).addTo(map);
+      setTimeout(() => map.invalidateSize(), 150);
+    } catch (err) {
+      console.warn("EVENT PREVIEW MAP ERROR:", err);
+      el.style.display = "none";
+    }
+  }
 }
 
 function shortEventDate(value) {
@@ -260,20 +306,44 @@ async function renderCalendar() {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const offset = (firstDay.getDay() + 6) % 7;
 
+  // Дни предыдущего месяца
+  const prevMonthDays = new Date(year, month, 0).getDate();
   for (let i = 0; i < offset; i++) {
-    const empty = document.createElement("div");
-    empty.className = "calendar-day muted";
-    grid.appendChild(empty);
+    const d = prevMonthDays - offset + 1 + i;
+    const cell = document.createElement("button");
+    cell.className = "calendar-day muted";
+    cell.type = "button";
+    cell.innerHTML = `<span>${d}</span>`;
+    grid.appendChild(cell);
   }
 
   for (let day = 1; day <= daysInMonth; day++) {
     const dateKey = toDateKey(new Date(year, month, day));
     const dayEvents = events.filter(event => toDateKey(event.start_datetime) === dateKey);
     const cell = document.createElement("button");
-    cell.className = `calendar-day${dayEvents.length ? " has-events" : ""}`;
+    const isToday = (new Date().toDateString() === new Date(year, month, day).toDateString());
+    const dayOfWeek = new Date(year, month, day).getDay(); // 0=Sun, 6=Sat
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    cell.className = [
+      "calendar-day",
+      dayEvents.length ? "has-events" : "",
+      isToday ? "today" : "",
+      isWeekend ? "weekend" : ""
+    ].filter(Boolean).join(" ");
     cell.type = "button";
     cell.innerHTML = `<span>${day}</span>${dayEvents.length ? '<b></b>' : ''}`;
     cell.onclick = () => renderDayEvents(dayEvents, dateKey);
+    grid.appendChild(cell);
+  }
+
+  // Дни следующего месяца для заполнения сетки
+  const totalCells = offset + daysInMonth;
+  const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= remainingCells; i++) {
+    const cell = document.createElement("button");
+    cell.className = "calendar-day muted";
+    cell.type = "button";
+    cell.innerHTML = `<span>${i}</span>`;
     grid.appendChild(cell);
   }
 

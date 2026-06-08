@@ -46,7 +46,10 @@ async function apiRequest(path, options = {}) {
   }
 
   if (!res.ok) {
-    throw new Error(parseErrorDetail(data, `Ошибка ${res.status}`));
+    const detail = parseErrorDetail(data, `Ошибка ${res.status}`);
+    const err = new Error(detail);
+    err.status = res.status;
+    throw err;
   }
 
   return { ok: true, status: res.status, data };
@@ -54,7 +57,11 @@ async function apiRequest(path, options = {}) {
 
 function parseErrorDetail(data, fallback) {
   if (!data) return fallback;
-  if (typeof data.detail === "string") return data.detail;
+  if (typeof data.detail === "string") {
+    const d = data.detail;
+    if (d === "Not Found" || d === "Not found") return fallback; // show HTTP status instead
+    return d;
+  }
   if (Array.isArray(data.detail)) {
     return data.detail.map(item => item.msg || JSON.stringify(item)).join("\n");
   }
@@ -118,22 +125,79 @@ async function loadProfile() {
   try {
     const { data: user } = await apiRequest("/auth/me", { auth: true });
 
+    const displayName = [user.name, user.last_name].filter(Boolean).join(" ") || user.username || "Пользователь";
+    const firstName = user.name || user.username || "Пользователь";
+    const lastName = user.last_name || "";
+
     const usernameNode = document.getElementById("username");
     const contactLineNode = document.getElementById("contactLine");
+    const firstNameNode = document.getElementById("profileFirstName");
+    const lastNameNode = document.getElementById("profileLastName");
+    const reviewsLink = document.getElementById("profileReviewsLink");
 
-    if (usernameNode) {
-      usernameNode.textContent = [user.name, user.last_name].filter(Boolean).join(" ") || user.username || "Пользователь";
+    if (usernameNode) usernameNode.textContent = displayName;
+    if (contactLineNode) contactLineNode.textContent = user.phone || user.email || "Контакт не указан";
+    if (firstNameNode) firstNameNode.textContent = firstName;
+    if (lastNameNode) {
+      lastNameNode.textContent = lastName;
+      lastNameNode.style.display = lastName ? "block" : "none";
+    }
+    if (reviewsLink && user.id) {
+      reviewsLink.href = `reviews.html?target_type=volunteer&target_id=${encodeURIComponent(user.id)}&reviewee_id=${encodeURIComponent(user.id)}`;
     }
 
-    if (contactLineNode) {
-      contactLineNode.textContent = user.phone || user.email || "Контакт не указан";
-    }
+    await loadProfileRating(user.id);
   } catch (err) {
     alert(err.message || "Ошибка загрузки профиля");
     console.error("PROFILE ERROR:", err);
     localStorage.removeItem("token");
     window.location.href = "login.html";
   }
+}
+
+async function loadProfileRating(userId) {
+  const ratingValueNode = document.getElementById("profileRatingValue");
+  const reviewCountNode = document.getElementById("profileReviewCount");
+  const legacyRatingNode = document.querySelector(".profile-rating");
+
+  let rating = 0;
+  let count = 0;
+
+  try {
+    const { data: volunteer } = await apiRequest("/volunteer/profile", { auth: true });
+    const stats = volunteer?.stats || {};
+    rating = Number(stats.rating_by_reviews || 0);
+    count = Number(stats.total_reviews_count || 0);
+  } catch (err) {
+    console.warn("VOLUNTEER STATS LOAD ERROR:", err);
+
+    if (userId) {
+      try {
+        const { data: reviews } = await apiRequest(`/reviews?target_type=volunteer&target_id=${encodeURIComponent(userId)}`);
+        const list = Array.isArray(reviews) ? reviews : [];
+        count = list.length;
+        rating = count ? list.reduce((sum, item) => sum + Number(item.rating || 0), 0) / count : 0;
+      } catch (reviewsErr) {
+        console.warn("PROFILE REVIEWS FALLBACK ERROR:", reviewsErr);
+      }
+    }
+  }
+
+  const ratingText = rating.toFixed(1).replace(".", ",");
+  const countText = String(count);
+
+  if (ratingValueNode) ratingValueNode.textContent = ratingText;
+  if (reviewCountNode) reviewCountNode.textContent = countText;
+  if (legacyRatingNode) legacyRatingNode.innerHTML = `${ratingText} ⭐ <span>${countText} ${pluralizeReviews(count)}</span>`;
+}
+
+function pluralizeReviews(count) {
+  const n = Math.abs(Number(count)) % 100;
+  const n1 = n % 10;
+  if (n > 10 && n < 20) return "отзывов";
+  if (n1 > 1 && n1 < 5) return "отзыва";
+  if (n1 === 1) return "отзыв";
+  return "отзывов";
 }
 
 async function loadSettingsPage() {
@@ -156,10 +220,21 @@ async function loadSettingsPage() {
     setValue("vol_radius_km", volunteer.radius_km);
     setValue("vol_housing_type", volunteer.housing_type);
     setValue("vol_preferred_animal_types", Array.isArray(volunteer.preferred_animal_types) ? volunteer.preferred_animal_types.join(", ") : "");
-    setValue("vol_availability", JSON.stringify(volunteer.availability || {}, null, 2));
+    // Заполнить поля доступности из объекта
+    const avail = volunteer.availability || {};
+    const weekdaysSel = document.getElementById("avail_weekdays");
+    const weekendSel = document.getElementById("avail_weekend");
+    if (weekdaysSel) weekdaysSel.value = avail.weekdays || avail.weekday || "";
+    if (weekendSel) weekendSel.value = avail.weekend || avail.weekends || "";
     setChecked("vol_ready_for_foster", !!volunteer.ready_for_foster);
     setChecked("vol_has_children", !!volunteer.has_children);
-    setValue("vol_has_other_pets", JSON.stringify(volunteer.has_other_pets || {}, null, 2));
+    // Заполнить чекбоксы питомцев
+    const pets = volunteer.has_other_pets || {};
+    const setCb = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+    setCb("pets_cats", pets.cats);
+    setCb("pets_dogs", pets.dogs);
+    setCb("pets_birds", pets.birds);
+    setCb("pets_other", pets.other);
     setValue("vol_foster_restrictions", volunteer.foster_restrictions || "");
 
     const statsNode = document.getElementById("volunteerStats");
@@ -234,10 +309,25 @@ async function saveVolunteerProfile(event) {
     radius_km: toNumberOrNull(getValue("vol_radius_km")),
     housing_type: nullIfEmpty(getValue("vol_housing_type")),
     preferred_animal_types: splitCsv(getValue("vol_preferred_animal_types")),
-    availability: parseJsonOrFallback(getValue("vol_availability"), {}),
+    availability: (() => {
+      const weekdays = document.getElementById("avail_weekdays")?.value || "";
+      const weekend = document.getElementById("avail_weekend")?.value || "";
+      const obj = {};
+      if (weekdays) obj.weekdays = weekdays;
+      if (weekend) obj.weekend = weekend;
+      return obj;
+    })(),
     ready_for_foster: getChecked("vol_ready_for_foster"),
     has_children: getChecked("vol_has_children"),
-    has_other_pets: parseJsonOrFallback(getValue("vol_has_other_pets"), {}),
+    has_other_pets: (() => {
+      const obj = {};
+      const getCb = id => document.getElementById(id)?.checked ? 1 : 0;
+      if (getCb("pets_cats")) obj.cats = 1;
+      if (getCb("pets_dogs")) obj.dogs = 1;
+      if (getCb("pets_birds")) obj.birds = 1;
+      if (getCb("pets_other")) obj.other = 1;
+      return obj;
+    })(),
     foster_restrictions: nullIfEmpty(getValue("vol_foster_restrictions")),
     foster_photos: []
   };
@@ -400,7 +490,9 @@ async function loadNotificationsCount() {
   if (!badge || !getToken()) return;
   try {
     const { data } = await apiRequest("/notifications?is_read=false", { auth: true });
-    badge.textContent = String((data || []).length);
+    const _count = (data || []).length;
+    badge.textContent = _count > 0 ? String(_count) : '';
+    badge.style.display = _count > 0 ? 'inline-flex' : 'none';
   } catch {}
 }
 
