@@ -842,7 +842,7 @@ textarea {
   margin: 8px 16px 16px;
   width: calc(100% - 32px);
   border-radius: 18px;
-  background: #efb2b6;
+  background: #FEBDBD;
   border: 0;
   color: #5e3131;
 }
@@ -926,7 +926,7 @@ textarea {
   width: 54px;
   height: 54px;
   border-radius: 8px;
-  background: #eaa1a4;
+  background: #FEBDBD;
   color: #5e3131;
   display: flex;
   align-items: center;
@@ -1001,7 +1001,7 @@ textarea {
 }
 
 .calendar-day.has-events {
-  background: #f4bbbb;
+  background: #FEBDBD;
   font-weight: 700;
 }
 
@@ -1060,4 +1060,3644 @@ textarea {
   font-size: 12px;
   color: #7c6262;
   padding: 0 16px 12px;
+}
+
+.paw-designed {
+  background: #efefef;
+  --figma-pink: #FEBDBD;
+  --figma-soft: #fde6e7;
+  --figma-panel: #fde9ea;
+  --figma-red: #aa4144;
+  --figma-dark-red: #7a2227;
+  --figma-line: #b05256;
+  --figma-text: #211616;
+  --figma-muted: #b5b5b5;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.paw-designed .phone-shell {
+  max-width: 360px;
+  min-height: 777px;
+  background: #ffffff;
+  box-shadow: none;
+  overflow-x: hidden;
+}
+
+.paw-designed .topbar {
+  height: 90px;
+  padding: 0 22px;
+  background: var(--figma-pink);
+  color: var(--figma-dark-red);
+  display: flex;
+  align-items: center;
+}
+
+.paw-designed .topbar-logo {
+  width: 112px;
+  height: 76px;
+  background: url("../assets/paw-logo.png") center/contain no-repeat;
+  flex: 0 0 112px;
+}
+
+.paw-designed .paw-icon,
+.paw-designed .paw-title {
+  display: none;
+}
+
+.paw-designed .topbar-side {
+  width: 82px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  font-size: 0;
+}
+
+.paw-designed .topbar-links {
+  justify-content: flex-end;
+  align-items: center;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--figma-dark-red);
+}
+
+.paw-designed .topbar-links a {
+  color: var(--figma-dark-red);
+}
+
+.paw-designed .icon-btn,
+.paw-designed .menu-button {
+  background: url("../assets/icon-menu.png") left center/42px 34px no-repeat !important;
+  color: transparent !important;
+  border: 0 !important;
+  width: 82px;
+  height: 70px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.paw-designed .profile-icons {
+  position: relative;
+  justify-content: flex-end;
+  gap: 14px;
+  font-size: 0 !important;
+}
+
+.paw-designed .profile-icons::before {
+  content: "";
+  width: 34px;
+  height: 38px;
+  background: url("../assets/icon-bell.png") center/contain no-repeat;
+  display: inline-block;
+}
+
+.paw-designed .profile-icons::after {
+  content: "";
+  width: 54px;
+  height: 54px;
+  background: url("../assets/icon-user.png") center/contain no-repeat;
+  display: inline-block;
+}
+
+.paw-designed .badge-dot {
+  position: absolute;
+  right: 49px;
+  top: 13px;
+  min-width: 13px;
+  height: 13px;
+  padding: 0 3px;
+  background: #d7262b;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 8px;
+  line-height: 13px;
+  text-align: center;
+}
+
+.paw-designed .screen-title {
+  margin: 16px 14px 8px;
+  color: #c7c7c7;
+  font-size: 16px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.paw-designed .back-row {
+  padding: 16px 22px 8px;
+  min-height: 62px;
+}
+
+.paw-designed .back-link {
+  font-size: 0;
+  width: 56px;
+  height: 40px;
+  position: relative;
+  display: inline-block;
+}
+
+.paw-designed .back-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 52px;
+  height: 26px;
+  background: #000;
+  clip-path: polygon(0 50%, 55% 0, 55% 30%, 100% 30%, 100% 70%, 55% 70%, 55% 100%);
+}
+
+.paw-designed .back-title {
+  font-size: 18px;
+  color: #1e1616;
+  font-weight: 700;
+}
+
+/* Background paw */
+.paw-designed .paw-bg {
+  width: 255px;
+  height: 260px;
+  background: url("../assets/paw-bg.png") center/contain no-repeat;
+  color: transparent !important;
+  font-size: 0 !important;
+  opacity: .95;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Auth */
+.paw-designed.page_login .auth-card,
+.paw-designed.page_register .auth-card {
+  margin: 68px 13px 0;
+  border-radius: 8px;
+  border: 1px solid #FEBDBD;
+  background: var(--figma-panel);
+}
+
+.paw-designed.page_login .auth-form,
+.paw-designed.page_register .auth-form {
+  padding: 18px 18px 20px;
+}
+
+.paw-designed .auth-tabs {
+  height: 54px;
+}
+
+.paw-designed .tab {
+  color: #2b1818;
+  font-size: 12px;
+}
+
+.paw-designed .tab.active {
+  background: #FEBDBD;
+  border-bottom-right-radius: 42px;
+  border-bottom-left-radius: 0;
+}
+
+.paw-designed .field,
+.paw-designed textarea,
+.paw-designed select {
+  border: 0;
+  border-bottom: 1px solid var(--figma-line);
+  border-radius: 0;
+  background: #fff;
+  color: #1c1717;
+  min-height: 34px;
+  font-size: 13px;
+  outline: none;
+}
+
+.paw-designed .auth-card .field {
+  border-bottom: 0;
+  border-radius: 4px;
+  height: 34px;
+  margin-bottom: 14px;
+}
+
+.paw-designed .submit-btn {
+  background: #f7c5c9;
+  color: #331b1b;
+  border: 1px solid #d39196;
+  height: 42px;
+  border-radius: 0 0 6px 44px;
+  min-width: 132px;
+  font-size: 12px;
+}
+
+.paw-designed.page_login .paw-bg,
+.paw-designed.page_register .paw-bg {
+  left: 88px;
+  bottom: 98px;
+  transform: none;
+  width: 230px;
+  height: 230px;
+}
+
+/* Profile */
+.paw-designed.page_profile .profile-head {
+  margin: 58px 23px 0;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.paw-designed.page_profile .avatar {
+  width: 112px;
+  height: 112px;
+  background: url("../assets/avatar-big.png") center/contain no-repeat;
+  border-radius: 0;
+}
+
+.paw-designed.page_profile .avatar::before,
+.paw-designed.page_profile .avatar::after {
+  display: none;
+}
+
+.paw-designed.page_profile .profile-name {
+  font-size: 28px;
+  line-height: 1.45;
+  font-weight: 400;
+  color: #000;
+}
+
+.paw-designed.page_profile .profile-subtitle {
+  display: none;
+}
+
+.paw-designed.page_profile .profile-rating {
+  position: absolute;
+  left: 23px;
+  top: 235px;
+  font-size: 24px;
+  color: #000;
+}
+
+.paw-designed.page_profile .profile-rating span {
+  margin-left: 42px;
+  color: #000;
+  text-decoration: underline;
+}
+
+.paw-designed.page_profile .section-label {
+  margin-top: 18px;
+  height: 41px;
+  line-height: 22px;
+  background: #FEBDBD;
+  border-top-right-radius: 28px;
+  color: #000;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.paw-designed.page_profile .empty-state {
+  padding-top: 38px;
+  font-size: 20px;
+  color: #000;
+}
+
+.paw-designed.page_profile .paw-bg-profile {
+  left: 20px;
+  bottom: 52px;
+  transform: none;
+  width: 270px;
+  height: 270px;
+}
+
+.paw-designed.page_profile .settings-btn {
+  background: url("../assets/icon-gear.png") center/contain no-repeat;
+  color: transparent;
+  border: 0;
+  right: 0;
+  bottom: 0;
+  width: 72px;
+  height: 72px;
+}
+
+/* Menu */
+.paw-designed .side-menu {
+  top: 90px;
+  height: calc(100% - 90px);
+}
+
+.paw-designed .side-menu.open {
+  width: 252px;
+}
+
+.paw-designed .side-menu-inner {
+  width: 252px;
+  background: #fde6e7;
+  border-right: 2px solid #c56b70;
+  padding: 24px 22px;
+}
+
+.paw-designed .side-link {
+  display: block;
+  background: #eda2a6;
+  color: #321e1e;
+  margin-bottom: 22px;
+  padding: 12px 14px;
+  border-radius: 3px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Common cards/forms */
+.paw-designed .task-form-card,
+.paw-designed .event-card,
+.paw-designed .feed-card,
+.paw-designed .compact-event-card,
+.paw-designed .review-card,
+.paw-designed .complaint-card {
+  background: var(--figma-panel);
+  border: 6px solid #fff;
+  box-shadow: 0 2px 5px rgba(90, 20, 20, .14);
+  border-radius: 4px;
+}
+
+.paw-designed .task-form-card {
+  margin: 8px 12px 0;
+  padding: 16px;
+}
+
+.paw-designed .form-label {
+  color: #aa4144;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.paw-designed .textarea {
+  min-height: 100px;
+  background: #fff;
+}
+
+.paw-designed .double-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.paw-designed .full-width,
+.paw-designed .primary-action-link {
+  width: 100%;
+  display: block;
+  border: 1px solid #b8575d;
+  background: #fac5c8;
+  color: #2a1717;
+  border-radius: 4px;
+  text-align: center;
+  padding: 10px 12px;
+}
+
+/* Task list / feed */
+.paw-designed .task-tabs {
+  margin: 0;
+  background: transparent;
+  border-bottom: 1px solid #a23d43;
+  padding: 0 0 0 0;
+}
+
+.paw-designed .task-tab {
+  background: #fff;
+  border: 1px solid #a23d43;
+  border-bottom: 0;
+  color: #241616;
+  font-size: 12px;
+  padding: 12px 8px;
+}
+
+.paw-designed .task-tab.active {
+  background: #9f3338;
+  color: #fff;
+}
+
+.paw-designed .tasks-toolbar {
+  padding: 18px 16px 10px;
+}
+
+.paw-designed .filter-panel.visible-panel,
+.paw-designed #filterPanel:not(.hidden) {
+  margin: 0 14px 12px;
+  background: transparent;
+  padding: 0;
+}
+
+.paw-designed .tasks-list,
+.paw-designed .animals-list,
+.paw-designed .events-list {
+  padding: 0 16px 24px;
+}
+
+.paw-designed .task-card {
+  background: #fde0e1;
+  border-radius: 6px;
+  box-shadow: 0 2px 5px rgba(80, 30, 30, .16);
+  padding: 16px 12px;
+  margin-bottom: 16px;
+}
+
+.paw-designed .task-paw,
+.paw-designed .animal-card-paw {
+  background: url("../assets/paw-circle.png") center/contain no-repeat;
+  color: transparent;
+  width: 72px;
+  height: 72px;
+  border-radius: 0;
+}
+
+.paw-designed .task-title {
+  font-size: 16px;
+  color: #3c2525;
+  margin-bottom: 10px;
+}
+
+.paw-designed .task-type-badge,
+.paw-designed .task-primary-btn {
+  background: #efa0a4;
+  color: #381b1b;
+  border: 0;
+  border-radius: 3px;
+}
+
+.paw-designed .task-outline-btn,
+.paw-designed .task-secondary-btn {
+  background: transparent;
+  border: 1px solid #a9474d;
+  color: #381b1b;
+  border-radius: 3px;
+}
+
+/* Animal select/create */
+.paw-designed.page_animal_select .animal-search {
+  margin-top: 8px;
+  border-radius: 22px;
+  background: #ef9fa5;
+  color: #4b2b2b;
+  border-bottom: 0;
+  padding-left: 18px;
+}
+
+.paw-designed .create-animal-block {
+  padding: 0 16px 14px;
+}
+
+.paw-designed .animal-card {
+  background: #fde0e1;
+  border: 0;
+  border-radius: 5px;
+  margin-bottom: 13px;
+  padding: 14px;
+  box-shadow: 0 2px 4px rgba(60, 30, 30, .12);
+}
+
+.paw-designed .animal-card-name {
+  font-size: 17px;
+}
+
+.paw-designed.page_animal_create .task-form-card::before {
+  content: "";
+  display: block;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 16px;
+  background: url("../assets/paw-circle.png") center/contain no-repeat;
+}
+
+.paw-designed.page_animal_create .task-form-card {
+  padding-top: 22px;
+}
+
+.paw-designed.page_animal_create textarea {
+  min-height: 34px;
+}
+
+/* Events/calendar */
+.paw-designed.page_events #eventsOrgFilter {
+  display: none !important;
+}
+
+.paw-designed.page_events .visible-panel {
+  display: none;
+}
+
+.paw-designed.page_events .small-action-link {
+  margin-left: auto;
+  max-width: 210px;
+}
+
+.paw-designed .event-card {
+  padding: 18px 16px;
+  margin-bottom: 20px;
+}
+
+.paw-designed .event-card-head {
+  display: block;
+}
+
+.paw-designed .event-date-box {
+  display: none;
+}
+
+.paw-designed .event-info h2 {
+  font-size: 16px;
+  margin: 0 0 8px;
+  color: #000;
+  border-bottom: 1px solid #ae4f55;
+  font-weight: 400;
+}
+
+.paw-designed .event-type,
+.paw-designed .event-meta {
+  color: #aa4144;
+  font-size: 13px;
+}
+
+.paw-designed .event-card::after,
+.paw-designed.page_event_create .task-form-card::after {
+  content: "";
+  display: block;
+  width: 235px;
+  height: 138px;
+  background: url("../assets/map-yandex.png") center/cover no-repeat;
+  margin: 12px auto 8px;
+}
+
+.paw-designed.page_event_create .task-form-card {
+  border-color: #fde9ea;
+  padding: 18px;
+}
+
+.paw-designed.page_event_create .textarea {
+  min-height: 34px;
+}
+
+.paw-designed.page_event_create #eventLocation {
+  min-height: 138px;
+  color: transparent;
+  caret-color: #333;
+  background: #ddd url("../assets/map-yandex.png") center/cover no-repeat;
+  border-bottom: 0;
+}
+
+.paw-designed.page_calendar .calendar-panel {
+  margin: 8px 16px 14px;
+  border: 5px solid #fde1e1;
+  background: #fff;
+  padding: 8px;
+  box-shadow: none;
+}
+
+.paw-designed .calendar-head {
+  height: 34px;
+  border-bottom: 2px solid #f4b8bc;
+  margin-bottom: 8px;
+}
+
+.paw-designed .calendar-head .icon-btn {
+  background: none !important;
+  color: #000 !important;
+  font-size: 28px !important;
+  width: 40px;
+  height: 34px;
+}
+
+.paw-designed .calendar-day {
+  background: #fff;
+  color: #111;
+  min-height: 34px;
+  font-size: 12px;
+}
+
+.paw-designed .calendar-day.has-events {
+  background: #f7c5c9;
+}
+
+.paw-designed .calendar-weekday {
+  color: #222;
+}
+
+.paw-designed .compact-event-card {
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+/* Reviews and complaints */
+.paw-designed.page_reviews .reviews-summary {
+  margin: 18px 16px;
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 12px;
+}
+
+.paw-designed.page_reviews .big-rating {
+  font-size: 56px;
+  color: #000;
+}
+
+.paw-designed.page_complaints .complaint-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px;
+}
+
+.paw-designed.page_complaints .reason-chip {
+  background: #fff;
+  border: 0;
+  border-radius: 18px;
+  padding: 10px 16px;
+}
+
+.paw-designed.page_complaints textarea {
+  margin: 10px 16px;
+  width: calc(100% - 32px);
+  min-height: 260px;
+  background: #fde0e1;
+  border: 0;
+  color: #5c4a4a;
+}
+
+/* Avoid touching settings: no .paw-designed class is added to settings.html */
+
+
+/* ===== Asset wiring pass: use real design assets, not emoji. Settings page is intentionally untouched. ===== */
+.design-assets .paw-icon,
+.design-assets .paw-title,
+.design-assets .topbar .topbar-side:first-child,
+.design-assets .icon-btn,
+.design-assets .menu-button,
+.design-assets .profile-icons,
+.design-assets .avatar,
+.design-assets .paw-bg,
+.design-assets .settings-btn,
+.design-assets .task-paw,
+.design-assets .animal-card-paw,
+.design-assets .review-avatar,
+.design-assets .complaint-avatar {
+  font-size: 0 !important;
+  color: transparent !important;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+
+.design-assets .topbar-logo {
+  width: 58px;
+  height: 46px;
+  background: url('../assets/paw-logo.png') center / contain no-repeat;
+  flex-shrink: 0;
+}
+
+.design-assets .paw-icon,
+.design-assets .paw-title {
+  display: none !important;
+}
+
+.design-assets .topbar .topbar-side:first-child,
+.design-assets .icon-btn,
+.design-assets .menu-button {
+  width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: url('../assets/icon-menu.png') center / 22px 22px no-repeat !important;
+}
+
+.design-assets .profile-icons {
+  position: relative;
+  width: 72px !important;
+  height: 42px;
+  display: flex !important;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+.design-assets .profile-icons::before,
+.design-assets .profile-icons::after {
+  content: "";
+  display: block;
+  flex: 0 0 auto;
+}
+
+.design-assets .profile-icons::before {
+  width: 22px;
+  height: 22px;
+  background: url('../assets/icon-bell.png') center / contain no-repeat;
+}
+
+.design-assets .profile-icons::after {
+  width: 30px;
+  height: 30px;
+  background: url('../assets/icon-user.png') center / contain no-repeat;
+}
+
+.design-assets .avatar {
+  background: url('../assets/avatar-big.png') center / contain no-repeat !important;
+  border-radius: 0 !important;
+}
+
+.design-assets .avatar::before,
+.design-assets .avatar::after {
+  display: none !important;
+}
+
+.design-assets .paw-bg,
+.design-assets .paw-bg-profile {
+  background: url('../assets/paw-bg.png') center / contain no-repeat !important;
+  opacity: 0.85;
+  font-size: 0 !important;
+  width: 260px;
+  height: 260px;
+}
+
+.design-assets .settings-btn {
+  background: #b14f4f url('../assets/icon-gear.png') center / 28px 28px no-repeat !important;
+}
+
+.design-assets .task-paw,
+.design-assets .animal-card-paw,
+.design-assets .review-avatar,
+.design-assets .complaint-avatar {
+  background: #b14f4f url('../assets/paw-circle.png') center / 72% 72% no-repeat !important;
+  border-radius: 50% !important;
+}
+
+.design-assets .map-placeholder,
+.design-assets .event-map,
+.design-assets .profile-map,
+.design-assets .location-map {
+  background: url('../assets/map-yandex.png') center / cover no-repeat !important;
+}
+
+.design-assets .badge-dot {
+  text-indent: 0;
+  font-size: 10px !important;
+  color: #fff !important;
+  overflow: visible;
+}
+
+
+/* =========================================================
+   FIGMA EXACT PASS v2 — scoped only to non-settings pages.
+   IMPORTANT: settings.html has no .paw-designed class, so these
+   rules do not affect the settings screen.
+   ========================================================= */
+.paw-designed {
+  --figma-bg: #eeeeee;
+  --figma-screen: #ffffff;
+  --figma-pink: #f5b5b8;
+  --figma-pink-2: #f8dddd;
+  --figma-pink-3: #efa1a6;
+  --figma-red: #ad4444;
+  --figma-red-dark: #8c2e31;
+  --figma-border: #d7878d;
+  --figma-text: #2f2525;
+  --figma-muted: #7c6767;
+  background: var(--figma-bg);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  color: var(--figma-text);
+}
+
+.paw-designed .phone-shell {
+  width: 100%;
+  max-width: 360px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: var(--figma-screen);
+  border-radius: 0;
+  box-shadow: none;
+  overflow-x: hidden;
+  position: relative;
+}
+
+@media (min-width: 420px) {
+  .paw-designed .phone-shell {
+    margin: 0 auto;
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.paw-designed .topbar {
+  height: 70px;
+  padding: 0 18px;
+  background: var(--figma-pink);
+  display: grid;
+  grid-template-columns: 56px 1fr 78px;
+  align-items: center;
+  color: var(--figma-red-dark);
+}
+
+.paw-designed .icon-btn,
+.paw-designed .menu-button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: url('../assets/icon-menu.png') center / 28px auto no-repeat transparent;
+  color: transparent !important;
+  font-size: 0 !important;
+  justify-content: flex-start;
+}
+
+.paw-designed .topbar-logo {
+  width: 92px;
+  height: 62px;
+  justify-self: center;
+  background: rgba(246, 184, 187, .55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paw-designed .paw-icon {
+  width: 66px;
+  height: 52px;
+  display: block;
+  background: url('../assets/paw-logo.png') center / contain no-repeat;
+  font-size: 0 !important;
+  color: transparent !important;
+}
+
+.paw-designed .paw-title { display: none; }
+
+.paw-designed .profile-icons {
+  width: 78px;
+  min-width: 78px;
+  height: 44px;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  font-size: 0 !important;
+  color: transparent !important;
+  position: relative;
+}
+.paw-designed .profile-icons::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  background: url('../assets/icon-bell.png') center / contain no-repeat;
+  display: block;
+}
+.paw-designed .profile-icons::after {
+  content: '';
+  width: 34px;
+  height: 34px;
+  background: url('../assets/icon-user.png') center / contain no-repeat;
+  display: block;
+}
+.paw-designed .badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 42px;
+  width: 12px;
+  min-width: 12px;
+  height: 12px;
+  padding: 0;
+  font-size: 0;
+  background: #d72134;
+  border: 2px solid var(--figma-pink);
+}
+
+.paw-designed .side-menu {
+  top: 70px;
+  height: calc(100% - 70px);
+}
+.paw-designed .side-menu.open { width: 225px; }
+.paw-designed .side-menu-inner {
+  width: 225px;
+  padding: 20px 20px;
+  background: #f8e1e1;
+  border-right: 2px solid #c9888d;
+}
+.paw-designed .side-link {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 3px;
+  background: #eba0a5;
+  color: #3f2a2a;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.paw-designed .screen-title {
+  margin: 14px 16px 14px;
+  color: #c8c8c8;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.paw-designed .back-row {
+  padding: 12px 18px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.paw-designed .back-link {
+  font-size: 0;
+  width: 44px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+.paw-designed .back-link::before {
+  content: '←';
+  font-size: 40px;
+  line-height: 1;
+  color: #050505;
+  font-weight: 800;
+}
+.paw-designed .back-title {
+  font-size: 21px;
+  color: #211818;
+  font-weight: 400;
+}
+
+/* Auth screens */
+.paw-designed .auth-card {
+  margin: 120px 28px 0;
+  background: #f9dede;
+  border: 1px solid #d28a8d;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.paw-designed .auth-tabs { height: 50px; }
+.paw-designed .tab {
+  font-size: 12px;
+  color: #2d2020;
+}
+.paw-designed .tab.active {
+  background: #f4bdc0;
+  border-bottom-right-radius: 35px;
+}
+.paw-designed .auth-form { padding: 14px 12px 16px; }
+.paw-designed .field,
+.paw-designed select.field,
+.paw-designed textarea.field {
+  min-height: 33px;
+  height: 33px;
+  border: 0;
+  border-radius: 3px;
+  background: #fff;
+  padding: 8px 10px;
+  font-size: 12px;
+  margin-bottom: 9px;
+  color: var(--figma-text);
+}
+.paw-designed textarea.field,
+.paw-designed .textarea { min-height: 96px; height: auto; }
+.paw-designed .submit-btn {
+  height: 40px;
+  width: 142px;
+  margin: 10px 0 0 auto;
+  border: 1px solid #d28a8d;
+  border-top-left-radius: 34px;
+  border-bottom-right-radius: 6px;
+  background: #f4bdc0;
+  color: #2a1818;
+  font-size: 12px;
+  font-weight: 700;
+}
+.paw-designed .paw-bg {
+  width: 210px;
+  height: 214px;
+  font-size: 0 !important;
+  background: url('../assets/paw-bg.png') center / contain no-repeat;
+  opacity: .9;
+  left: 50%;
+  bottom: 82px;
+  transform: translateX(-50%);
+  color: transparent;
+}
+
+/* Profile */
+.paw-designed .profile-screen {
+  min-height: calc(100vh - 70px);
+  position: relative;
+  overflow: hidden;
+}
+.paw-designed .profile-head {
+  margin: 26px 28px 0;
+  gap: 28px;
+  align-items: center;
+}
+.paw-designed .avatar {
+  width: 100px;
+  height: 100px;
+  background: url('../assets/avatar-big.png') center / contain no-repeat;
+  border-radius: 50%;
+}
+.paw-designed .avatar::before,
+.paw-designed .avatar::after { display: none; }
+.paw-designed .profile-meta { padding-top: 0; }
+.paw-designed .profile-name {
+  font-size: 25px;
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+.paw-designed .profile-subtitle { display: none; }
+.paw-designed .profile-rating {
+  font-size: 13px;
+  color: #2b2424;
+}
+.paw-designed .profile-rating span { color: #2b2424; margin-left: 8px; }
+.paw-designed .section-label {
+  margin-top: 22px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 28px 0 0;
+  background: #f6bdc1;
+  color: #2d1c1c;
+  font-size: 17px;
+  font-weight: 400;
+}
+.paw-designed .empty-state {
+  position: relative;
+  z-index: 2;
+  padding: 36px 0 0;
+  text-align: center;
+  font-size: 15px;
+  color: #2e2626;
+}
+.paw-designed .profile-screen .paw-bg-profile {
+  width: 238px;
+  height: 242px;
+  bottom: 62px;
+  opacity: .45;
+}
+.paw-designed .settings-btn {
+  right: 10px;
+  bottom: 10px;
+  width: 54px;
+  height: 54px;
+  background: url('../assets/icon-gear.png') center / 38px auto no-repeat #b34444;
+  color: transparent;
+  font-size: 0;
+  border-radius: 50%;
+}
+.paw-designed .quick-links { display: none !important; }
+
+/* Generic cards and forms */
+.paw-designed .task-form-card,
+.paw-designed .cabinet-card {
+  margin: 8px 18px 0;
+  background: #ffe6e6;
+  border: 6px solid #fff0f0;
+  border-radius: 4px;
+  padding: 12px;
+  color: #3f2b2b;
+}
+.paw-designed .form-label {
+  font-size: 12px;
+  color: #4d3333;
+  margin-bottom: 8px;
+}
+.paw-designed .form-label .field,
+.paw-designed .form-label select.field,
+.paw-designed .form-label textarea.field {
+  margin-top: 5px;
+  background: #fff;
+  border-bottom: 1px solid #c97c83;
+  border-radius: 0;
+}
+.paw-designed .full-width,
+.paw-designed .primary-action-link {
+  min-height: 34px;
+  border: 1px solid #bd5b62;
+  border-radius: 4px;
+  background: #f6c0c3;
+  color: #2c1c1c;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 9px 12px;
+}
+.paw-designed .primary-action-link { display: block; text-align: center; }
+.paw-designed .task-create-wrap,
+.paw-designed .create-animal-block { padding: 0 18px 12px; }
+
+/* Tasks/feed cards */
+.paw-designed .tasks-toolbar {
+  padding: 16px 18px 10px;
+  font-size: 16px;
+  color: #1f1717;
+}
+.paw-designed .filter-btn { font-size: 16px; font-weight: 700; color: #1f1717; }
+.paw-designed .task-tabs {
+  margin: 0;
+  padding: 0 0 0 0;
+  background: #e0e0e0;
+}
+.paw-designed .task-tab {
+  min-height: 38px;
+  padding: 9px 6px;
+  font-size: 13px;
+  background: #e0e0e0;
+  color: #2e2424;
+  border: 0;
+}
+.paw-designed .task-tab.active {
+  background: #b34242;
+  color: #fff;
+}
+.paw-designed .tasks-list,
+.paw-designed .animals-list,
+.paw-designed .reviews-list,
+.paw-designed .events-list,
+.paw-designed .feed-list {
+  padding: 0 18px 22px;
+}
+.paw-designed .task-card,
+.paw-designed .feed-card,
+.paw-designed .review-card,
+.paw-designed .complaint-card,
+.paw-designed .event-card {
+  background: #f9dddd;
+  border: 0;
+  border-radius: 6px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 5px 12px rgba(0,0,0,.08);
+}
+.paw-designed .task-card-row { gap: 18px; align-items: flex-start; }
+.paw-designed .task-paw,
+.paw-designed .animal-card-paw {
+  width: 76px;
+  height: 76px;
+  min-width: 76px;
+  border-radius: 50%;
+  background: url('../assets/paw-circle.png') center / contain no-repeat;
+  color: transparent !important;
+  font-size: 0 !important;
+  overflow: hidden;
+}
+.paw-designed .task-title {
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #1f1717;
+  margin-bottom: 8px;
+}
+.paw-designed .task-animal,
+.paw-designed .task-status-label,
+.paw-designed .small-muted,
+.paw-designed .review-meta,
+.paw-designed .complaint-meta {
+  font-size: 14px;
+  color: #6f5555;
+  margin-bottom: 9px;
+}
+.paw-designed .task-type-badge {
+  display: inline-flex;
+  min-width: 122px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  background: #eca0a5;
+  border-radius: 4px;
+  color: #2d1d1d;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+.paw-designed .task-actions { gap: 8px; }
+.paw-designed .task-primary-btn,
+.paw-designed .task-secondary-btn,
+.paw-designed .task-outline-btn,
+.paw-designed .danger-btn {
+  min-height: 38px;
+  border: 1px solid #b94f56;
+  border-radius: 4px;
+  background: transparent;
+  color: #2b1d1d;
+  font-size: 16px;
+  padding: 8px 12px;
+}
+.paw-designed .task-primary-btn { background: #eca0a5; border-color: #eca0a5; }
+
+/* Animal list */
+.paw-designed .animal-search {
+  height: 42px;
+  margin: 8px 18px 12px;
+  width: calc(100% - 36px);
+  border-radius: 24px;
+  background: #eca0a5;
+  color: #2b1d1d;
+  font-size: 14px;
+}
+.paw-designed .animal-card {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #f9dddd;
+  border: 0;
+  border-radius: 5px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 3px 8px rgba(0,0,0,.06);
+}
+.paw-designed .animal-card-paw {
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+}
+.paw-designed .animal-card-name { font-size: 17px; color: #2e2323; }
+.paw-designed .animal-card-sub { font-size: 12px; color: #775d5d; }
+
+/* Events and calendar */
+.paw-designed .calendar-panel {
+  margin: 8px 18px 14px;
+  background: #fff;
+  border: 6px solid #ffe7e7;
+  border-radius: 3px;
+  padding: 8px;
+}
+.paw-designed .calendar-head {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.paw-designed .calendar-grid { gap: 3px; }
+.paw-designed .calendar-weekday {
+  font-size: 11px;
+  color: #4c3c3c;
+}
+.paw-designed .calendar-day {
+  min-height: 30px;
+  background: #fff;
+  color: #2b2222;
+  border-radius: 2px;
+}
+.paw-designed .calendar-day.has-events,
+.paw-designed .calendar-day.selected {
+  background: #f1b5b9;
+  color: #7b2d31;
+  font-weight: 700;
+}
+.paw-designed .calendar-day.muted { color: #d0c0c0; }
+.paw-designed .event-card-head { align-items: flex-start; }
+.paw-designed .event-date-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 0;
+  background: #d8757a;
+  color: #2b1d1d;
+}
+.paw-designed .event-info h2 { font-size: 16px; margin: 0 0 6px; }
+.paw-designed .event-type,
+.paw-designed .event-meta { font-size: 12px; }
+.paw-designed .event-create-screen .task-form-card::after,
+.paw-designed .create-task-screen .task-form-card .map-placeholder {
+  content: '';
+}
+.paw-designed .location-preview,
+.paw-designed .map-placeholder {
+  display: block;
+  min-height: 110px;
+  background: url('../assets/map-yandex.png') center / cover no-repeat #cfcfcf;
+}
+
+/* Review/complaint pages */
+.paw-designed .review-card-head,
+.paw-designed .complaint-card-head { align-items: flex-start; }
+.paw-designed .review-rating { color: #f0b700; font-size: 16px; }
+
+/* Prevent gigantic fallback emoji/text everywhere */
+.paw-designed .task-paw *,
+.paw-designed .animal-card-paw * { display: none !important; }
+
+/* =========================================================
+   PROFILE PAGE: FIGMA-ASSET EXACT PASS
+   Only profile page. Settings page is not affected.
+   Dynamic data stays text-based, rating comes from backend.
+   ========================================================= */
+.paw-designed.profile-figma-exact .phone-shell {
+  width: 360px;
+  max-width: 360px;
+  min-height: 777px;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.paw-designed.profile-figma-exact .profile-screen {
+  position: relative;
+  min-height: calc(777px - 90px);
+  background: #fff;
+  overflow: hidden;
+}
+
+.paw-designed.profile-figma-exact .screen-title {
+  margin: 17px 0 0 24px;
+  color: #c9c9c9;
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.paw-designed.profile-figma-exact .profile-head {
+  margin: 55px 0 0 25px;
+  display: flex;
+  align-items: flex-start;
+  gap: 25px;
+  min-height: 115px;
+}
+
+.paw-designed.profile-figma-exact .profile-avatar-img {
+  width: 112px;
+  height: 112px;
+  flex: 0 0 112px;
+  display: block;
+}
+
+.paw-designed.profile-figma-exact .profile-meta {
+  padding-top: 9px;
+  width: 175px;
+}
+
+.paw-designed.profile-figma-exact .profile-first-name,
+.paw-designed.profile-figma-exact .profile-last-name {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 21px;
+  line-height: 26px;
+  font-weight: 400;
+  color: #1b1111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.paw-designed.profile-figma-exact .profile-rating-row {
+  position: relative;
+  z-index: 2;
+  margin: 23px 0 0 25px;
+  display: flex;
+  align-items: center;
+  height: 25px;
+  color: #1b1111;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.paw-designed.profile-figma-exact .profile-rating-value {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 400;
+  min-width: 27px;
+}
+
+.paw-designed.profile-figma-exact .profile-rating-star {
+  width: 19px;
+  height: 17px;
+  margin: 0 19px 0 5px;
+  display: block;
+}
+
+.paw-designed.profile-figma-exact .profile-review-count {
+  font-size: 15px;
+  line-height: 21px;
+  font-weight: 700;
+  min-width: 20px;
+  margin-right: 10px;
+}
+
+.paw-designed.profile-figma-exact .profile-reviews-link {
+  color: #1b1111;
+  font-size: 15px;
+  line-height: 21px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.paw-designed.profile-figma-exact .author-section-label {
+  position: relative;
+  z-index: 2;
+  margin-top: 18px;
+  height: 41px;
+  width: 100%;
+  background: #f9c7cc;
+  border-top-right-radius: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paw-designed.profile-figma-exact .author-section-label img {
+  width: 126px;
+  height: auto;
+  display: block;
+}
+
+.paw-designed.profile-figma-exact .author-empty-state {
+  position: relative;
+  z-index: 2;
+  margin-top: 31px;
+  display: flex;
+  justify-content: center;
+}
+
+.paw-designed.profile-figma-exact .author-empty-state img {
+  width: 202px;
+  height: auto;
+  display: block;
+}
+
+.paw-designed.profile-figma-exact .profile-paw-bg-img {
+  position: absolute;
+  z-index: 1;
+  left: 35px;
+  top: 365px;
+  width: 247px;
+  height: auto;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.paw-designed.profile-figma-exact .paw-bg,
+.paw-designed.profile-figma-exact .paw-bg-profile,
+.paw-designed.profile-figma-exact .avatar,
+.paw-designed.profile-figma-exact .profile-name,
+.paw-designed.profile-figma-exact .profile-subtitle,
+.paw-designed.profile-figma-exact .profile-rating,
+.paw-designed.profile-figma-exact .section-label,
+.paw-designed.profile-figma-exact .empty-state {
+  display: none !important;
+}
+
+.paw-designed.profile-figma-exact .settings-btn {
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  bottom: 0;
+  width: 66px;
+  height: 66px;
+  border: 0;
+  background: url("../assets/figma/gear-figma.svg") center/contain no-repeat;
+  color: transparent;
+  font-size: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+
+/* =========================================================
+   TASKS FIGMA PASS — scoped only to task pages
+   Backend logic is not touched. Settings page is not affected.
+   ========================================================= */
+.paw-designed.task-figma-page,
+.paw-designed.task-create-figma-page {
+  --task-red: #b64249;
+  --task-red-dark: #8f3035;
+  --task-pink: #f7b7bd;
+  --task-pink-soft: #fde4e5;
+  --task-card: #f9dede;
+  --task-card-2: #f6cfd1;
+  --task-text: #2a1c1c;
+  --task-muted: #756161;
+  background: #efefef;
+}
+
+.paw-designed.task-figma-page .phone-shell,
+.paw-designed.task-create-figma-page .phone-shell {
+  width: 360px;
+  max-width: 360px;
+  min-height: 777px;
+  background: #fff;
+  overflow-x: hidden;
+}
+
+.paw-designed.task-figma-page .screen-title {
+  margin: 12px 0 9px 16px;
+  color: #c9c9c9;
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 700;
+}
+
+.paw-designed.task-figma-page .task-tabs {
+  height: 41px;
+  margin: 0;
+  padding: 0;
+  background: #d9d9d9;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-radius: 0 20px 20px 0;
+  overflow: hidden;
+  border: 1px solid #b54b51;
+  border-left: 0;
+}
+
+.paw-designed.task-figma-page .task-tab {
+  height: 41px;
+  padding: 0;
+  border: 0;
+  background: #e4e4e4;
+  color: #352525;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 41px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.paw-designed.task-figma-page .task-tab.active {
+  background: #b83d44;
+  color: #fff;
+  font-weight: 700;
+}
+
+.paw-designed.task-figma-page .task-tab:first-child.active {
+  border-radius: 0;
+}
+
+.paw-designed.task-figma-page .task-tab:last-child.active {
+  border-radius: 0 18px 18px 0;
+}
+
+.paw-designed.task-figma-page .tasks-toolbar {
+  height: 42px;
+  padding: 0 18px;
+  margin: 7px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+}
+
+.paw-designed.task-figma-page .tasks-toolbar-title,
+.paw-designed.task-figma-page .filter-btn {
+  color: var(--task-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.paw-designed.task-figma-page .filter-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.paw-designed.task-figma-page .filter-panel {
+  margin: 0 18px 10px;
+  padding: 10px;
+  background: var(--task-pink-soft);
+  border: 1px solid #f0bec1;
+  border-radius: 4px;
+}
+
+.paw-designed.task-figma-page .filter-panel .field {
+  height: 32px;
+  margin-bottom: 8px;
+  border: 0;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.paw-designed.task-figma-page .task-create-wrap {
+  padding: 0 18px 13px;
+}
+
+.paw-designed.task-figma-page .primary-action-link {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7c4c9;
+  border: 1px solid #be4c53;
+  border-radius: 4px;
+  color: #1f1414;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.paw-designed.task-figma-page .tasks-list {
+  padding: 0 18px 24px;
+}
+
+.paw-designed.task-figma-page .task-card {
+  width: 100%;
+  min-height: 151px;
+  margin: 0 0 18px;
+  padding: 17px 18px 15px;
+  background: var(--task-card);
+  border: 0;
+  border-radius: 5px;
+  box-shadow: 0 4px 11px rgba(0,0,0,.10);
+  cursor: pointer;
+}
+
+.paw-designed.task-figma-page .task-card-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 15px;
+  align-items: start;
+}
+
+.paw-designed.task-figma-page .task-paw,
+.paw-designed.task-figma-page .task-detail-paw {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: #ad4449;
+  position: relative;
+  flex: 0 0 66px;
+  overflow: hidden;
+  font-size: 0 !important;
+  color: transparent !important;
+}
+
+.paw-designed.task-figma-page .task-paw::before,
+.paw-designed.task-figma-page .task-detail-paw::before {
+  content: '';
+  position: absolute;
+  inset: 11px;
+  background: url('../assets/figma/profile-paw-bg.svg') center / contain no-repeat;
+  filter: brightness(0) invert(1);
+  opacity: .95;
+}
+
+.paw-designed.task-figma-page .task-title {
+  margin: 2px 0 7px;
+  color: #2b1e1e;
+  font-size: 17px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.paw-designed.task-figma-page .task-animal,
+.paw-designed.task-figma-page .task-status-label {
+  color: #6e5555;
+  font-size: 13px;
+  line-height: 17px;
+  margin: 0 0 8px;
+}
+
+.paw-designed.task-figma-page .task-type-badge {
+  min-width: 132px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  margin: 0 0 10px;
+  background: #ee9fa7;
+  color: #2c1d1d;
+  border-radius: 3px;
+  font-size: 17px;
+  line-height: 34px;
+  font-weight: 400;
+}
+
+.paw-designed.task-figma-page .task-actions {
+  display: block;
+}
+
+.paw-designed.task-figma-page .task-primary-btn,
+.paw-designed.task-figma-page .task-secondary-btn {
+  display: none !important;
+}
+
+.paw-designed.task-figma-page .task-outline-btn {
+  width: 100%;
+  min-height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border: 1px solid #b94f56;
+  border-radius: 4px;
+  background: transparent;
+  color: #2a1c1c;
+  font-size: 16px;
+  line-height: 18px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+/* Task detail popup, matching the Figma pop-up screen */
+.paw-designed.task-figma-page .task-details-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  background: #fff;
+}
+
+.paw-designed.task-figma-page .task-details-overlay.hidden { display: none; }
+
+.paw-designed.task-figma-page .task-details-card {
+  min-height: 100%;
+  padding-top: 0;
+  background: #fff;
+  position: relative;
+}
+
+.paw-designed.task-figma-page .task-detail-top {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  padding-left: 18px;
+}
+
+.paw-designed.task-figma-page .task-detail-back {
+  border: 0;
+  background: transparent;
+  color: #000;
+  font-size: 27px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.paw-designed.task-figma-page .task-detail-box {
+  margin: 11px 18px 0;
+  padding: 18px 20px;
+  background: var(--task-card);
+  border-radius: 4px;
+  position: relative;
+  z-index: 2;
+}
+
+.paw-designed.task-figma-page .task-detail-box h2 {
+  margin: 0 0 18px;
+  color: #4a3535;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.paw-designed.task-figma-page .task-detail-line {
+  margin-bottom: 18px;
+  color: #4a3535;
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.paw-designed.task-figma-page .task-detail-line b,
+.paw-designed.task-figma-page .task-detail-line span {
+  display: block;
+  border-bottom: 1px solid #c98287;
+}
+
+.paw-designed.task-figma-page .task-detail-animal {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 15px 0 14px;
+  color: #5a3c3c;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.paw-designed.task-figma-page .task-detail-paw {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+}
+
+.paw-designed.task-figma-page .task-detail-separator {
+  height: 1px;
+  background: #bd7f83;
+  margin: 8px 0 14px;
+}
+
+.paw-designed.task-figma-page .task-detail-label {
+  text-align: center;
+  color: #5a3c3c;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 9px;
+}
+
+.paw-designed.task-figma-page .task-detail-badge {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  background: #ee9fa7;
+  border-radius: 3px;
+  color: #2c1d1d;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.paw-designed.task-figma-page .task-detail-contact {
+  margin-bottom: 10px;
+}
+
+.paw-designed.task-figma-page .task-detail-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.paw-designed.task-figma-page .task-detail-actions button {
+  height: 32px;
+  border: 1px solid #b94f56;
+  border-radius: 4px;
+  background: transparent;
+  color: #2a1c1c;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.paw-designed.task-figma-page .task-details-card::after {
+  content: '';
+  position: absolute;
+  left: 72px;
+  top: 410px;
+  width: 210px;
+  height: 210px;
+  background: url('../assets/figma/profile-paw-bg.svg') center / contain no-repeat;
+  opacity: .50;
+  pointer-events: none;
+}
+
+/* Create task page */
+.paw-designed.task-create-figma-page .create-task-screen {
+  min-height: calc(777px - 70px);
+  background: #fff;
+  padding-bottom: 25px;
+}
+
+.paw-designed.task-create-figma-page .back-row {
+  height: 44px;
+  padding: 0 0 0 18px;
+  display: flex;
+  align-items: center;
+}
+
+.paw-designed.task-create-figma-page .back-link {
+  color: #000;
+  font-size: 28px;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.paw-designed.task-create-figma-page .task-form-card {
+  margin: 8px 18px 0;
+  padding: 16px 17px 17px;
+  background: var(--task-card);
+  border: 1px solid #f0c7c9;
+  border-radius: 3px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.08);
+}
+
+.paw-designed.task-create-figma-page .form-label {
+  display: block;
+  margin: 0 0 12px;
+  color: #6b4c4c;
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 400;
+}
+
+.paw-designed.task-create-figma-page .field {
+  width: 100%;
+  height: 34px;
+  margin: 5px 0 0;
+  border: 0;
+  border-radius: 2px;
+  background: #fff;
+  color: #3d2c2c;
+  padding: 8px 11px;
+  font-size: 13px;
+}
+
+.paw-designed.task-create-figma-page .textarea {
+  min-height: 91px;
+  resize: vertical;
+  padding-top: 10px;
+}
+
+.paw-designed.task-create-figma-page .animal-attach-row {
+  display: grid;
+  gap: 8px;
+}
+
+.paw-designed.task-create-figma-page .selected-animal-box {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 8px 11px;
+  background: #fff;
+  border: 0;
+  border-radius: 3px;
+  color: #6b4c4c;
+  font-size: 13px;
+}
+
+.paw-designed.task-create-figma-page .attach-animal-btn {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3c6c9;
+  border-radius: 4px;
+  color: #684242;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+}
+
+.paw-designed.task-create-figma-page .double-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.paw-designed.task-create-figma-page select.field {
+  appearance: auto;
+}
+
+.paw-designed.task-create-figma-page .submit-btn.full-width {
+  width: 151px;
+  height: 42px;
+  margin: 13px 0 0 auto;
+  border: 1px solid #c35b62;
+  border-radius: 5px;
+  background: #f4b8bd;
+  color: #211616;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paw-designed.task-create-figma-page .save-status {
+  margin: 10px 0 0;
+  color: #7d3c3c;
+  font-size: 12px;
+  min-height: 16px;
+}
+
+
+/* =========================================================
+   REAL MAPS — Leaflet/OpenStreetMap instead of static screenshots.
+   Scoped to designed pages, settings screen is not affected.
+   ========================================================= */
+.paw-designed .figma-map-block {
+  position: relative;
+  margin: 4px 0 14px;
+}
+
+.paw-designed .address-map {
+  width: 100%;
+  height: 150px;
+  border: 0;
+  border-radius: 0;
+  background: #d9d9d9;
+  overflow: hidden;
+}
+
+.paw-designed .leaflet-container {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.paw-designed .leaflet-control-attribution {
+  display: none !important;
+}
+
+.paw-designed .map-search-btn {
+  width: 100%;
+  min-height: 32px;
+  margin-top: 8px;
+  border: 1px solid var(--figma-border, #d7878d);
+  border-radius: 4px;
+  background: var(--figma-pink-2, #f8dddd);
+  color: var(--figma-red-dark, #8c2e31);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.paw-designed .map-status {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.25;
+  color: var(--figma-muted, #7c6767);
+}
+
+.paw-designed .map-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  padding: 12px;
+  color: #7c6767;
+  text-align: center;
+  background: #f8dddd;
+}
+
+.paw-designed.page_event_create #eventLocation,
+.paw-designed.page_task_create #taskLocation {
+  min-height: 34px !important;
+  height: 34px !important;
+  color: var(--figma-text, #2f2525) !important;
+  caret-color: var(--figma-text, #2f2525) !important;
+  background: #fff !important;
+  border: 1px solid #edd5d5 !important;
+}
+
+.paw-designed.page_event_create .task-form-card::after,
+.paw-designed .event-card::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+.paw-designed .event-preview-map {
+  width: 100%;
+  height: 118px;
+  margin: 10px 0;
+  background: #d9d9d9;
+  overflow: hidden;
+}
+
+.paw-designed.page_event_create .task-form-card,
+.paw-designed.page_task_create .task-form-card {
+  overflow: visible;
+}
+
+
+
+/* =========================================================
+   ANIMALS FIGMA PASS — scoped only to animal pages
+   Backend untouched. Settings untouched.
+   ========================================================= */
+.paw-designed.animal-figma-page {
+  --paw-pink: #f6b2b8;
+  --paw-card: #fee3e4;
+  --paw-strong: #9d3f3f;
+  --paw-text: #2f2020;
+  --paw-muted: #b9b9b9;
+  background: #f2f2f2;
+}
+
+.paw-designed.animal-figma-page .phone-shell {
+  width: 390px;
+  min-height: 844px;
+  background: #fff;
+  border-radius: 0;
+  overflow-x: hidden;
+  box-shadow: none;
+}
+
+.paw-designed.animal-figma-page .topbar {
+  height: 76px;
+  background: var(--paw-pink);
+  padding: 0 22px;
+  display: grid;
+  grid-template-columns: 64px 1fr 88px;
+  align-items: center;
+}
+
+.paw-designed.animal-figma-page .icon-btn {
+  width: 42px;
+  height: 42px;
+  background: url('../assets/icon-menu.png') center/32px 32px no-repeat;
+  border: 0;
+  font-size: 0;
+}
+
+.paw-designed.animal-figma-page .topbar-logo {
+  width: 104px;
+  height: 64px;
+  justify-self: center;
+  background: rgba(255, 199, 203, .32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paw-designed.animal-figma-page .paw-icon {
+  width: 76px;
+  height: 56px;
+  background: url('../assets/paw-logo.png') center/contain no-repeat;
+}
+
+.paw-designed.animal-figma-page .paw-title { display: none; }
+
+.paw-designed.animal-figma-page .profile-icons {
+  width: 88px;
+  justify-content: flex-end;
+  gap: 22px;
+  font-size: 0;
+}
+
+.paw-designed.animal-figma-page .bell-icon,
+.paw-designed.animal-figma-page .user-icon {
+  display: block;
+  width: 28px;
+  height: 28px;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.paw-designed.animal-figma-page .bell-icon { background-image: url('../assets/icon-bell.png'); }
+.paw-designed.animal-figma-page .user-icon { background-image: url('../assets/icon-user.png'); }
+
+.paw-designed.animal-figma-page .animal-muted-title {
+  margin: 18px 18px 0;
+  color: #c6c6c6;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.paw-designed.animal-figma-page .animal-back-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 30px 18px 16px;
+}
+
+.paw-designed.animal-figma-page .animal-create-title-row { margin-top: 26px; }
+
+.paw-designed.animal-figma-page .animal-back-arrow {
+  display: block;
+  width: 58px;
+  height: 38px;
+  background: none;
+  position: relative;
+  flex: 0 0 auto;
+}
+.paw-designed.animal-figma-page .animal-back-arrow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 55px;
+  height: 26px;
+  transform: translateY(-50%);
+  background: #000;
+  clip-path: polygon(0 50%, 36% 0, 36% 31%, 100% 31%, 100% 69%, 36% 69%, 36% 100%);
+}
+
+.paw-designed.animal-figma-page .animal-main-title {
+  color: #111;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.paw-designed.animal-figma-page .animal-search {
+  width: calc(100% - 36px);
+  height: 46px;
+  margin: 0 18px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #ee9ea5;
+  color: #7a4145;
+  font-size: 16px;
+  padding: 0 20px;
+}
+.paw-designed.animal-figma-page .animal-search::placeholder { color: #9b6266; opacity: .95; }
+
+.paw-designed.animal-figma-page .create-animal-block {
+  padding: 0 18px 14px;
+}
+.paw-designed.animal-figma-page .primary-action-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 42px;
+  background: #f7c0c4;
+  border: 1px solid #bf5e63;
+  border-radius: 4px;
+  color: #2c1717;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.paw-designed.animal-figma-page .animals-list {
+  padding: 0 18px 24px;
+}
+
+.paw-designed.animal-figma-page .animal-card {
+  width: 100%;
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--paw-card);
+  border: 0;
+  border-radius: 4px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 10px rgba(70, 40, 40, .10);
+  text-align: left;
+}
+
+.paw-designed.animal-figma-page .animal-card-paw,
+.paw-designed.animal-figma-page .task-paw {
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  border-radius: 0 !important;
+  background: url('../assets/animals-figma/animal-paw-circle.svg') center/contain no-repeat !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  overflow: hidden !important;
+}
+.paw-designed.animal-figma-page .animal-card-paw *,
+.paw-designed.animal-figma-page .task-paw * { display: none !important; }
+
+.paw-designed.animal-figma-page .animal-card-name {
+  font-size: 19px;
+  line-height: 1.15;
+  font-weight: 600;
+  color: var(--paw-text);
+  margin-bottom: 8px;
+}
+.paw-designed.animal-figma-page .animal-card-sub {
+  font-size: 13px;
+  line-height: 1.2;
+  color: #765757;
+}
+
+.paw-designed.animal-figma-page .empty-small {
+  padding: 24px 12px;
+  color: #826363;
+  text-align: center;
+}
+
+.paw-designed.page_animal_create .animal-create-screen {
+  padding-bottom: 28px;
+}
+
+.paw-designed.page_animal_create .animal-form-card {
+  width: calc(100% - 36px);
+  margin: 18px 18px 0;
+  background: var(--paw-card);
+  border: 0;
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(90, 40, 40, .12);
+  padding: 24px 18px 18px;
+}
+
+.paw-designed.page_animal_create .animal-photo-placeholder {
+  width: 112px;
+  height: 112px;
+  margin: 8px auto 22px;
+  background: url('../assets/animals-figma/animal-paw-circle.svg') center/contain no-repeat;
+}
+
+.paw-designed.page_animal_create .form-label {
+  display: block;
+  margin: 0 0 15px;
+  color: #744747;
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 500;
+}
+
+.paw-designed.page_animal_create .field {
+  width: 100%;
+  height: 42px;
+  margin-top: 7px;
+  border: 0;
+  border-bottom: 1px solid #d38b8f;
+  border-radius: 0;
+  background: #fff;
+  color: #3a2727;
+  font-size: 14px;
+  padding: 0 12px;
+  outline: none;
+}
+
+.paw-designed.page_animal_create select.field {
+  appearance: auto;
+  color: #5a3d3d;
+}
+
+.paw-designed.page_animal_create textarea.field {
+  height: 82px;
+  min-height: 82px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.paw-designed.page_animal_create .animal-double-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.paw-designed.page_animal_create .animal-save-btn {
+  display: block;
+  width: 138px;
+  height: 44px;
+  margin: 16px 0 0 auto;
+  border: 1px solid #c45e64;
+  border-radius: 4px;
+  background: #f3b5ba;
+  color: #2b1717;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.paw-designed.page_animal_create .save-status {
+  min-height: 18px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #744747;
+}
+
+@media (max-width: 430px) {
+  .paw-designed.animal-figma-page .phone-shell { width: 100vw; }
+}
+
+/* =============================================
+   ДИЗАЙН ПО МАКЕТУ "ЛАПА ПОМОЩИ" — ОБНОВЛЕНИЕ
+   ============================================= */
+
+/* Цвета по макету */
+:root {
+  --figma-bg: #efefef;
+  --figma-screen: #f7f7f7;
+  --figma-topbar: #f2b4b7;
+  --figma-topbar-text: #7d3c3c;
+  --figma-panel: #fce8e9;
+  --figma-panel-dark: #f5d0d2;
+  --figma-pink-btn: #f2b4b7;
+  --figma-pink-btn-dark: #e59196;
+  --figma-red-accent: #9f3338;
+  --figma-text: #1e1212;
+  --figma-muted: #8b6a6a;
+  --figma-line: #e2c2c4;
+  --paw-card: #fde0e1;
+  --paw-text: #3c2525;
+}
+
+/* ======== ОБЩЕЕ ======== */
+.paw-designed body, body.paw-designed {
+  font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+}
+
+/* ======== ТОПБАР ======== */
+.paw-designed .topbar {
+  background: linear-gradient(135deg, #f2b4b7 0%, #f5c5c7 100%);
+  box-shadow: 0 2px 8px rgba(140, 50, 55, 0.18);
+  height: 60px;
+}
+
+.paw-designed .topbar-logo .paw-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #5a2222;
+}
+
+.paw-designed .topbar-logo .paw-icon {
+  font-size: 22px;
+}
+
+/* ======== ИКОНКА-КНОПКА МЕНЮ ======== */
+.paw-designed .icon-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #5a2222;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.paw-designed .icon-btn:hover {
+  background: rgba(90, 34, 34, 0.08);
+}
+
+/* ======== БОКОВОЕ МЕНЮ ======== */
+.paw-designed .side-menu {
+  transition: transform 0.22s cubic-bezier(.4,0,.2,1);
+}
+
+.paw-designed .side-link {
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.paw-designed .side-link:hover {
+  background: #d8787f;
+  color: #fff;
+}
+
+/* ======== СТРАНИЦА НАСТРОЙКИ ======== */
+.paw-designed.page_settings .phone-shell {
+  background: var(--figma-screen);
+}
+
+.paw-designed.page_settings .create-task-screen {
+  padding-bottom: 32px;
+}
+
+.paw-designed.page_settings .task-form-card {
+  margin: 12px 14px 0;
+  padding: 18px 16px;
+  background: var(--figma-panel);
+  border: 1px solid var(--figma-line);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(100, 30, 35, 0.09);
+}
+
+.paw-designed.page_settings .section-subtitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--figma-red-accent);
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.paw-designed.page_settings .form-label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #6a3535;
+  font-weight: 500;
+}
+
+.paw-designed.page_settings .field {
+  width: 100%;
+  height: 38px;
+  margin-top: 4px;
+  border: 0;
+  border-bottom: 1.5px solid #d38b8f;
+  border-radius: 0;
+  background: #fff;
+  color: #2a1616;
+  font-size: 14px;
+  padding: 0 8px;
+  transition: border-color 0.15s;
+}
+
+.paw-designed.page_settings .field:focus {
+  border-bottom-color: var(--figma-red-accent);
+  outline: none;
+}
+
+.paw-designed.page_settings .submit-btn {
+  margin-top: 14px;
+  height: 40px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.paw-designed.page_settings .switch-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+}
+
+.paw-designed.page_settings .checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #5a3535;
+  cursor: pointer;
+}
+
+.paw-designed.page_settings .logout-wrap {
+  padding: 20px 14px;
+}
+
+.paw-designed.page_settings .danger-btn {
+  width: 100%;
+  height: 42px;
+  background: #f5d0d2;
+  border: 1.5px solid #c55a60;
+  border-radius: 6px;
+  color: #7a1a1a;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.paw-designed.page_settings .danger-btn:hover {
+  background: #f2b4b7;
+}
+
+.paw-designed.page_settings .settings-gap { margin-top: 16px; }
+
+.paw-designed.page_settings .small-muted {
+  font-size: 12px;
+  color: var(--figma-muted);
+  margin-bottom: 10px;
+}
+
+.paw-designed.page_settings .double-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ======== СТРАНИЦА ЛЕНТЫ ЗАДАЧ ======== */
+.paw-designed.page_feed .feed-screen {
+  padding-bottom: 32px;
+}
+
+.paw-designed.page_feed .task-tabs {
+  margin: 6px 14px 0;
+  border-bottom: 2px solid #c9585e;
+  border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  display: flex;
+}
+
+.paw-designed.page_feed .task-tab {
+  flex: 1;
+  font-size: 13px;
+  padding: 10px 8px;
+  font-weight: 600;
+  background: #fce8e9;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  color: #5a2a2a;
+}
+
+.paw-designed.page_feed .task-tab.active {
+  background: #c9585e;
+  color: #fff;
+}
+
+.paw-designed.page_feed .filter-panel.visible-panel {
+  margin: 10px 14px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.paw-designed.page_feed .filter-panel.visible-panel .field {
+  height: 38px;
+  border-radius: 6px;
+  border: 1.5px solid #dba8ab;
+  background: #fff;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.paw-designed.page_feed .feed-card {
+  background: #fff;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 2px 10px rgba(100, 30, 35, 0.12);
+  padding: 14px 12px;
+  margin-bottom: 12px;
+}
+
+.paw-designed.page_feed .task-card-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.paw-designed.page_feed .task-paw {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  flex-shrink: 0;
+}
+
+.paw-designed.page_feed .task-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2a1616;
+  margin-bottom: 6px;
+}
+
+.paw-designed.page_feed .task-status-label {
+  font-size: 11px;
+  color: #8b5555;
+  margin: 3px 0;
+}
+
+.paw-designed.page_feed .task-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.paw-designed.page_feed .task-primary-btn {
+  height: 32px;
+  padding: 0 14px;
+  background: #f2b4b7;
+  border: 1px solid #c9585e;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a1818;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.paw-designed.page_feed .task-primary-btn:hover { background: #e89ea3; }
+
+.paw-designed.page_feed .task-outline-btn {
+  height: 32px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1.5px solid #c9585e;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7a2a2e;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.paw-designed.page_feed .task-outline-btn:hover { background: #fce8e9; }
+
+/* ======== СТРАНИЦА ЗАДАЧ ======== */
+.paw-designed.page_tasks .screen-title {
+  color: #5a2222;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 16px 16px 0;
+}
+
+.paw-designed.page_tasks .tasks-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 8px;
+}
+
+.paw-designed.page_tasks .tasks-toolbar-title {
+  font-size: 14px;
+  color: #7a4040;
+  font-weight: 600;
+}
+
+.paw-designed.page_tasks .filter-btn {
+  height: 30px;
+  padding: 0 14px;
+  background: #f2b4b7;
+  border: 1px solid #c9585e;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a1818;
+  cursor: pointer;
+}
+
+.paw-designed.page_tasks .task-create-wrap {
+  padding: 0 16px 12px;
+}
+
+.paw-designed.page_tasks .primary-action-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  background: #fce8e9;
+  border: 1.5px solid #c9585e;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5a2222;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.paw-designed.page_tasks .primary-action-link:hover { background: #f2b4b7; }
+
+.paw-designed.page_tasks .task-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(100, 30, 35, 0.12);
+  padding: 14px 12px;
+  margin-bottom: 12px;
+  border: none;
+}
+
+/* Task details overlay */
+.task-details-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.task-details-overlay.hidden { display: none; }
+
+.task-details-card {
+  background: #fff;
+  width: 100%;
+  max-width: 390px;
+  border-radius: 18px 18px 0 0;
+  padding: 20px 18px 32px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.task-detail-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.task-detail-back {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #5a2222;
+  padding: 4px 8px 4px 0;
+}
+
+.task-detail-box h2 {
+  font-size: 18px;
+  color: #2a1616;
+  margin: 0 0 14px;
+}
+
+.task-detail-line {
+  font-size: 13px;
+  color: #5a3535;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.task-detail-animal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: #5a3535;
+}
+
+.task-detail-paw {
+  width: 38px;
+  height: 38px;
+  background: url('../assets/paw-circle.png') center/contain no-repeat;
+}
+
+.task-detail-separator {
+  height: 1px;
+  background: #f2b4b7;
+  margin: 12px 0;
+}
+
+.task-detail-label {
+  font-size: 12px;
+  color: #8b6060;
+  margin-bottom: 6px;
+}
+
+.task-detail-badge {
+  display: inline-block;
+  background: #fce8e9;
+  border: 1px solid #c9585e;
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #5a2222;
+  margin-bottom: 14px;
+}
+
+.task-detail-contact {
+  width: 100%;
+  height: 38px;
+  margin-bottom: 10px;
+  background: transparent;
+  border: 1.5px solid #c9585e;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #5a2222;
+  cursor: pointer;
+}
+
+.task-detail-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.task-detail-actions button {
+  flex: 1;
+  height: 38px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid #c9585e;
+  background: #fce8e9;
+  color: #5a2222;
+  transition: background 0.15s;
+}
+.task-detail-actions button:hover { background: #f2b4b7; }
+
+/* ======== СТРАНИЦА МЕРОПРИЯТИЙ ======== */
+.paw-designed.page_events .visible-panel {
+  display: flex !important;
+  gap: 8px;
+  padding: 8px 14px;
+}
+
+.paw-designed.page_events .event-card {
+  background: #fff;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 2px 10px rgba(100, 30, 35, 0.11);
+  padding: 16px 14px;
+  margin-bottom: 14px;
+}
+
+.paw-designed.page_events .event-info h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2a1616;
+  margin: 0 0 6px;
+}
+
+.paw-designed .back-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+}
+
+.paw-designed .back-link {
+  font-size: 20px;
+  color: #5a2222;
+  line-height: 1;
+}
+
+.paw-designed .back-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2a1616;
+}
+
+/* ======== СТРАНИЦА ПРОФИЛЯ - УЛУЧШЕНИЯ ======== */
+.paw-designed.page_profile .screen-title {
+  color: #5a2222;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.paw-designed.page_profile .profile-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 23px 0;
+}
+
+.paw-designed.page_profile .profile-rating-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #5a2222;
+}
+
+.paw-designed.page_profile .profile-rating-star {
+  width: 18px;
+  height: 18px;
+}
+
+.paw-designed.page_profile .profile-review-count {
+  font-size: 14px;
+  color: #8b6060;
+}
+
+.paw-designed.page_profile .profile-reviews-link {
+  font-size: 13px;
+  color: #c9585e;
+  text-decoration: underline;
+}
+
+/* ======== СТРАНИЦА ОТЗЫВОВ ======== */
+.paw-designed.page_reviews .review-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(100, 30, 35, 0.10);
+  padding: 14px 14px;
+  margin-bottom: 12px;
+  border: none;
+}
+
+.paw-designed.page_reviews .review-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.paw-designed.page_reviews .review-rating {
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.paw-designed.page_reviews .review-date {
+  font-size: 11px;
+  color: #8b6060;
+}
+
+.paw-designed.page_reviews .review-meta {
+  font-size: 11px;
+  color: #9b7070;
+  margin-bottom: 6px;
+}
+
+.paw-designed.page_reviews .review-comment {
+  font-size: 13px;
+  color: #3a2020;
+  line-height: 1.5;
+}
+
+/* ======== СТРАНИЦА ЖАЛОБ ======== */
+.paw-designed.page_complaints .complaint-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(100, 30, 35, 0.10);
+  padding: 14px;
+  margin-bottom: 12px;
+  border: none;
+}
+
+/* ======== СКРОЛЛ ======== */
+.phone-shell::-webkit-scrollbar { width: 4px; }
+.phone-shell::-webkit-scrollbar-thumb { background: #e5b2b6; border-radius: 4px; }
+
+/* ======== НОТИФИКАЦИЯ БЕЙДЖ ======== */
+.paw-designed .badge-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  background: #c9585e;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 0 4px;
+  position: relative;
+  top: -2px;
+}
+
+.paw-designed .badge-dot:empty,
+.paw-designed .badge-dot[data-count="0"],
+.paw-designed #notificationBadge[textContent="0"] {
+  display: none;
+}
+
+/* ======== ЭКРАН НАСТРОЕК (ЗАДАЧИ) ======== */
+.paw-designed .tasks-screen {
+  padding-bottom: 32px;
+}
+
+/* ======== ФИЛЬТР ПАНЕЛЬ ======== */
+.paw-designed #filterPanel:not(.hidden) {
+  margin: 0 14px 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.paw-designed #filterPanel.hidden { display: none; }
+
+/* ======== ПУСТЫЕ СОСТОЯНИЯ ======== */
+.paw-designed .empty-small {
+  text-align: center;
+  padding: 20px 16px;
+  color: #8b6060;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ======== КНОПКИ - ОБЩИЕ УЛУЧШЕНИЯ ======== */
+.paw-designed button {
+  font-family: inherit;
+}
+
+/* ======== SCREEN TITLES ======== */
+.paw-designed .screen-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #5a2222;
+  margin: 14px 16px 10px;
+}
+
+/* ======== PROFILE ICONS ======== */
+.paw-designed .profile-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 20px;
+  color: #5a2222;
+}
+
+/* ======== SVG ИКОНКИ В ТОПБАРЕ ======== */
+.topbar-svg-icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+  filter: invert(20%) sepia(30%) saturate(400%) hue-rotate(310deg) brightness(60%);
+  /* результат: цвет ~#5a2222 — тёмно-бордовый под топбар */
+}
+
+.paw-designed .icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.topbar-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.topbar-icon-wrap .badge-dot {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 14px;
+  height: 14px;
+  font-size: 9px;
+}
+
+.paw-designed .profile-icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ======== ПРОФИЛЬ ЖИВОТНОГО ======== */
+.page_animal_profile .animal-profile-screen {
+  padding-bottom: 32px;
+}
+
+.animal-profile-card {
+  margin: 12px 16px 0;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(100,30,35,0.13);
+  padding: 24px 18px 20px;
+  text-align: center;
+}
+
+.animal-profile-avatar {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 14px;
+  background: url('../assets/paw-circle.png') center/contain no-repeat;
+}
+
+.animal-profile-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2a1616;
+  margin: 0 0 6px;
+}
+
+.animal-profile-sub {
+  font-size: 13px;
+  color: #8b6060;
+  margin-bottom: 18px;
+}
+
+.animal-profile-section {
+  text-align: left;
+  border-top: 1px solid #f2b4b7;
+  padding-top: 14px;
+  margin-bottom: 14px;
+}
+
+.animal-profile-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid #fce8e9;
+  font-size: 13px;
+  color: #3a2020;
+}
+
+.apl {
+  color: #8b6060;
+  font-weight: 500;
+}
+
+.animal-profile-desc {
+  text-align: left;
+  font-size: 13px;
+  color: #5a3535;
+  line-height: 1.55;
+  background: #fce8e9;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+}
+
+.animal-profile-actions {
+  margin-top: 16px;
+}
+
+/* ======== ТОПБАР ЛОГОТИП SVG ======== */
+.topbar-paw-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+}
+
+.topbar-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0px;
+  line-height: 1;
+}
+
+/* Убираем filter для иконок - они уже нужного цвета #9D3F3F */
+.topbar-svg-icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+  filter: none;
+}
+
+/* Кнопка назад в animal-profile */
+.page_animal_profile .icon-btn[onclick="history.back()"] .topbar-svg-icon {
+  /* Переопределяем гамбургер на стрелку */
+}
+
+/* ======== АВАТАР ЖИВОТНОГО В ПРОФИЛЕ ======== */
+.animal-profile-avatar {
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 16px;
+  background: #f5d0d2 url('../assets/animals-figma/animal-paw-circle.svg') center/70% no-repeat;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Если у животного есть фото - показываем его */
+.animal-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+
+/* =========================================================
+   GLOBAL FIGMA TOPBAR FIX — реальные SVG из дизайн-архива
+   Не трогает backend, только визуал верхней панели.
+   ========================================================= */
+.phone-shell .topbar {
+  height: 66px !important;
+  padding: 0 18px !important;
+  background: #FEBDBD !important;
+  background-image: url('../assets/topbar/topbar-bg.svg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  color: #9D3F3F !important;
+  display: grid !important;
+  grid-template-columns: 86px 1fr 86px !important;
+  align-items: center !important;
+  justify-content: initial !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.phone-shell .topbar .topbar-side,
+.phone-shell .topbar .icon-btn.topbar-side,
+.phone-shell .topbar .menu-button {
+  width: 86px !important;
+  height: 66px !important;
+  min-width: 86px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #9D3F3F !important;
+  cursor: pointer !important;
+}
+
+.phone-shell .topbar .topbar-logo {
+  width: 112px !important;
+  height: 66px !important;
+  justify-self: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  line-height: 1 !important;
+  background: rgba(255, 199, 201, 0.36) !important;
+}
+
+.phone-shell .topbar .topbar-paw-logo {
+  width: 54px !important;
+  height: 64px !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  display: block !important;
+  filter: none !important;
+}
+
+.phone-shell .topbar .paw-title,
+.phone-shell .topbar-logo .paw-title {
+  display: none !important;
+}
+
+.phone-shell .topbar .topbar-svg-icon {
+  display: block !important;
+  object-fit: contain !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.phone-shell .topbar .topbar-menu-icon {
+  width: 34px !important;
+  height: 24px !important;
+  margin-left: 8px !important;
+}
+
+.phone-shell .topbar .profile-icons {
+  width: 86px !important;
+  height: 66px !important;
+  justify-self: end !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 16px !important;
+  font-size: 0 !important;
+  color: #9D3F3F !important;
+}
+
+.phone-shell .topbar .topbar-icon-wrap,
+.phone-shell .topbar .topbar-profile-link {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 32px !important;
+  color: #9D3F3F !important;
+}
+
+.phone-shell .topbar .topbar-bell-icon {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.phone-shell .topbar .topbar-user-icon {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.phone-shell .topbar .badge-dot {
+  position: absolute !important;
+  top: 5px !important;
+  right: -2px !important;
+  width: 8px !important;
+  min-width: 8px !important;
+  height: 8px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: #d93445 !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  border: 0 !important;
+}
+
+.phone-shell .topbar .topbar-auth-side {
+  width: 86px !important;
+  min-width: 86px !important;
+  height: 66px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+}
+
+.phone-shell .topbar .topbar-auth-link {
+  color: #671414 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  line-height: 1 !important;
+}
+
+/* Чтобы старые эмодзи/текст в правой части не вылезали, если где-то остались */
+.phone-shell .topbar .profile-icons:not(:has(img)) {
+  font-size: 0 !important;
+}
+
+/* ======== НАСТРОЙКИ - ДОСТУПНОСТЬ И ПИТОМЦЫ ======== */
+.availability-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.avail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.avail-label {
+  font-size: 13px;
+  color: #6a3535;
+  font-weight: 500;
+  min-width: 72px;
+}
+
+.avail-select {
+  flex: 1;
+  height: 36px !important;
+  border-radius: 4px;
+  border: 1px solid #d38b8f !important;
+  background: #fff;
+  font-size: 13px;
+  color: #2a1616;
+  padding: 0 8px;
+}
+
+.pets-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin-bottom: 12px;
+}
+
+/* ======== КАЛЕНДАРЬ - ПОЛНЫЙ РЕДИЗАЙН ПОД МАКЕТ ======== */
+.paw-designed.page_calendar .phone-shell {
+  background: #fce8e9;
+}
+
+.paw-designed.page_calendar .calendar-screen {
+  padding: 0 0 80px;
+  background: #fce8e9;
+}
+
+/* Строка с стрелками и панелью календаря */
+.calendar-nav-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 12px 0 0;
+}
+
+/* Большие стрелки навигации */
+.cal-arrow-btn {
+  flex-shrink: 0;
+  width: 40px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  cursor: pointer;
+  padding: 40px 0 0;
+  line-height: 1;
+  align-self: flex-start;
+}
+
+.cal-arrow-btn:hover { color: #9f3338; }
+
+/* Панель календаря — между стрелками */
+.paw-designed.page_calendar .calendar-panel {
+  flex: 1;
+  margin: 0;
+  border: none;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 8px 10px;
+  box-shadow: 0 2px 12px rgba(100,30,35,0.13);
+}
+
+/* Шапка с названием месяца */
+.paw-designed.page_calendar .calendar-head {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  border: none;
+  padding: 0;
+  height: auto;
+}
+
+.cal-month-pill {
+  display: inline-block;
+  background: #f2b4b7;
+  border-radius: 20px;
+  padding: 5px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #3a1818;
+  text-transform: capitalize;
+}
+
+/* Сетка */
+.paw-designed.page_calendar .calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+/* Заголовки дней недели */
+.paw-designed.page_calendar .calendar-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #5a2222;
+  padding: 4px 0 6px;
+}
+
+.paw-designed.page_calendar .calendar-weekday:nth-child(6),
+.paw-designed.page_calendar .calendar-weekday:nth-child(7) {
+  color: #c9585e;
+}
+
+/* Ячейки дней */
+.paw-designed.page_calendar .calendar-day {
+  border: none;
+  background: #fce8e9;
+  border-radius: 6px;
+  text-align: center;
+  padding: 5px 2px 4px;
+  font-size: 13px;
+  color: #1e1212;
+  cursor: pointer;
+  min-height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  transition: background 0.12s;
+  position: relative;
+}
+
+.paw-designed.page_calendar .calendar-day:hover {
+  background: #f2b4b7;
+}
+
+/* Дни предыдущего/следующего месяца */
+.paw-designed.page_calendar .calendar-day.muted {
+  color: #bbb !important;
+  background: transparent !important;
+  pointer-events: none;
+}
+
+/* Выходные */
+.paw-designed.page_calendar .calendar-day.weekend {
+  color: #c9585e;
+}
+
+/* Дни с событиями */
+.paw-designed.page_calendar .calendar-day.has-events {
+  background: #f2b4b7;
+  font-weight: 700;
+}
+
+/* Точка у дней с событиями */
+.paw-designed.page_calendar .calendar-day b {
+  display: block;
+  width: 4px;
+  height: 4px;
+  background: #9f3338;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+/* СЕГОДНЯ — тёмный квадрат с надписью "Сегодня" */
+.paw-designed.page_calendar .calendar-day.today {
+  background: #5a2222 !important;
+  color: #fff !important;
+  border-radius: 8px;
+  padding-top: 3px;
+}
+
+.paw-designed.page_calendar .calendar-day.today::before {
+  content: "Сегодня";
+  font-size: 7px;
+  font-weight: 600;
+  color: #f2b4b7;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.paw-designed.page_calendar .calendar-day.today span {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Секция событий */
+.paw-designed.page_calendar .calendar-events-panel {
+  padding: 14px 14px 0;
+}
+
+.paw-designed.page_calendar #calendarSelectedTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #3a1818;
+  margin: 0 0 10px;
+}
+
+.paw-designed.page_calendar .compact-event-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(100,30,35,0.11);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.paw-designed.page_calendar .compact-event-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2a1616;
+  margin-bottom: 3px;
+}
+
+.paw-designed.page_calendar .compact-event-date {
+  font-size: 12px;
+  color: #8b6060;
+}
+
+.paw-designed.page_calendar .empty-small {
+  color: #c9585e;
+  font-size: 13px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+/* Кнопка публикации внизу */
+.cal-publish-wrap {
+  padding: 16px 14px 20px;
+}
+
+.cal-publish-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 46px;
+  background: #fff;
+  border: 1.5px solid #f2b4b7;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3a1818;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(100,30,35,0.10);
+  transition: background 0.15s;
+}
+
+.cal-publish-btn:hover { background: #fce8e9; }
+
+.cal-publish-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #9f3338;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 14px;
+}
+
+/* ======== АДМИН - УЛУЧШЕНИЯ СТИЛЕЙ ======== */
+.admin-status.error {
+  color: #9f3338;
+  background: #fde8e9;
+  border: 1px solid #f2b4b7;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.admin-status.ok {
+  color: #2d7a4a;
+  background: #e8f5ee;
+  border: 1px solid #a8d5bb;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 12px;
 }

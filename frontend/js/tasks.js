@@ -95,7 +95,7 @@ async function renderAnimals() {
     list.innerHTML = animals
       .map((animal) => `
         <button class="animal-card" type="button" onclick="selectAnimal(${animal.id})">
-          <div class="animal-card-paw">🐾</div>
+          <div class="animal-card-paw" aria-hidden="true"></div>
           <div>
             <div class="animal-card-name">${escapeHtml(animal.name || "Без имени")}</div>
             <div class="animal-card-sub">
@@ -115,8 +115,15 @@ async function selectAnimal(animalId) {
     const { data: animal } = await apiRequest(`/animals/${animalId}`);
     setSelectedAnimal(animal);
 
-    const back = getPageBack("task-create.html");
-    window.location.href = back;
+    // Если пришли из task-create — вернуться туда (выбор животного для задачи)
+    // Если пришли из меню (нет ?back= параметра) — открыть профиль животного
+    const params = new URLSearchParams(window.location.search);
+    const back = params.get("back");
+    if (back) {
+      window.location.href = back;
+    } else {
+      window.location.href = `animal-profile.html?id=${animalId}`;
+    }
   } catch (err) {
     alert(err.message || "Ошибка выбора животного");
   }
@@ -244,6 +251,8 @@ async function createTask(event) {
   const dateFrom = document.getElementById("taskDateFrom")?.value || "";
   const dateTo = document.getElementById("taskDateTo")?.value || "";
   const location = document.getElementById("taskLocation")?.value.trim() || "";
+  const locationLat = parseFloat(document.getElementById("taskLocationLat")?.value || "");
+  const locationLng = parseFloat(document.getElementById("taskLocationLng")?.value || "");
   const conditions = document.getElementById("taskConditions")?.value.trim() || "";
   const taskType = document.getElementById("taskType")?.value || "other";
   const urgency = document.getElementById("taskUrgency")?.value || "normal";
@@ -260,8 +269,8 @@ async function createTask(event) {
     task_type: taskType || null,
     urgency,
     location: location || null,
-    location_lat: null,
-    location_lng: null,
+    location_lat: Number.isFinite(locationLat) ? locationLat : null,
+    location_lng: Number.isFinite(locationLng) ? locationLng : null,
     end_date: dateTo ? `${dateTo}T00:00:00` : null,
     scheduled_time: dateFrom ? { from: dateFrom } : null,
     animal_id: selectedAnimal?.id || null
@@ -334,24 +343,27 @@ async function renderTasks() {
     const animalNames = await buildAnimalNameMap();
 
     list.innerHTML = tasks
-      .map((task) => `
-        <div class="task-card">
-          <div class="task-card-row">
-            <div class="task-paw">🐾</div>
-            <div class="task-main">
-              <div class="task-title">${escapeHtml(task.title || "Без названия")}</div>
-              <div class="task-animal">${task.animal_id ? `Животное: ${escapeHtml(animalNames[task.animal_id] || `ID ${task.animal_id}`)}` : "Без привязки к животному"}</div>
-              <div class="task-type-badge">${getTaskTypeLabel(task.task_type)}</div>
-              <div class="task-status-label">Срочность: ${getUrgencyLabel(task.urgency)}</div>
-              <div class="task-status-label">Статус: ${getStatusLabel(task.status)}</div>
-              <div class="task-actions">
-                ${getStatusActions(task)}
-                <button class="task-outline-btn" type="button">Связаться с владельцем</button>
+      .map((task) => {
+        const animalText = task.animal_id
+          ? `Животное: ${escapeHtml(animalNames[task.animal_id] || `ID ${task.animal_id}`)}`
+          : "Без привязки к животному";
+
+        return `
+          <article class="task-card" onclick="openTaskDetails(${task.id})">
+            <div class="task-card-row">
+              <div class="task-paw" aria-hidden="true"></div>
+              <div class="task-main">
+                <div class="task-title">${escapeHtml(task.title || "Без названия")}</div>
+                <div class="task-animal">${animalText}</div>
+                <div class="task-type-badge">${getTaskTypeLabel(task.task_type)}</div>
+                <button class="task-outline-btn" type="button" onclick="event.stopPropagation(); openTaskDetails(${task.id})">
+                  Связаться с владельцем
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-      `)
+          </article>
+        `;
+      })
       .join("");
   } catch (err) {
     list.innerHTML = `<div class="empty-small">${escapeHtml(err.message || "Ошибка загрузки задач")}</div>`;
@@ -369,6 +381,55 @@ async function buildAnimalNameMap() {
   } catch {
     return {};
   }
+}
+
+
+async function openTaskDetails(taskId) {
+  const overlay = document.getElementById("taskDetailsOverlay");
+  const card = document.getElementById("taskDetailsCard");
+  if (!overlay || !card) return;
+
+  card.innerHTML = '<div class="empty-small">Загрузка...</div>';
+  overlay.classList.remove("hidden");
+
+  try {
+    const { data: task } = await apiRequest(`/tasks/${taskId}`);
+    const animals = await buildAnimalNameMap();
+    const animalName = task.animal_id ? (animals[task.animal_id] || `ID ${task.animal_id}`) : "Без профиля животного";
+
+    card.innerHTML = `
+      <div class="task-detail-top">
+        <button class="task-detail-back" type="button" onclick="closeTaskDetails()">⬅</button>
+      </div>
+      <div class="task-detail-box">
+        <h2>${escapeHtml(task.title || "Помогите бедной Мусе")}</h2>
+        <div class="task-detail-line">
+          <b>Подробности:</b>
+          <span>${escapeHtml(task.description || "Краткая информация")}</span>
+        </div>
+        <div class="task-detail-animal">
+          <div class="task-detail-paw"></div>
+          <span>Профиль ${escapeHtml(animalName)}</span>
+        </div>
+        <div class="task-detail-separator"></div>
+        <div class="task-detail-label">Компетенции волонтёра</div>
+        <div class="task-detail-badge">${getTaskTypeLabel(task.task_type)}</div>
+        <button class="task-outline-btn task-detail-contact" type="button">Связаться с владельцем</button>
+        <div class="task-detail-actions">
+          <button type="button" onclick="changeTaskStatus(${task.id}, 'in_progress'); closeTaskDetails();">Принять</button>
+          <button type="button" onclick="changeTaskStatus(${task.id}, 'cancelled'); closeTaskDetails();">Отказаться</button>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    card.innerHTML = `<div class="empty-small">${escapeHtml(err.message || "Ошибка загрузки задачи")}</div>`;
+  }
+}
+
+function closeTaskDetails(event) {
+  if (event && event.target && event.target.id !== "taskDetailsOverlay") return;
+  const overlay = document.getElementById("taskDetailsOverlay");
+  if (overlay) overlay.classList.add("hidden");
 }
 
 function switchTaskTab(tab) {
