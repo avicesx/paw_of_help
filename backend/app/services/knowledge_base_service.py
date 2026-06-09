@@ -39,10 +39,12 @@ async def get_article_detail(
         raise HTTPException(status_code=404, detail="Статья не найдена")
 
     if article.status != "published":
-        raise HTTPException(status_code=404, detail="Статья не опубликована")
+        if current_user_id is None or article.author_id != current_user_id:
+            raise HTTPException(status_code=404, detail="Статья не найдена")
 
-    article.views += 1
-    await db.commit()
+    if article.status == "published":
+        article.views += 1
+        await db.commit()
 
     return article
 
