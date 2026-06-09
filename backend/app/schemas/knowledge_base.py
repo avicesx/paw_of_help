@@ -7,6 +7,7 @@ class ArticleListResponse(BaseModel):
     id: int
     title: str
     content_preview: Optional[str] = None
+    author_id: Optional[int] = None
     author_name: str
     created_at: datetime
     views: int
@@ -21,7 +22,9 @@ class ArticleListResponse(BaseModel):
 class ArticleCreateResponse(BaseModel):
     id: int
     title: str
+    author_id: Optional[int] = None
     author_name: str
+    status: str
     created_at: datetime
     views: int
     likes_count: int
@@ -36,7 +39,9 @@ class ArticleDetailResponse(BaseModel):
     id: int
     title: str
     content: str
+    author_id: Optional[int] = None
     author_name: str
+    status: str
     created_at: datetime
     updated_at: Optional[datetime]
     views: int

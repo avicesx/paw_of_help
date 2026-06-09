@@ -6,7 +6,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import get_current_user, get_db, get_optional_user, settings
-from app.models import OrganizationUser, Post, PostReaction, User
+from app.models import BlogComment, OrganizationUser, Post, PostReaction, User
 from app.models.organization import Organization
 from app.schemas.blog import CommentReactionRequest, PostCreate, PostResponse, PostUpdate
 from app.services.content_background_service import process_post_in_background
@@ -76,6 +76,18 @@ async def _enrich_posts(
     ).all()
     dislikes_map: dict[int, int] = {r.post_id: r.cnt for r in dislikes_rows}
 
+    comments_rows = (
+        await db.execute(
+            select(BlogComment.post_id, func.count().label("cnt"))
+            .where(
+                BlogComment.post_id.in_(post_ids),
+                BlogComment.is_deleted.is_(False),
+            )
+            .group_by(BlogComment.post_id)
+        )
+    ).all()
+    comments_map: dict[int, int] = {r.post_id: r.cnt for r in comments_rows}
+
     # голос текущего пользователя одним запросом
     my_votes_map: dict[int, int] = {}
     if current_user_id is not None:
@@ -97,6 +109,7 @@ async def _enrich_posts(
         r.organization_icon_url = org.logo_url if org else None
         r.likes_count = likes_map.get(p.id, 0)
         r.dislikes_count = dislikes_map.get(p.id, 0)
+        r.comments_count = comments_map.get(p.id, 0)
         r.my_vote = my_votes_map.get(p.id)
         result.append(r)
     return result

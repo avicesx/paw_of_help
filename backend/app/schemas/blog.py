@@ -35,6 +35,7 @@ class PostResponse(BaseModel):
     updated_at: Optional[datetime] = None
     likes_count: int = 0
     dislikes_count: int = 0
+    comments_count: int = 0
     my_vote: Optional[int] = None
 
     class Config:
