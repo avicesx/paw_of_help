@@ -121,7 +121,33 @@ async def _to_response(
     r.likes = likes
     r.dislikes = dislikes
     r.my_vote = my_vote
+    r.replies = []
     return r
+
+
+async def _build_comment_tree(
+    db: AsyncSession,
+    rows: list[BlogComment],
+    *,
+    current_user_id: int | None,
+) -> list[BlogCommentResponse]:
+    """Собирает дерево: parent_id=None — корень, иначе вложенность в replies родителя"""
+    nodes: dict[int, BlogCommentResponse] = {}
+    for c in rows:
+        nodes[c.id] = await _to_response(db, c, current_user_id=current_user_id)
+
+    roots: list[BlogCommentResponse] = []
+    for c in rows:
+        node = nodes[c.id]
+        if c.parent_id is None:
+            roots.append(node)
+            continue
+        parent = nodes.get(c.parent_id)
+        if parent is not None:
+            parent.replies.append(node)
+        else:
+            roots.append(node)
+    return roots
 
 
 @router.get(
@@ -140,7 +166,11 @@ async def list_post_comments(
     if not include_deleted:
         q = q.where(BlogComment.is_deleted.is_(False))
     rows = (await db.scalars(q)).all()
-    return [await _to_response(db, r, current_user_id=current.id if current else None) for r in rows]
+    return await _build_comment_tree(
+        db,
+        list(rows),
+        current_user_id=current.id if current else None,
+    )
 
 
 @router.post(
