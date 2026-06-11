@@ -1,6 +1,7 @@
+from __future__ import annotations
 from datetime import datetime
 from typing import Any, List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 # посты (пользователь/организация)
@@ -65,6 +66,7 @@ class BlogCommentResponse(BaseModel):
     likes: int = 0
     dislikes: int = 0
     my_vote: Optional[int] = None
+    replies: List[BlogCommentResponse] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
