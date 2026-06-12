@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
-from sqlalchemy import select
+from sqlalchemy import select, update
 from app.models.blog import KnowledgeBaseArticle, ArticleTag, ArticleRating
 from app.schemas.knowledge_base import ArticleCreateRequest, ArticleUpdateRequest
 from fastapi import HTTPException
@@ -43,8 +43,13 @@ async def get_article_detail(
             raise HTTPException(status_code=404, detail="Статья не найдена")
 
     if article.status == "published":
-        article.views += 1
+        await db.execute(
+            update(KnowledgeBaseArticle)
+            .where(KnowledgeBaseArticle.id == article_id)
+            .values(views=KnowledgeBaseArticle.views + 1)
+        )
         await db.commit()
+        article.views = (article.views or 0) + 1
 
     return article
 
