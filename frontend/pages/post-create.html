@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Лента задач</title>
+  <title>Написать пост — Paw</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
-<body class="paw-designed page_feed">
+<body class="paw-designed page_post_create">
   <main class="phone-shell">
     <header class="topbar">
       <button class="icon-btn topbar-side menu-button" type="button" onclick="if (window.toggleMenu) toggleMenu()" aria-label="Открыть меню">
@@ -29,34 +29,31 @@
       </div>
     </header>
 
-    <aside id="sideMenu" class="side-menu">
-      <div class="side-menu-inner">
-        <a href="profile.html" class="side-link">Профиль</a>
-        <a href="settings.html" class="side-link">Настройки</a>
-        <a href="tasks.html" class="side-link">Задачи</a>
-        <a href="feed.html" class="side-link">Лента задач</a>
-        <a href="events.html" class="side-link">Мероприятия</a>
-        <a href="calendar.html" class="side-link">Календарь</a>
-        <a href="reviews.html" class="side-link">Отзывы</a>
-        <a href="complaints.html" class="side-link">Жалобы</a>
-        <a href="animal-select.html" class="side-link">Животные</a>
-        <a href="#" class="side-link">Организации</a>
-        <a href="#" class="side-link">База знаний</a>
-      </div>
-    </aside>
+    <aside id="sideMenu" class="side-menu"><div class="side-menu-inner"></div></aside>
 
-    <section class="feed-screen posts-feed-screen">
-      <div id="postsFeed" class="posts-feed">
-        <div class="empty-small">Загрузка ленты...</div>
+    <section class="post-create-screen">
+      <div class="back-row">
+        <a href="feed.html" class="back-link" aria-label="Назад">⬅</a>
       </div>
+
+      <div class="post-create-card">
+        <textarea id="postText" class="post-text-area" placeholder="Ваш текст...."></textarea>
+        <img id="postPhotoThumb" class="post-photo-thumb" alt="" />
+        <input type="file" id="postPhotoInput" accept="image/*" style="display:none" onchange="attachPostPhoto(this)" />
+        <button type="button" class="post-attach-btn" onclick="document.getElementById('postPhotoInput').click()" aria-label="Прикрепить фото"></button>
+      </div>
+
+      <p id="postStatus" class="save-status"></p>
+      <button type="button" class="post-publish-btn" onclick="createPost()">Опубликовать</button>
     </section>
-
-    <a class="feed-write-fab" href="post-create.html" aria-label="Написать пост" title="Написать пост">+</a>
   </main>
 
   <script src="../js/script.js"></script>
   <script src="../js/menu.js"></script>
   <script src="../js/feed.js"></script>
-  <script>loadPostsFeed();</script>
+  <script>
+    ensureAuth("login.html");
+    loadNotificationsCount();
+  </script>
 </body>
 </html>

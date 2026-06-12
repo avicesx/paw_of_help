@@ -1,300 +1,266 @@
-function formatDateTime(dateStr) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleString('ru-RU', { 
-    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
-  });
-}
+// Чаты (дизайн: для чата.svg). Бэкенд: /chats, /chats/open, /chats/{id}/messages, /chats/{id}/read.
+// Чат привязан к контексту (task / foster_request): переписка «сотрудник организации ↔ откликнувшийся волонтёр».
 
 function getCurrentUserId() {
-  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+  const token = getToken();
   if (!token) return null;
-  
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub ? parseInt(payload.sub) : null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload.sub ? parseInt(payload.sub, 10) : null;
   } catch (e) {
     return null;
   }
 }
 
-async function getAllChats() {
+function chatTime(dateStr) {
+  if (!dateStr) return "";
   try {
-    const response = await apiRequest('/chats', { auth: true });
-    const data = response.data;
-    const chatsData = Array.isArray(data) ? data : (data.chats || data.items || []);
+    return new Date(dateStr).toLocaleString("ru-RU", {
+      day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+    });
+  } catch (e) { return ""; }
+}
 
-    return chatsData.map(chat => ({
-      id: chat.id,
-      name: chat.title || `Чат: ${chat.context_type} #${chat.context_id}`,
-      lastMessage: chat.last_message?.content || 'Нажмите, чтобы открыть',
-      time: chat.created_at ? formatDateTime(chat.created_at) : '',
-      unread: chat.unread_count || 0,
-      online: false
+// ----- Список чатов -----
+async function loadChatList() {
+  const list = document.getElementById("chatList");
+  if (!list) return;
+  list.innerHTML = '<div class="empty-small">Загрузка чатов...</div>';
+  try {
+    const { data } = await apiRequest("/chats", { auth: true });
+    const chats = Array.isArray(data) ? data : [];
+    if (!chats.length) {
+      list.innerHTML = '<div class="empty-small">У вас пока нет активных чатов.</div>';
+      return;
+    }
+    const enriched = await Promise.all(chats.map(async (c) => {
+      let title = `Чат · ${c.context_type} #${c.context_id}`;
+      if (c.context_type === "task") {
+        try { const { data: t } = await apiRequest(`/tasks/${c.context_id}`); if (t?.title) title = t.title; } catch (e) {}
+      }
+      return { ...c, title };
     }));
+    list.innerHTML = enriched.map(renderChatCard).join("");
   } catch (err) {
-    console.error('CHATS LOAD ERROR:', err);
-    return [];
+    list.innerHTML = `<div class="empty-small">${escapeHtml(err.message || "Не удалось загрузить чаты")}</div>`;
   }
 }
 
-async function loadChatList() {
-    const container = document.getElementById('chatList') || document.querySelector('.chat-list');
-    if (!container) return;
-
-    container.innerHTML = '<div class="empty">Загрузка...</div>';
-
-    const chats = await getAllChats();
-    
-    if (chats.length === 0) {
-        container.innerHTML = '<div class="results-placeholder">У вас пока нет активных чатов.</div>';
-        return;
-    }
-
-    container.innerHTML = chats.map(createChatCard).join('');
+function renderChatCard(chat) {
+  return `
+    <button class="chat-card" type="button" onclick="openChat(${chat.id})">
+      <div class="chat-avatar" aria-hidden="true">🐾</div>
+      <div class="chat-info">
+        <div class="chat-name">${escapeHtml(chat.title)}</div>
+        <div class="chat-sub">Нажмите, чтобы открыть переписку</div>
+      </div>
+      <div class="chat-meta">${chatTime(chat.created_at)}</div>
+    </button>`;
 }
 
 function openChat(chatId) {
-    if (!chatId) {
-        console.error("Попытка открыть чат без ID");
-        return;
-    }
-    window.location.href = `chats/index.html?id=${chatId}`;
+  if (!chatId) return;
+  window.location.href = `chat.html?id=${chatId}`;
 }
 
-async function hasUnreadMessages() {
-    try {
-        const { data } = await apiRequest('/chats/has-unread', { auth: true });
-        return data.has_unread;
-    } catch (err) {
-        console.error('UNREAD CHECK ERROR:', err);
-        return false;
-    }
-}
-
+// Открыть/создать чат для задачи (кнопка «Связаться» в задаче)
 async function openTaskChat(taskId) {
-    try {
-        const { data } = await apiRequest('/chats/open', {
-            method: 'POST',
-            auth: true,
-            body: JSON.stringify({
-                context_type: 'task',
-                context_id: taskId
-            })
-        });
-        openChat(data.id);
-    } catch (err) {
-        console.error('OPEN CHAT ERROR:', err);
-        alert("Не удалось открыть чат: " + err.message);
-    }
-}
-
-async function getChatData(chatId) {
+  if (!getToken()) { window.location.href = "login.html"; return; }
   try {
-    const { data } = await apiRequest(`/chats/${chatId}`, { auth: true });
-    if (data) {
-        return {
-            id: data.id,
-            name: data.title || `Чат ${data.context_type} #${data.context_id}`
-        };
-    }
-    return null;
+    const { data } = await apiRequest("/chats/open", {
+      method: "POST", auth: true,
+      body: JSON.stringify({ context_type: "task", context_id: taskId }),
+    });
+    openChat(data.id);
   } catch (err) {
-    console.error('CHAT DATA LOAD ERROR:', err);
-    return null;
+    alert(err.message || "Не удалось открыть чат");
   }
 }
+
+// ----- Переписка -----
+let _chatPollTimer = null;
 
 async function getChatMessages(chatId) {
+  const { data } = await apiRequest(`/chats/${chatId}/messages`, { auth: true });
+  const me = getCurrentUserId();
+  return (Array.isArray(data) ? data : []).map((m) => ({
+    mine: me != null && String(m.sender_id) === String(me),
+    text: m.content || "",
+    time: chatTime(m.created_at),
+  }));
+}
+
+function renderMessages(messages) {
+  const box = document.getElementById("messagesList");
+  if (!box) return;
+  if (!messages.length) {
+    box.innerHTML = '<div class="empty-small">Здесь пока нет сообщений. Начните общение!</div>';
+    return;
+  }
+  box.innerHTML = messages.map((m) => `
+    <div class="msg-bubble ${m.mine ? "mine" : "theirs"}">
+      <div class="msg-text">${escapeHtml(m.text)}</div>
+      <div class="msg-time">${m.time}</div>
+    </div>`).join("");
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById("messageInput");
+  const text = (input?.value || "").trim();
+  if (!text) return;
+  const chatId = new URLSearchParams(location.search).get("id");
   try {
-    const response = await apiRequest(`/chats/${chatId}/messages`, { auth: true });
-    const messagesData = Array.isArray(response.data) ? response.data : [];
-    
-    const currentUserId = getCurrentUserId(); 
-    
-    return messagesData.map(msg => ({
-      id: msg.id,
-      type: (currentUserId && String(msg.sender_id) === String(currentUserId)) ? 'sent' : 'received',
-      text: msg.content,
-      time: formatDateTime(msg.created_at)
-    }));
+    input.disabled = true;
+    await apiRequest(`/chats/${chatId}/messages`, {
+      method: "POST", auth: true,
+      body: JSON.stringify({ content: text, message_type: "text" }),
+    });
+    input.value = "";
+    input.disabled = false;
+    input.focus();
+    renderMessages(await getChatMessages(chatId));
   } catch (err) {
-    console.error('MESSAGES LOAD ERROR:', err);
-    return [];
+    input.disabled = false;
+    alert(err.message || "Не удалось отправить сообщение");
   }
 }
 
-async function sendMessage(chatId, text) {
-    return await apiRequest(`/chats/${chatId}/messages`, {
-        method: 'POST',
-        auth: true,
-        body: JSON.stringify({
-            content: text,
-            message_type: 'text'
-        })
-    }).then(res => res.data);
-}
+async function initChatConversation() {
+  const box = document.getElementById("messagesList");
+  if (!box) return;
+  if (!getToken()) { window.location.href = "login.html"; return; }
+  const chatId = new URLSearchParams(location.search).get("id");
+  if (!chatId) { box.innerHTML = '<div class="empty-small">Чат не найден</div>'; return; }
 
-async function sendMessageFromInput() {
-    const input = document.getElementById('messageInput');
-    const text = input.value.trim();
-    if (!text) return;
+  try { await apiRequest(`/chats/${chatId}/read`, { method: "POST", auth: true }); } catch (e) {}
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const chatId = urlParams.get('id');
-    
+  try {
+    const { data: chat } = await apiRequest(`/chats/${chatId}`, { auth: true });
+    const titleEl = document.getElementById("chatTitle");
+    let t = `Чат · ${chat.context_type} #${chat.context_id}`;
+    if (chat.context_type === "task") {
+      try { const { data: task } = await apiRequest(`/tasks/${chat.context_id}`); if (task?.title) t = task.title; } catch (e) {}
+    }
+    if (titleEl) titleEl.textContent = t;
+    document.body.dataset.contextType = chat.context_type;
+    document.body.dataset.contextId = chat.context_id;
+  } catch (e) {}
+
+  try {
+    renderMessages(await getChatMessages(chatId));
+  } catch (err) {
+    box.innerHTML = '<div class="empty-small">Не удалось загрузить сообщения</div>';
+    return;
+  }
+
+  const input = document.getElementById("messageInput");
+  if (input && !input.dataset.bound) {
+    input.addEventListener("keypress", (e) => { if (e.key === "Enter") { e.preventDefault(); sendChatMessage(); } });
+    input.dataset.bound = "1";
+  }
+
+  if (_chatPollTimer) clearInterval(_chatPollTimer);
+  _chatPollTimer = setInterval(async () => {
     try {
-        input.disabled = true;
-        await sendMessage(chatId, text);
-        input.value = ''; 
-        input.disabled = false;
-        input.focus();
-
-        const messages = await getChatMessages(chatId);
-        const list = document.getElementById('messagesList');
-        list.innerHTML = messages.map(createMessageBubble).join('');
-        list.scrollTop = list.scrollHeight;
-    } catch (err) {
-        console.error("Ошибка при отправке:", err);
-        input.disabled = false;
-    }
+      const box2 = document.getElementById("messagesList");
+      if (!box2) return;
+      renderMessages(await getChatMessages(chatId));
+    } catch (e) {}
+  }, 5000);
+  window.addEventListener("beforeunload", () => { if (_chatPollTimer) clearInterval(_chatPollTimer); });
 }
 
-async function markChatAsRead(chatId) {
-    try {
-        await apiRequest(`/chats/${chatId}/read`, {
-            method: 'POST',
-            auth: true,
-        });
-        console.log(`Chat ${chatId} marked as read`);
-    } catch (err) {
-        if (err instanceof SyntaxError || (err.message && err.message.includes('JSON'))) {
-            console.log(`Chat ${chatId} marked as read (empty response)`);
-        } else {
-            console.error('MARK READ ERROR:', err);
-        }
-    }
+// «Оставить отзыв» из чата → экран отзыва с контекстом задачи
+function leaveReviewFromChat() {
+  const ct = document.body.dataset.contextType || "task";
+  const ci = document.body.dataset.contextId || "";
+  window.location.href = `leave-review.html?context_type=${encodeURIComponent(ct)}&context_id=${encodeURIComponent(ci)}`;
 }
 
-function createChatCard(chat) {
-  return `
-    <div class="chat-card ${chat.unread > 0 ? 'unread' : ''}" onclick="openChat(${chat.id})">
-      <div class="chat-avatar">💬</div>
-      <div class="chat-info">
-        <div class="chat-name">${chat.name}</div>
-        <div class="chat-message">${chat.lastMessage}</div>
-      </div>
-      <div class="chat-meta">
-        <div class="chat-time">${chat.time}</div>
-        ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
-        ${chat.online ? '<div class="online-indicator"></div>' : ''}
-      </div>
-    </div>
-  `;
+// Меню чата (3 точки)
+function toggleChatMenu() {
+  document.getElementById("chatMenu")?.classList.toggle("open");
 }
 
-function setupChatEventListeners() {
-    const input = document.getElementById('messageInput');
-    if (input && !input.dataset.listenerAdded) {
-        input.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendMessageFromInput();
-            }
-        });
-        input.dataset.listenerAdded = 'true';
-    }
-}
+// ----- Экран «Оставить отзыв» (leave-review.html), дизайн: оставить отзыв.svg -----
+async function initLeaveReview() {
+  if (!getToken()) { window.location.href = "login.html"; return; }
+  const params = new URLSearchParams(location.search);
+  const ct = params.get("context_type") || "task";
+  const ci = params.get("context_id");
 
-function createMessageBubble(msg) {
-    const bubbleClass = msg.type === 'sent' ? 'message-bubble sent' : 'message-bubble received';
-    
-    return `
-      <div class="${bubbleClass}">
-        <div class="message-text">${msg.text}</div>
-        <div class="message-time">${msg.time}</div>
-      </div>
-    `;
-}
+  let task = null;
+  if (ct === "task" && ci) { try { const { data } = await apiRequest(`/tasks/${ci}`); task = data; } catch (e) {} }
 
-let chatRefreshInterval = null;
-let isChatInitializing = false;
+  const ctx = document.getElementById("reviewContext");
+  if (ctx && task) {
+    const tag = typeof getTaskTypeLabel === "function" ? getTaskTypeLabel(task.task_type) : (task.task_type || "");
+    ctx.innerHTML = `
+      <div class="task-paw" aria-hidden="true"></div>
+      <div class="rev-ctx-main">
+        <div class="rev-ctx-title">${escapeHtml(task.title || "Задача")}</div>
+        <div class="rev-ctx-tag">${escapeHtml(tag)}</div>
+      </div>`;
+  }
 
-async function initChat() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const chatId = urlParams.get('id');
-    if (!chatId) {
-        console.error("ID чата не найден в URL!");
-        return;
-    }
-
-    if (isChatInitializing) return;
-    isChatInitializing = true;
-
-    try {
-        await markChatAsRead(chatId).catch(err => console.warn("Пропуск пометки прочтения:", err));
-    } catch (e) {
-        console.warn("Бэкенд не смог пометить чат прочитанным (ошибка 500), но мы загружаем сообщения...");
-    }
-
-    const chatData = await getChatData(chatId);
-    if (!chatData) {
-        document.getElementById('messagesList').innerHTML = 
-            '<div class="empty">Чат не найден. Проверь данные в БД (ID чата: ' + chatId + ')</div>';
-        return;
-    }
-
-    if (document.querySelector('.chat-title')) {
-        document.querySelector('.chat-title').innerText = chatData.name;
-    }
-
-    let messages = [];
-    try {
-        messages = await getChatMessages(chatId);
-    } catch (err) {
-        console.error("Критическая ошибка при загрузке сообщений:", err);
-        document.getElementById('messagesList').innerHTML = '<div class="empty">Не удалось загрузить сообщения. Возможно, бэкенд упал.</div>';
-        return;
-    }
-
-    const list = document.getElementById('messagesList');
-    
-    if (messages.length === 0) {
-        list.innerHTML = '<div class="empty">Здесь пока нет сообщений. Начни общение!</div>';
+  // кому оставляем отзыв: я волонтёр → владельцу задачи; я владелец → откликнувшемуся волонтёру
+  const me = getCurrentUserId();
+  let reviewee = null;
+  if (task) {
+    if (Number(task.created_by) !== Number(me)) {
+      reviewee = task.created_by;
     } else {
-        list.innerHTML = messages.map(createMessageBubble).join('');
-        list.scrollTop = list.scrollHeight;
+      try {
+        const { data: resps } = await apiRequest(`/task-responses/task/${ci}`, { auth: true });
+        if (Array.isArray(resps) && resps.length) reviewee = resps[0].volunteer_id;
+      } catch (e) {}
     }
-
-    setupChatEventListeners();
-
-    if (chatRefreshInterval) clearInterval(chatRefreshInterval);
-    chatRefreshInterval = setInterval(async () => {
-        const newMessages = await getChatMessages(chatId);
-        const list = document.getElementById('messagesList');
-        if (list) {
-            const isAtBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 50;
-            
-            list.innerHTML = newMessages.map(createMessageBubble).join('');
-            
-            if (isAtBottom) {
-                list.scrollTop = list.scrollHeight;
-            }
-        }
-    }, 5000);
-    
-    isChatInitializing = false;
+  }
+  document.body.dataset.reviewee = reviewee || "";
+  document.body.dataset.targetType = ct;
+  document.body.dataset.targetId = ci || "";
+  setReviewStars(5);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.addEventListener('beforeunload', () => {
-        if (chatRefreshInterval) clearInterval(chatRefreshInterval);
-    });
+function setReviewStars(n) {
+  const hidden = document.getElementById("reviewRating");
+  if (hidden) hidden.value = n;
+  const num = document.getElementById("reviewRatingNum");
+  if (num) num.textContent = n;
+  document.querySelectorAll("#reviewStars .rev-star").forEach((s) => {
+    s.classList.toggle("on", Number(s.dataset.v) <= n);
+  });
+}
 
-    if (document.getElementById('chatList') || document.querySelector('.chat-list')) {
-        loadChatList();
-    }
-    if (document.getElementById('messagesList')) {
-        initChat();
-    }
+async function submitLeaveReview(e) {
+  if (e) e.preventDefault();
+  const status = document.getElementById("reviewStatus");
+  const reviewee = parseInt(document.body.dataset.reviewee || "", 10);
+  const rating = parseInt(document.getElementById("reviewRating")?.value || "5", 10);
+  const comment = (document.getElementById("reviewComment")?.value || "").trim();
+  if (!reviewee) { if (status) status.textContent = "Не удалось определить, кому оставить отзыв."; return; }
+  try {
+    if (status) status.textContent = "Сохраняем...";
+    await apiRequest("/reviews", {
+      method: "POST", auth: true,
+      body: JSON.stringify({
+        reviewee_id: reviewee,
+        target_type: document.body.dataset.targetType || "task",
+        target_id: parseInt(document.body.dataset.targetId || "0", 10),
+        rating,
+        comment: comment || null,
+      }),
+    });
+    if (status) status.textContent = "Отзыв сохранён!";
+    setTimeout(() => history.back(), 900);
+  } catch (err) {
+    if (status) status.textContent = err.message || "Не удалось сохранить отзыв";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("chatList")) loadChatList();
+  if (document.getElementById("messagesList")) initChatConversation();
+  if (document.getElementById("reviewStars")) initLeaveReview();
 });

@@ -33,8 +33,12 @@
   <script src="../js/admin-api.js"></script>
   <script src="../js/admin.js"></script>
   <script>
+  // ПРИМЕЧАНИЕ: /auth/me не возвращает поле role (бекенд),
+  // поэтому доступ проверяется по результату самого /admin/dashboard
   (async () => {
     const badge = document.getElementById("adminUserRole");
+
+    // Сначала показываем имя пользователя из /auth/me
     try {
       const { data } = await apiRequest("/auth/me", { auth: true });
       if (badge) badge.textContent = data.username || data.email || "Пользователь";
@@ -45,7 +49,10 @@
         setTimeout(() => window.location.href = "../pages/login.html", 1500);
         return;
       }
+      // Иные ошибки /auth/me не блокируют — идём дальше
     }
+
+    // Проверяем зарегистрированы ли /admin/* маршруты в бекенде
     try {
       const r = await fetch(`${API_URL}/openapi.json`);
       const spec = await r.json();
@@ -61,8 +68,10 @@
         return;
       }
     } catch(diagErr) {
-      
+      // openapi.json недоступен — просто продолжаем
     }
+
+    // Загружаем дашборд — он сам вернёт 403 если не admin
     loadAdminDashboard();
   })();
 </script>

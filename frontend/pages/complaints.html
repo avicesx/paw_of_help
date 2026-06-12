@@ -45,42 +45,26 @@
       </div>
     </aside>
 
-    <section class="create-task-screen">
+    <section class="complaints-screen">
       <div class="back-row">
         <a href="profile.html" class="back-link">⬅</a>
-        <div class="back-title">Жалобы</div>
+        <div class="back-title">Причины:</div>
       </div>
 
-      <form class="task-form-card" onsubmit="submitComplaint(event)">
-        <div class="section-subtitle">Новая жалоба</div>
-        <label class="form-label">Тип сущности
-          <select id="complaint_target_type" class="field" onchange="loadReportReasons()">
-            <option value="user">user</option>
-            <option value="organization">organization</option>
-            <option value="article">article</option>
-            <option value="post">post</option>
-            <option value="comment">comment</option>
-          </select>
-        </label>
-        <label class="form-label">ID сущности
-          <input id="complaint_target_id" class="field" type="number" />
-        </label>
-        <label class="form-label">Причина
-          <select id="complaint_category" class="field">
-            <option value="other">Другое</option>
-          </select>
-        </label>
-        <label class="form-label">Описание
-          <textarea id="complaint_text" class="field textarea"></textarea>
-        </label>
-        <button class="submit-btn full-width" type="submit">Отправить жалобу</button>
-        <p id="complaintStatus" class="save-status"></p>
+      <form onsubmit="submitComplaint(event)">
+        <input type="hidden" id="complaint_target_type" value="user" />
+        <input type="hidden" id="complaint_target_id" />
+        <input type="hidden" id="complaint_category" value="other" />
+
+        <div id="complaintReasons" class="complaint-reasons"></div>
+
+        <textarea id="complaint_text" placeholder="Меня не устроило....."></textarea>
+
+        <div class="complaint-submit-wrap">
+          <button class="submit-btn full-width" type="submit">Сохранить</button>
+          <p id="complaintStatus" class="save-status"></p>
+        </div>
       </form>
-
-      <div class="task-form-card settings-gap">
-        <div class="section-subtitle">Мои жалобы</div>
-        <div id="complaintsList"></div>
-      </div>
     </section>
   </main>
 

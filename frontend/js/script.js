@@ -55,17 +55,6 @@ async function apiRequest(path, options = {}) {
   return { ok: true, status: res.status, data };
 }
 
-async function uploadFile(file) {
-    const formData = new FormData();
-    formData.append('file', file);
-    const { data } = await apiRequest('/uploads', {
-        method: 'POST',
-        auth: true,
-        body: formData
-    });
-    return data.url;
-}
-
 function parseErrorDetail(data, fallback) {
   if (!data) return fallback;
   if (typeof data.detail === "string") {
@@ -215,6 +204,8 @@ async function loadSettingsPage() {
   const token = ensureAuth("login.html");
   if (!token) return;
 
+  loadVolunteerSkills();
+
   try {
     const [{ data: user }, { data: volunteer }] = await Promise.all([
       apiRequest("/users/me", { auth: true }),
@@ -247,6 +238,12 @@ async function loadSettingsPage() {
     setCb("pets_birds", pets.birds);
     setCb("pets_other", pets.other);
     setValue("vol_foster_restrictions", volunteer.foster_restrictions || "");
+
+    setValue("vol_location_lat", volunteer.location_lat);
+    setValue("vol_location_lng", volunteer.location_lng);
+    if (volunteer.location_lat != null && volunteer.location_lng != null && window.volMapCtl) {
+      window.volMapCtl.applyPoint(Number(volunteer.location_lat), Number(volunteer.location_lng), { updateAddress: false });
+    }
 
     const statsNode = document.getElementById("volunteerStats");
     if (statsNode && volunteer.stats) {
@@ -317,6 +314,8 @@ async function saveVolunteerProfile(event) {
 
   const profile = {
     location: nullIfEmpty(getValue("vol_location")),
+    location_lat: toNumberOrNull(getValue("vol_location_lat")),
+    location_lng: toNumberOrNull(getValue("vol_location_lng")),
     radius_km: toNumberOrNull(getValue("vol_radius_km")),
     housing_type: nullIfEmpty(getValue("vol_housing_type")),
     preferred_animal_types: splitCsv(getValue("vol_preferred_animal_types")),
@@ -349,9 +348,119 @@ async function saveVolunteerProfile(event) {
       auth: true,
       body: JSON.stringify(profile),
     });
+    await saveVolunteerSkills();
     setStatus("volunteerStatus", "Профиль волонтёра сохранён.");
   } catch (err) {
     setStatus("volunteerStatus", err.message || "Ошибка сохранения профиля");
+  }
+}
+
+// --- Компетенции волонтёра (навыки) (#6) ---
+async function loadVolunteerSkills() {
+  const box = document.getElementById("skillsList");
+  if (!box) return;
+  try {
+    const allResp = await apiRequest("/volunteer/skills");
+    let mine = [];
+    try {
+      const mineResp = await apiRequest("/volunteer/my-skills", { auth: true });
+      mine = Array.isArray(mineResp.data) ? mineResp.data : [];
+    } catch (_) {
+      mine = [];
+    }
+
+    const skills = (allResp.data && allResp.data.skills) ? allResp.data.skills : [];
+    const mineSet = new Set(mine.map(Number));
+
+    if (!skills.length) {
+      box.innerHTML = '<div class="small-muted">Список компетенций пока пуст. Добавьте навыки в базе данных (например «Перевозка», «Ветеринарная помощь»).</div>';
+      return;
+    }
+
+    box.innerHTML = skills.map((s) => `
+      <label class="checkbox-item">
+        <input type="checkbox" class="skill-cb" value="${s.id}" ${mineSet.has(Number(s.id)) ? "checked" : ""}>
+        <span>${escapeHtml(s.name)}${s.description ? ` — <span class="small-muted">${escapeHtml(s.description)}</span>` : ""}</span>
+      </label>
+    `).join("");
+  } catch (err) {
+    box.innerHTML = `<div class="small-muted">Не удалось загрузить компетенции: ${escapeHtml(err.message || "")}</div>`;
+  }
+}
+
+function getSelectedSkillIds() {
+  return Array.from(document.querySelectorAll(".skill-cb:checked")).map((cb) => Number(cb.value));
+}
+
+async function saveVolunteerSkills() {
+  if (!document.getElementById("skillsList")) return;
+  try {
+    await apiRequest("/volunteer/my-skills", {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify({ skill_ids: getSelectedSkillIds() }),
+    });
+  } catch (err) {
+    console.warn("SAVE SKILLS ERROR:", err);
+  }
+}
+
+// --- Создание статьи из профиля (#3) ---
+async function createArticle(event) {
+  if (event) event.preventDefault();
+  const token = ensureAuth("login.html");
+  if (!token) return;
+
+  const title = getValue("articleTitle");
+  const content = getValue("articleContent");
+
+  if (!title) {
+    setStatus("articleStatus", "Укажите заголовок статьи.");
+    return;
+  }
+
+  if (!content) {
+    setStatus("articleStatus", "Напишите текст статьи.");
+    return;
+  }
+
+  try {
+    await apiRequest("/knowledge-base/articles", {
+      method: "POST",
+      auth: true,
+      body: JSON.stringify({ title, content }),
+    });
+    setStatus("articleStatus", "Статья отправлена и скоро появится в базе знаний.");
+    setTimeout(() => { window.location.href = "knowledge-base.html"; }, 800);
+  } catch (err) {
+    setStatus("articleStatus", err.message || "Ошибка публикации статьи");
+  }
+}
+
+// --- Загрузка фото животного в его профиле (#16) ---
+async function uploadAnimalPhoto(animalId) {
+  const input = document.getElementById("animalPhotoInput");
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+
+  try {
+    const fd = new FormData();
+    fd.append("file", file);
+    const { data: up } = await apiRequest("/uploads", { method: "POST", auth: true, body: fd });
+
+    const { data: animal } = await apiRequest(`/animals/${animalId}`);
+    const photos = Array.isArray(animal.photos) ? animal.photos.slice() : [];
+    photos.unshift(up.url);
+
+    await apiRequest(`/animals/${animalId}`, {
+      method: "PATCH",
+      auth: true,
+      body: JSON.stringify({ photos }),
+    });
+
+    window.location.reload();
+  } catch (err) {
+    alert(err.message || "Не удалось загрузить фото");
   }
 }
 
@@ -366,22 +475,48 @@ async function loadReviewsPage() {
   setValue("review_reviewee_id", revieweeId);
 
   await fetchReviews();
+  initReviewStars();
 }
 
 async function fetchReviews() {
   try {
-    const targetType = getValue("review_target_type");
-    const targetId = getValue("review_target_id");
-
-    if (!targetType || !targetId) {
-      throw new Error("Укажи target_type и target_id.");
-    }
+    const targetType = getValue("review_target_type") || "organization";
+    const targetId = getValue("review_target_id") || "1";
 
     const { data } = await apiRequest(`/reviews?target_type=${encodeURIComponent(targetType)}&target_id=${encodeURIComponent(targetId)}`);
-    renderReviewsList(data || []);
+    const reviews = Array.isArray(data) ? data : [];
+    window.__reviews = reviews;
+    renderReviewsSummary(reviews);
+    renderReviewsList(reviews);
   } catch (err) {
     setStatus("reviewsStatus", err.message || "Ошибка загрузки отзывов");
+    window.__reviews = [];
+    renderReviewsSummary([]);
     renderReviewsList([]);
+  }
+}
+
+function starString(rating) {
+  const r = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
+  return "★".repeat(r) + "☆".repeat(5 - r);
+}
+
+function renderReviewsSummary(reviews) {
+  const avgEl = document.getElementById("reviewsAvg");
+  const countEl = document.getElementById("reviewsCountLabel");
+  const histEl = document.getElementById("reviewsHistogram");
+
+  const count = reviews.length;
+  const sum = reviews.reduce((s, r) => s + Number(r.rating || 0), 0);
+  const avg = count ? sum / count : 0;
+
+  if (avgEl) avgEl.textContent = avg.toFixed(1).replace(".", ",");
+  if (countEl) countEl.textContent = `${count} ${pluralizeReviews(count)}`;
+  if (histEl) {
+    histEl.innerHTML = [5, 4, 3, 2, 1].map((star) => {
+      const n = reviews.filter((r) => Number(r.rating) === star).length;
+      return `<div class="hist-row"><span class="hist-stars">${"★".repeat(star)}${"☆".repeat(5 - star)}</span><span class="hist-count">${n}</span></div>`;
+    }).join("");
   }
 }
 
@@ -389,21 +524,56 @@ function renderReviewsList(reviews) {
   const list = document.getElementById("reviewsList");
   if (!list) return;
 
-  if (!reviews.length) {
+  let items = Array.isArray(reviews) ? reviews.slice() : [];
+  const sort = document.getElementById("reviewsSort")?.value || "new";
+  items.sort((a, b) => {
+    if (sort === "old") return new Date(a.created_at) - new Date(b.created_at);
+    if (sort === "high") return Number(b.rating) - Number(a.rating);
+    if (sort === "low") return Number(a.rating) - Number(b.rating);
+    return new Date(b.created_at) - new Date(a.created_at); // new
+  });
+
+  if (!items.length) {
     list.innerHTML = '<div class="empty-small">Отзывов пока нет</div>';
     return;
   }
 
-  list.innerHTML = reviews.map((review) => `
+  list.innerHTML = items.map((review) => `
     <div class="review-card">
-      <div class="review-card-head">
-        <div class="review-rating">${"⭐".repeat(review.rating)}</div>
-        <div class="review-date">${formatDateTime(review.created_at)}</div>
+      <div class="review-head">
+        <div class="review-avatar" aria-hidden="true"></div>
+        <div class="review-head-main">
+          <div class="review-author">Пользователь #${escapeHtml(String(review.reviewer_id))}</div>
+          <div class="review-stars">${starString(review.rating)}</div>
+        </div>
       </div>
-      <div class="review-meta">Отзыв #${review.id} · reviewer_id: ${review.reviewer_id}</div>
       <div class="review-comment">${escapeHtml(review.comment || "Без комментария")}</div>
+      <div class="review-date">${formatDateTime(review.created_at)}</div>
     </div>
   `).join("");
+}
+
+function initReviewStars() {
+  const wrap = document.getElementById("reviewStarsInput");
+  if (!wrap) return;
+  const hidden = document.getElementById("review_rating");
+  const stars = Array.from(wrap.querySelectorAll(".rev-star"));
+  const paint = (v) => stars.forEach((s) => s.classList.toggle("on", Number(s.dataset.v) <= v));
+  stars.forEach((s) => {
+    s.addEventListener("click", () => {
+      const v = Number(s.dataset.v);
+      if (hidden) hidden.value = String(v);
+      paint(v);
+    });
+  });
+  paint(Number(hidden && hidden.value ? hidden.value : 5));
+}
+
+function toggleLeaveReview() {
+  const form = document.getElementById("leaveReviewForm");
+  if (!form) return;
+  form.classList.toggle("hidden");
+  if (!form.classList.contains("hidden")) form.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 async function submitReview(event) {
@@ -435,30 +605,49 @@ async function submitReview(event) {
 }
 
 async function loadComplaintsPage() {
-  const targetType = document.getElementById("complaint_target_type")?.value || "user";
+  const params = new URLSearchParams(window.location.search);
+  const targetType = params.get("target_type") || document.getElementById("complaint_target_type")?.value || "user";
+  const targetId = params.get("target_id") || "";
   setValue("complaint_target_type", targetType);
+  if (targetId) setValue("complaint_target_id", targetId);
   await loadReportReasons();
-  renderComplaintsInfo();
 }
 
 async function loadReportReasons() {
-  const select = document.getElementById("complaint_category");
-  if (!select) return;
+  const box = document.getElementById("complaintReasons");
+  if (!box) return;
 
   const targetType = getValue("complaint_target_type") || "user";
-  select.innerHTML = '<option value="other">Другое</option>';
-
+  let reasons = [];
   try {
     const { data } = await apiRequest(`/reports/reasons?target_type=${encodeURIComponent(targetType)}`);
-    const reasons = data || [];
-    if (reasons.length) {
-      select.innerHTML = reasons
-        .map((reason) => `<option value="${escapeHtml(reason.code)}">${escapeHtml(reason.title)}</option>`)
-        .join("");
-    }
+    reasons = Array.isArray(data) ? data : [];
   } catch (err) {
     console.warn("REPORT REASONS LOAD ERROR:", err);
   }
+
+  // запасной список, если backend ничего не вернул — чтобы экран не был пустым
+  if (!reasons.length) {
+    reasons = [
+      { code: "spam", title: "Спам" },
+      { code: "abuse", title: "Оскорбление" },
+      { code: "fraud", title: "Мошенничество" },
+      { code: "other", title: "Другое" },
+    ];
+  }
+
+  box.innerHTML = reasons
+    .map((reason, i) => `
+      <button type="button" class="reason-chip${i === 0 ? " active" : ""}" data-code="${escapeHtml(reason.code)}" onclick="selectReason(this)">${escapeHtml(reason.title)}</button>
+    `)
+    .join("");
+  setValue("complaint_category", reasons[0].code);
+}
+
+function selectReason(el) {
+  document.querySelectorAll("#complaintReasons .reason-chip").forEach((c) => c.classList.remove("active"));
+  el.classList.add("active");
+  setValue("complaint_category", el.dataset.code || "other");
 }
 
 function renderComplaintsInfo() {
@@ -572,13 +761,6 @@ function formatDateTime(value) {
   }
 }
 
-
-function truncateText(text, maxLength = 150) {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
-}
-
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -587,16 +769,3 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    try {
-        if (typeof injectNotificationUI === "function") {
-            injectNotificationUI();
-        }
-        if (typeof updateNotificationDot === "function") {
-            updateNotificationDot();
-        }
-    } catch (err) {
-        console.warn("Система уведомлений не смогла инициализироваться:", err);
-    }
-});

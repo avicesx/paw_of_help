@@ -1,137 +1,77 @@
-(function() {
-    const originalApiRequest = window.apiRequest;
-    if (typeof originalApiRequest === 'function') {
-        window.apiRequest = async function(...args) {
-            const options = args[1] || {};
-            const method = (options.method || 'GET').toUpperCase();
-            const pathname = window.location.pathname;
-            const isFeedPage = pathname.includes('post_feed.html');
-            const isAuthPage = pathname.includes('login.html') || pathname.includes('register.html');
+// Уведомления. Дизайн: «уведомления.svg» / «Профиль для уведомлений.svg».
+// Карточка = красный заголовок + текст, по которому можно перейти. Бэкенд: /notifications.
 
-            try {
-                return await originalApiRequest(...args);
-            } catch (err) {
-                if (err.status === 401) {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('access_token');
-
-                    if (isAuthPage) throw err;
-
-                    if (isFeedPage && method === 'GET') throw err;
-
-                    const isNested = pathname.includes('/chats/') || pathname.includes('/comments/');
-                    window.location.href = isNested ? '../login.html' : 'login.html';
-                }
-                throw err;
-            }
-        };
-    }
-})();
-
-async function getNotifications(isRead = null, limit = 50, offset = 0) {
-    let url = `/notifications?limit=${limit}&offset=${offset}`;
-    if (isRead !== null) url += `&is_read=${isRead}`;
-    const response = await apiRequest(url, { auth: true });
-    return response.data || [];
+function notifTarget(n) {
+  const d = n.data || {};
+  const t = n.type || "";
+  if (t.startsWith("organization") && d.organization_id) return `org.html?id=${d.organization_id}`;
+  if (t.startsWith("article") && d.article_id) return `kb-article.html?id=${d.article_id}`;
+  if (t.startsWith("post")) return "feed.html";
+  if ((t.startsWith("chat") || t.startsWith("message")) && d.chat_id) return `chat.html?id=${d.chat_id}`;
+  if (t.startsWith("chat") || t.startsWith("message")) return "chats.html";
+  if (t.startsWith("task") && d.task_id) return `tasks.html`;
+  return null;
 }
 
-async function getUnreadCount() {
-    try {
-        const res = await apiRequest('/notifications/unread-count', { auth: true });
-        return parseInt(res.data) || 0;
-    } catch { return 0; }
-}
-
-async function markAsRead(id) {
-    await apiRequest(`/notifications/${id}/read`, { method: 'POST', auth: true });
-    await refreshNotificationsUI();
-}
-
-async function markAllAsRead() {
-    await apiRequest('/notifications/read-all', { method: 'POST', auth: true });
-    await refreshNotificationsUI();
-}
-
-async function deleteNotification(id, element) {
-    const item = document.getElementById(`notif-${id}`);
-    if (item) item.remove(); 
-
-    try {
-        await apiRequest(`/notifications/${id}`, { method: 'DELETE', auth: true });
-        
-        updateNotificationDot();
-    } catch (err) {
-        console.error("Ошибка удаления:", err);
-        if (err.status === 404) return;
-        
-        alert("Не удалось удалить уведомление");
-        if (typeof loadNotifications === 'function') loadNotifications();
-    }
-}
-
-async function clearAllNotifications() {
-  if (!confirm('Удалить все уведомления?')) return;
-  
+async function loadNotifications() {
+  const box = document.getElementById("notifList");
+  if (!box) return;
+  if (!getToken()) { location.href = "login.html"; return; }
+  box.innerHTML = '<div class="empty-small">Загрузка...</div>';
   try {
-      await apiRequest('/notifications', { method: 'DELETE', auth: true });
-      
-      updateNotificationDot();
-      
-      if (document.getElementById('notificationsDropdown').classList.contains('show')) {
-          renderDropdownList();
-      }
-      
-      if (typeof loadNotifications === 'function') {
-          loadNotifications();
-      }
-  } catch (err) {
-      console.error("Ошибка очистки:", err);
-  }
-}
-
-async function refreshNotificationsUI() {
-  updateNotificationDot();
-  
-  if (typeof loadNotifications === 'function') {
-      await loadNotifications();
-  }
-  
-  const dropdown = document.getElementById('notificationsDropdown');
-  if (dropdown && dropdown.classList.contains('show')) {
-      renderDropdownList();
-  }
-}
-
-async function updateNotificationDot() {
-    const dot = document.getElementById('notificationDot');
-    if (!dot) return;
-    const count = await getUnreadCount();
-    dot.style.display = count > 0 ? 'block' : 'none';
-}
-
-function toggleNotifications() {
-    const dropdown = document.getElementById('notificationsDropdown');
-    dropdown.classList.toggle('hidden');
-    dropdown.classList.toggle('show');
-    if (dropdown.classList.contains('show')) {
-        renderDropdownList();
+    const { data } = await apiRequest("/notifications?limit=100", { auth: true });
+    const list = Array.isArray(data) ? data : [];
+    if (!list.length) {
+      box.innerHTML = '<div class="empty-small">Уведомлений пока нет</div>';
+      return;
     }
+    box.innerHTML = list.map(notifCardHtml).join("");
+  } catch (e) {
+    box.innerHTML = '<div class="empty-small">Не удалось загрузить уведомления</div>';
+  }
 }
 
-async function renderDropdownList() {
-    const list = document.getElementById('notificationsList');
-    if (!list) return;
-    const data = await getNotifications(null, 5);
-    
-    list.innerHTML = data.length ? data.map(n => `
-        <div class="notification-item ${n.is_read ? '' : 'unread'}">
-            <strong>${n.title}</strong>
-            <p>${n.body}</p>
-            ${!n.is_read ? `<button onclick="markAsRead(${n.id})">Прочитать</button>` : ''}
-        </div>
-    `).join('') : '<div class="notification-item">Уведомлений нет</div>';
+function notifCardHtml(n) {
+  const target = notifTarget(n);
+  const isInvite = (n.type || "") === "organization_invite";
+  const orgId = (n.data || {}).organization_id;
+  const clickable = target && !isInvite;
+  return `
+    <div class="notif-card${n.is_read ? "" : " unread"}"${clickable ? ` onclick="openNotif(${n.id}, '${target}')"` : ""}>
+      <div class="notif-title">${escapeHtml(n.title || "Уведомление")}</div>
+      <div class="notif-body">${escapeHtml(n.body || "")}</div>
+      ${isInvite && orgId ? `
+        <div class="notif-actions">
+          <button type="button" class="notif-accept" onclick="event.stopPropagation(); respondInvite(${orgId}, true, ${n.id})">Принять</button>
+          <button type="button" class="notif-decline" onclick="event.stopPropagation(); respondInvite(${orgId}, false, ${n.id})">Отклонить</button>
+        </div>` : ""}
+    </div>`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    updateNotificationDot();
+async function openNotif(id, target) {
+  try { await apiRequest(`/notifications/${id}/read`, { method: "POST", auth: true }); } catch (e) {}
+  if (target) location.href = target;
+}
+
+async function respondInvite(orgId, accept, notifId) {
+  try {
+    await apiRequest(`/organizations/${orgId}/${accept ? "accept-invite" : "decline-invite"}`, { method: "POST", auth: true });
+    if (notifId) { try { await apiRequest(`/notifications/${notifId}/read`, { method: "POST", auth: true }); } catch (e) {} }
+    if (accept) { location.href = `org.html?id=${orgId}`; return; }
+    await loadNotifications();
+  } catch (err) {
+    alert(err.message || "Не удалось обработать приглашение");
+  }
+}
+
+async function markAllNotificationsRead() {
+  try {
+    await apiRequest("/notifications/read-all", { method: "POST", auth: true });
+    await loadNotifications();
+    if (typeof loadNotificationsCount === "function") loadNotificationsCount();
+  } catch (e) { alert(e.message || "Ошибка"); }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("notifList")) loadNotifications();
 });

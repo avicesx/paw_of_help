@@ -184,17 +184,25 @@ async function eventCreateFallbackOrganization() {
 }
 
 async function eventGetWorkingOrganizationId({ createIfMissing = true } = {}) {
-  const saved = localStorage.getItem(EVENT_ORG_ID_KEY);
-  if (saved) return saved;
-
-  const existing = await eventFindExistingUserOrganization();
-  if (existing?.id) {
-    localStorage.setItem(EVENT_ORG_ID_KEY, String(existing.id));
-    return String(existing.id);
+  // Мероприятия требуют, чтобы пользователь был ПРИНЯТЫМ сотрудником (admin/curator)
+  // организации (backend: require_org_staff). Поэтому берём организацию из /organizations/my
+  // — там только те, где пользователь реально состоит. Иначе backend вернёт 403 и
+  // мероприятие «не сохранится». (#17)
+  try {
+    const { data } = await apiRequest("/organizations/my", { auth: true });
+    const orgs = Array.isArray(data) ? data : [];
+    if (orgs.length && orgs[0] && orgs[0].id) {
+      const id = String(orgs[0].id);
+      localStorage.setItem(EVENT_ORG_ID_KEY, id);
+      return id;
+    }
+  } catch (_) {
+    // нет сети/доступа — попробуем создать организацию ниже
   }
 
-  if (!createIfMissing) return null;
+  if (!createIfMissing) return localStorage.getItem(EVENT_ORG_ID_KEY) || null;
 
+  // организации нет — создаём (создатель автоматически становится admin'ом, см. backend)
   const created = await eventCreateFallbackOrganization();
   if (!created?.id) throw new Error("Не удалось получить ID организации");
   localStorage.setItem(EVENT_ORG_ID_KEY, String(created.id));
@@ -246,7 +254,7 @@ async function createEvent(event) {
     }
 
     setStatus("eventCreateStatus", "Мероприятие сохранено.");
-    setTimeout(() => window.location.href = "events.html", 600);
+    setTimeout(() => window.location.href = "calendar.html", 600);
   } catch (err) {
     setStatus("eventCreateStatus", err.message || "Ошибка создания мероприятия");
   }
@@ -359,24 +367,53 @@ function changeCalendarMonth(delta) {
   renderCalendar();
 }
 
+// Полноценная карточка мероприятия (используется и в ленте, и в дне календаря)
+function eventCardHtml(event) {
+  return `
+    <article class="event-card">
+      <div class="event-card-head">
+        <div class="event-date-box">${escapeHtml(shortEventDate(event.start_datetime))}</div>
+        <div class="event-info">
+          <h2>${escapeHtml(event.title || "Без названия")}</h2>
+          <div class="event-type">${escapeHtml(eventTypeLabel(event.event_type))}</div>
+        </div>
+      </div>
+      <p>${escapeHtml(event.description || "Описание не указано")}</p>
+      <div class="event-meta">Начало: ${escapeHtml(eventDateLabel(event.start_datetime))}</div>
+      <div class="event-meta">Окончание: ${escapeHtml(eventDateLabel(event.end_datetime))}</div>
+      <div class="event-meta">Место: ${escapeHtml(event.location || "Не указано")}</div>
+      <div class="event-actions">
+        <button class="task-primary-btn" type="button" onclick="registerForEvent(${event.id})">Участвовать</button>
+        <button class="task-outline-btn" type="button" onclick="cancelEventRegistration(${event.id})">Отменить участие</button>
+      </div>
+    </article>
+  `;
+}
+
 function renderDayEvents(events, dateKey, title = null) {
   const list = document.getElementById("calendarEventsList");
   const heading = document.getElementById("calendarSelectedTitle");
   if (!list) return;
-  if (heading) heading.textContent = title || (dateKey ? `События на ${dateKey}` : "События");
+
+  let h = title;
+  if (!h) {
+    if (dateKey) {
+      const d = new Date(dateKey);
+      h = "Мероприятия " + (Number.isNaN(d.getTime())
+        ? dateKey
+        : d.toLocaleDateString("ru-RU", { day: "numeric", month: "long" }));
+    } else {
+      h = "Мероприятия";
+    }
+  }
+  if (heading) heading.textContent = h;
 
   if (!events.length) {
-    list.innerHTML = '<div class="empty-small">На выбранную дату событий нет</div>';
+    list.innerHTML = '<div class="empty-small">На выбранную дату мероприятий нет</div>';
     return;
   }
 
-  list.innerHTML = events.map(event => `
-    <article class="compact-event-card">
-      <strong>${escapeHtml(event.title || "Без названия")}</strong>
-      <span>${escapeHtml(eventDateLabel(event.start_datetime))}</span>
-      <p>${escapeHtml(event.location || "Место не указано")}</p>
-    </article>
-  `).join("");
+  list.innerHTML = events.map(eventCardHtml).join("");
 }
 
 function toDateKey(value) {
