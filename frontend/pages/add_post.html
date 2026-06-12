@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Новый пост</title>
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <a href="post_feed.html" class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </a>
+
+      <div class="topbar-side profile-icons">
+        <div class="notification-container-wrapper"></div>
+        <a href="profile.html" class="topbar-profile-link">
+          👤
+        </a>
+      </div>
+    </header>
+    
+    <div class="back-btn-container">
+      <button class="icon-btn" type="button" onclick="history.back()">←</button>
+    </div>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="org_selector.html" class="side-link">Организации</a>
+        <a href="knowledge_base.html" class="side-link">База знаний</a>
+        <a href="post_feed.html" class="side-link">Лента новостей</a>
+        <a href="chats.html" class="side-link">Чаты</a>
+      </div>
+    </aside>
+
+    <section class="add-post-screen">
+      <div class="post-editor">
+        <input type="text" id="postTitle" class="post-title-input" placeholder="Заголовок поста" required />
+        
+        <textarea 
+          class="post-textarea" 
+          id="postContent" 
+          placeholder="Ваш текст...."
+          oninput="updateCharCount()"
+        ></textarea>
+      </div>
+        
+        <div class="post-actions">
+          <button type="button" class="icon-btn" onclick="document.getElementById('fileInput').click()" style="font-size: 24px;">📎</button>
+          
+          <div class="char-count">
+            <span id="charCount">0</span> / 500
+          </div>
+        </div>
+        
+        <div id="imagePreview" style="margin-top: 10px; display: none;">
+            <img src="" id="previewImg" style="width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover;">
+        </div>
+      </div>
+
+      <div class="publish-section">
+        <button type="button" onclick="handlePublish()">Опубликовать</button>
+      </div>
+
+      <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this.files[0])" accept="image/*" />
+      
+      <div class="attached-files" id="attachedFiles"></div>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/posts.js"></script>
+  <script src="../js/dropdown.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orgIdFromUrl = urlParams.get('org_id');
+
+    if (!orgIdFromUrl || orgIdFromUrl === "null") {
+        console.error("ID не найден! Попробуй перейти на страницу организации еще раз.");
+    }
+    
+    let uploadedImageUrl = null;
+
+    async function handleFileSelect(file) {
+        if (!file) return;
+        
+        const preview = document.getElementById('imagePreview');
+        const img = document.getElementById('previewImg');
+        const list = document.getElementById('attachedFiles');
+        
+        list.innerHTML = '<div>⌛ Загрузка изображения...</div>';
+        
+        try {
+            uploadedImageUrl = await uploadFile(file);
+            img.src = uploadedImageUrl;
+            preview.style.display = 'block';
+            list.innerHTML = `<div>✅ ${file.name}</div>`;
+        } catch (err) {
+            alert("Ошибка загрузки: " + err.message);
+            list.innerHTML = '';
+        }
+    }
+
+    function attachFile() {
+        document.getElementById('fileInput').click();
+    }
+
+    function updateCharCount() {
+        const text = document.getElementById('postContent').value;
+        document.getElementById('charCount').textContent = text.length;
+    }
+
+    async function handlePublish() {
+        const title = document.getElementById('postTitle').value.trim();
+        const content = document.getElementById('postContent').value.trim();
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const orgId = urlParams.get('org_id');
+
+        if (!title || !content) {
+            alert("Заголовок и текст поста обязательны!");
+            return;
+        }
+
+        if (!orgId) {
+            alert("Ошибка: Не удалось определить организацию.");
+            return; 
+        }
+
+        try {
+            await createPost({ 
+                title, 
+                content, 
+                attachments: uploadedImageUrl ? [uploadedImageUrl] : [],
+                organization_id: parseInt(orgId, 10) 
+            });
+            window.location.href = `org.html?id=${orgId}`;
+        } catch (err) {
+            console.error(err);
+            alert("Ошибка при публикации: " + err.message);
+        }
+    }
+  </script>
+</body>
+</html>

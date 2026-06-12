@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Каталог организаций - Paw</title>
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <div class="bg-paw-overlay"><span>🐾</span></div>
+
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <a href="post_feed.html" class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </a>
+
+      <div class="topbar-side profile-icons">
+        <div class="notification-container-wrapper"></div>
+        <a href="profile.html" class="topbar-profile-link">
+          👤
+        </a>
+      </div>
+    </header>
+
+    <div class="back-btn-container">
+      <button class="icon-btn" type="button" onclick="history.back()">←</button>
+    </div>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="org_selector.html" class="side-link">Организации</a>
+        <a href="knowledge_base.html" class="side-link">База знаний</a>
+        <a href="post_feed.html" class="side-link">Лента новостей</a>
+        <a href="chats.html" class="side-link">Чаты</a>
+      </div>
+    </aside>
+
+    <section class="search-container" style="padding: 16px 16px 0;">
+      <div class="search-bar-wrap">
+        <input type="text" id="orgSearchInput" class="search-input" placeholder="Поиск организаций...">
+        <button class="add-org-btn" onclick="location.href='create_org.html'">+</button>
+      </div>
+    </section>
+
+    <section class="org-list-container" id="orgList">
+        <div class="results-placeholder">Загрузка каталога...</div>
+    </section>
+  <main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/org_selector.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/dropdown.js"></script>
+</body>
+</html>

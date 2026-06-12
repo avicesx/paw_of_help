@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Уведомления</title>
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <a href="post_feed.html" class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </a>
+
+      <div class="topbar-side profile-icons">
+        <div class="notification-container-wrapper"></div>
+        <a href="profile.html" class="topbar-profile-link">
+          👤
+        </a>
+      </div>
+    </header>
+    
+    <div class="back-btn-container">
+      <button class="icon-btn" type="button" onclick="history.back()">←</button>
+    </div>
+    
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="org_selector.html" class="side-link">Организации</a>
+        <a href="knowledge_base.html" class="side-link">База знаний</a>
+        <a href="post_feed.html" class="side-link">Лента новостей</a>
+        <a href="chats.html" class="side-link">Чаты</a>
+      </div>
+    </aside>
+
+    <section class="notifications-screen">
+      <h1 class="screen-title">Уведомления</h1>
+      
+      <div class="notifications-controls">
+          <button onclick="markAllAsRead()">Прочитать все</button>
+          <button onclick="clearAllNotifications()">Очистить всё</button>
+      </div>
+
+      <div class="notifications-main-card">
+        <div id="mainNotificationsList"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/dropdown.js"></script>
+  <script>
+    async function loadNotifications() {
+      console.log("Отрисовка списка...");
+      const list = document.getElementById('mainNotificationsList');
+      if (!list) return;
+
+      const data = await getNotifications();
+
+      if (data.length === 0) {
+          list.innerHTML = '<div class="notification-item">Нет уведомлений</div>';
+      } else {
+          list.innerHTML = data.map(n => `
+              <div class="notification-item ${n.is_read ? '' : 'unread'}" id="notif-${n.id}">
+                  <div class="notification-content">
+                      <strong>${n.title}</strong>
+                      <p>${n.body}</p>
+                  </div>
+                  <div class="notification-actions">
+                      ${!n.is_read ? `<button onclick="markAsRead(${n.id})">Прочитать</button>` : ''}
+                      <button onclick="deleteNotification(${n.id})">Удалить</button>
+                  </div>
+              </div>
+          `).join('');
+      }
+    }
+    
+    window.addEventListener('load', loadNotifications);
+  </script>
+</body>
+</html>
