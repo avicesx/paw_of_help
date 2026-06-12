@@ -63,7 +63,15 @@ function parseErrorDetail(data, fallback) {
     return d;
   }
   if (Array.isArray(data.detail)) {
-    return data.detail.map(item => item.msg || JSON.stringify(item)).join("\n");
+    return data.detail.map(item => {
+      // Частые ошибки валидации Pydantic переводим на русский
+      if (item && item.type === "string_too_short") {
+        const min = item.ctx && item.ctx.min_length;
+        const field = Array.isArray(item.loc) && item.loc.includes("password") ? "Пароль" : "Поле";
+        return `${field} слишком короткое — минимум ${min || 6} символов.`;
+      }
+      return (item && item.msg) || JSON.stringify(item);
+    }).join("\n");
   }
   if (typeof data.message === "string") return data.message;
   return fallback;
@@ -75,6 +83,11 @@ async function register() {
 
   if (!username || !password) {
     alert("Нужно указать логин и пароль.");
+    return;
+  }
+
+  if (password.length < 6) {
+    alert("Пароль слишком короткий — минимум 6 символов.");
     return;
   }
 
@@ -405,7 +418,7 @@ async function saveVolunteerSkills() {
   }
 }
 
-// --- Создание статьи из профиля (#3) ---
+// --- Создание через форму «статьи» из профиля: по факту публикуем пост в ленту (#3) ---
 async function createArticle(event) {
   if (event) event.preventDefault();
   const token = ensureAuth("login.html");
@@ -425,15 +438,15 @@ async function createArticle(event) {
   }
 
   try {
-    await apiRequest("/knowledge-base/articles", {
+    await apiRequest("/posts", {
       method: "POST",
       auth: true,
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({ title, content, attachments: [] }),
     });
-    setStatus("articleStatus", "Статья отправлена и скоро появится в базе знаний.");
-    setTimeout(() => { window.location.href = "knowledge-base.html"; }, 800);
+    setStatus("articleStatus", "Статья опубликована как пост в ленте.");
+    setTimeout(() => { window.location.href = "feed.html"; }, 800);
   } catch (err) {
-    setStatus("articleStatus", err.message || "Ошибка публикации статьи");
+    setStatus("articleStatus", err.message || "Ошибка публикации поста");
   }
 }
 
@@ -768,42 +781,4 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    try {
-        if (typeof injectNotificationUI === "function") {
-            injectNotificationUI();
-        }
-        if (typeof updateNotificationDot === "function") {
-            updateNotificationDot();
-        }
-    } catch (err) {
-        console.warn("Система уведомлений не смогла инициализироваться:", err);
-    }
-});
-
-function getCurrentUserId() {
-  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
-  if (!token) return null;
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub ? parseInt(payload.sub) : null;
-  } catch (e) { return null; }
-}
-
-window.userNameCache = {};
-
-function getUserDisplayName(userId, data = {}) {
-  if (!userId) return 'Пользователь';
-  if (userId === getCurrentUserId()) return 'Вы';
-  return data.author_username || data.author_name || data.username || window.userNameCache[userId] || `Пользователь #${userId}`;
-}
-
-async function resolveUserNames(userIds) {
-  const uniqueIds = [...new Set(userIds.filter(id => id && !window.userNameCache[id]))];
-  if (uniqueIds.length === 0) return;
-  uniqueIds.forEach(id => {
-    window.userNameCache[id] = `Пользователь #${id}`;
-  });
 }

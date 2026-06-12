@@ -5341,3 +5341,111 @@ body.paw-designed .task-detail-back::after {
 .paw-designed .kb-article-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
 .paw-designed .kb-like-btn { border: 1px solid #e3a3a7; background: #f7c9cc; color: #2a1313; border-radius: 20px; padding: 10px 18px; font-weight: 600; cursor: pointer; }
 .paw-designed .kb-like-btn.on { background: #9d3f3f; color: #fff; border-color: #9d3f3f; }
+
+/* =========================================================
+   ФИКСЫ UI (2026-06-13):
+   - белая полоска между топбаром (66px) и боковым меню (стартовало с 70px)
+   - карта Leaflet рендерилась ПОВЕРХ меню (его z-index был 20, у контролов карты 1000)
+   - даты в «Создании мероприятия» вылезали за экран (2 колонки) → в столбик как в задаче
+   ========================================================= */
+.phone-shell .side-menu {
+  top: 66px !important;                 /* вплотную к топбару — без белой щели */
+  height: calc(100% - 66px) !important;
+  z-index: 1200 !important;             /* выше карты Leaflet (controls z=1000, panes z=400) */
+}
+/* карта не должна перекрывать выезжающее меню */
+.paw-designed .figma-map-block,
+.paw-designed .address-map { position: relative; z-index: 0; }
+
+.paw-designed.page_event_create .double-grid {
+  grid-template-columns: 1fr;          /* даты в столбик, как в создании задачи */
+  gap: 12px;
+}
+.paw-designed.page_event_create input[type="datetime-local"].field {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+/* поля времени «С … До» узкие — оставляем в две колонки */
+.paw-designed.page_event_create #eventOneDayBlock .double-grid {
+  grid-template-columns: 1fr 1fr;
+}
+.paw-designed.page_event_create #eventOneDayBlock input[type="time"].field {
+  box-sizing: border-box; width: 100%; min-width: 0;
+}
+/* тумблер «Мероприятие на один день» */
+.paw-designed .event-oneday-check {
+  display: flex; align-items: center; gap: 10px; margin: 4px 0 14px;
+  padding: 12px 14px; border-radius: 10px; background: #fde0e1;
+  color: #2a1313; font-weight: 600; cursor: pointer; user-select: none;
+}
+.paw-designed .event-oneday-check input { width: 18px; height: 18px; accent-color: #9d3f3f; cursor: pointer; }
+
+/* адаптив: на телефоне «телефонная» рамка занимает всю ширину экрана,
+   а не фиксированные 360px с белыми полями по бокам */
+@media (max-width: 480px) {
+  .paw-designed .phone-shell { max-width: 100% !important; }
+}
+
+/* фото животного в общем списке (перебиваем фон-лапку с !important) */
+.paw-designed.animal-figma-page .animal-card-paw.has-photo {
+  background: var(--animal-photo) center / cover no-repeat !important;
+  border-radius: 50% !important;
+}
+
+/* разграничение своя/чужая задача */
+.paw-designed .task-own-badge {
+  display: inline-block; margin-top: 8px; padding: 6px 12px; border-radius: 8px;
+  background: #efc7c9; color: #8c2e31; font-size: 13px; font-weight: 600;
+}
+.paw-designed .task-detail-own {
+  margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+  background: #fceff0; color: #8c2e31; font-size: 14px; text-align: center;
+}
+
+
+/* ===== FIX: организации, животные, фото в списке ===== */
+.paw-designed .org-catalog-top {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 44px !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+.paw-designed .org-create-fab {
+  position: static !important;
+  inset: auto !important;
+  margin: 0 !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  line-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transform: none !important;
+}
+/* фото животного в общем пуле: работало только на animal-figma-page, а реальная страница без этого класса */
+.paw-designed .animal-card-paw.has-photo {
+  background: var(--animal-photo) center / cover no-repeat !important;
+  border-radius: 50% !important;
+}
+
+.paw-designed .org-animal-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+.paw-designed .org-animal-thumb {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  background: #9d3f3f url('../assets/animals-figma/animal-paw-circle.svg') center / 58% 58% no-repeat;
+  overflow: hidden;
+}
+.paw-designed .org-animal-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
