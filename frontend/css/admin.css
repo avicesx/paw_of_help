@@ -360,3 +360,32 @@ pre {
 }
 
 .admin-status:empty { display: none; }
+
+
+/* ===== FIX: полные тексты на модерации и аккуратный аудит ===== */
+.admin-content-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.admin-expand {
+  margin: 10px 0 12px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid #efc1c5;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.admin-expand summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #773638;
+}
+.admin-expand p,
+.admin-expand pre {
+  margin: 10px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.admin-empty-error {
+  border-color: #d27c83;
+  color: #773638;
+}

@@ -79,14 +79,34 @@
           <button id="eventFindAddressBtn" class="map-search-btn" type="button">Найти адрес</button>
           <p id="eventMapStatus" class="map-status">Выбери точку на карте — адрес подставится автоматически.</p>
         </div>
-        <div class="double-grid">
-          <label class="form-label">Дата и время начала
-            <input id="eventStart" class="field" type="datetime-local" />
+        <label class="event-oneday-check">
+          <input type="checkbox" id="eventOneDay" checked onchange="toggleEventOneDay()" />
+          <span>Мероприятие на один день</span>
+        </label>
+        <div id="eventOneDayBlock">
+          <label class="form-label">Дата
+            <input id="eventDate" class="field" type="date" />
           </label>
-          <label class="form-label">Дата и время окончания
-            <input id="eventEnd" class="field" type="datetime-local" />
-          </label>
+          <div class="double-grid">
+            <label class="form-label">Время начала
+              <input id="eventTimeFrom" class="field" type="time" />
+            </label>
+            <label class="form-label">Время окончания
+              <input id="eventTimeTo" class="field" type="time" />
+            </label>
+          </div>
         </div>
+        <div id="eventRangeBlock" style="display:none">
+          <div class="double-grid">
+            <label class="form-label">Дата и время начала
+              <input id="eventStart" class="field" type="datetime-local" />
+            </label>
+            <label class="form-label">Дата и время окончания
+              <input id="eventEnd" class="field" type="datetime-local" />
+            </label>
+          </div>
+        </div>
+
         <button class="submit-btn full-width" type="submit">Опубликовать</button>
         <p id="eventCreateStatus" class="save-status"></p>
       </form>

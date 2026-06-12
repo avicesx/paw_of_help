@@ -8,55 +8,24 @@
 </head>
 <body class="paw-designed page_chats">
   <main class="phone-shell">
-    <div class="bg-paw-overlay"><span>
-      <img src="../assets/paw-bg.png" alt="Paw Background" class="bg-paw-image">
-    </span></div>
-
     <header class="topbar">
-      <div class="topbar-left">
-        <button class="icon-btn" type="button" onclick="toggleMenu()">
-          <img src="../assets/topbar/icon-menu.svg" alt="Меню" class="topbar-icon">
-        </button>
+      <button class="icon-btn topbar-side menu-button" type="button" onclick="if (window.toggleMenu) toggleMenu()" aria-label="Открыть меню">
+        <img src="../assets/topbar/icon-menu.svg" class="topbar-svg-icon topbar-menu-icon" alt="" />
+      </button>
+      <div class="topbar-logo">
+        <img src="../assets/topbar/paw-logo.svg" class="topbar-paw-logo" alt="Paw" />
+        <div class="paw-title">Paw</div>
       </div>
-
-      <a href="post_feed.html" class="topbar-logo">
-        <div class="paw-icon">
-          <img src="../assets/topbar/paw-logo.svg" alt="Paw" class="paw-icon-img">
-        </div>
-      </a>
-
-      <div class="topbar-right">
-        <div class="notification-container-wrapper"></div>
-        
-        <a href="profile.html" class="topbar-profile-link">
-          <img src="../assets/topbar/profile-icon.svg" alt="Профиль" class="topbar-icon">
+      <div class="topbar-side profile-icons">
+        <span class="topbar-icon-wrap">
+          <img src="../assets/topbar/icon-bell.svg" class="topbar-svg-icon topbar-bell-icon" alt="Уведомления" />
+          <span id="notificationBadge" class="badge-dot" style="display:none"></span>
+        </span>
+        <a href="profile.html" class="topbar-profile-link" aria-label="Профиль">
+          <img src="../assets/topbar/icon-user.svg" class="topbar-svg-icon topbar-user-icon" alt="Профиль" />
         </a>
       </div>
     </header>
-
-    <div class="back-btn-container">
-      <button class="icon-btn" type="button" onclick="history.back()">
-        <img src="../assets/topbar/arrow.svg" alt="Назад" class="topbar-icon">
-      </button>
-    </div>
-    
-    <aside id="sideMenu" class="side-menu">
-      <div class="side-menu-inner">
-        <a href="profile.html" class="side-link">Профиль</a>
-        <a href="settings.html" class="side-link">Настройки</a>
-        <a href="tasks.html" class="side-link">Задачи</a>
-        <a href="feed.html" class="side-link">Лента задач</a>
-        <a href="events.html" class="side-link">Мероприятия</a>
-        <a href="calendar.html" class="side-link">Календарь</a>
-        <a href="reviews.html" class="side-link">Отзывы</a>
-        <a href="complaints.html" class="side-link">Жалобы</a>
-        <a href="animal-select.html" class="side-link">Животные</a>
-        <a href="org_selector.html" class="side-link">Организации</a>
-        <a href="knowledge_base.html" class="side-link">База знаний</a>
-        <a href="post_feed.html" class="side-link">Лента новостей</a>
-        <a href="chats.html" class="side-link">Чаты</a>
-      </div>
-    </aside>
 
     <aside id="sideMenu" class="side-menu"><div class="side-menu-inner"></div></aside>
 
