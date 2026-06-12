@@ -101,12 +101,21 @@ async def _enrich_posts(
         ).all()
         my_votes_map = {r.post_id: r.vote for r in votes_rows}
 
+    author_ids = list({p.author_user_id for p in posts})
+    users_map: dict[int, User] = {}
+    if author_ids:
+        users = (await db.scalars(select(User).where(User.id.in_(author_ids)))).all()
+        users_map = {u.id: u for u in users}
+
     result = []
     for p in posts:
         org = orgs_map.get(p.organization_id) if p.organization_id else None
+        author = users_map.get(p.author_user_id)
         r = PostResponse.model_validate(p)
         r.organization_name = org.name if org else None
         r.organization_icon_url = org.logo_url if org else None
+        r.author_username = author.username if author else None
+        r.author_name = (author.name or author.username or "Неизвестный") if author else "Неизвестный"
         r.likes_count = likes_map.get(p.id, 0)
         r.dislikes_count = dislikes_map.get(p.id, 0)
         r.comments_count = comments_map.get(p.id, 0)

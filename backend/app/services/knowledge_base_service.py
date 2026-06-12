@@ -49,7 +49,7 @@ async def get_article_detail(
             .values(views=KnowledgeBaseArticle.views + 1)
         )
         await db.commit()
-        article.views = (article.views or 0) + 1
+        article = await db.get(KnowledgeBaseArticle, article_id)
 
     return article
 
