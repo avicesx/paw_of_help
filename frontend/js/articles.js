@@ -28,10 +28,12 @@ function getRelativeTime(dateStr) {
 }
 
 function formatEventDate(baseTime, updateTime) {
-  if (!baseTime && !updateTime) return 'На модерации';
+  const isValid = (t) => t && t !== 'None' && t !== 'null';
   
-  const baseDate = baseTime ? new Date(String(baseTime).replace(' ', 'T')) : null;
-  const updateDate = updateTime ? new Date(String(updateTime).replace(' ', 'T')) : null;
+  if (!isValid(baseTime) && !isValid(updateTime)) return 'На модерации';
+  
+  const baseDate = isValid(baseTime) ? new Date(String(baseTime).replace(' ', 'T')) : null;
+  const updateDate = isValid(updateTime) ? new Date(String(updateTime).replace(' ', 'T')) : null;
   
   const isBaseValid = baseDate && !isNaN(baseDate.getTime());
   const isUpdateValid = updateDate && !isNaN(updateDate.getTime());
@@ -39,7 +41,6 @@ function formatEventDate(baseTime, updateTime) {
   if (!isBaseValid && !isUpdateValid) return 'Дата не указана';
 
   const isEdited = isBaseValid && isUpdateValid && (updateDate.getTime() - baseDate.getTime() > 60000);
-  
   const dateToUse = (isEdited || !isBaseValid) ? updateDate : baseDate;
 
   const relative = getRelativeTime(dateToUse);

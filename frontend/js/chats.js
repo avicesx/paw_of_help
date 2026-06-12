@@ -46,16 +46,27 @@ async function loadChatList() {
   }
 }
 
-function renderChatCard(chat) {
-  return `
-    <button class="chat-card" type="button" onclick="openChat(${chat.id})">
-      <div class="chat-avatar" aria-hidden="true">🐾</div>
-      <div class="chat-info">
-        <div class="chat-name">${escapeHtml(chat.title)}</div>
-        <div class="chat-sub">Нажмите, чтобы открыть переписку</div>
-      </div>
-      <div class="chat-meta">${chatTime(chat.created_at)}</div>
-    </button>`;
+async function loadChatList() {
+    const container = document.getElementById('chatList') || document.querySelector('.chat-list');
+    if (!container) return;
+
+    container.innerHTML = '<div class="empty">Загрузка...</div>';
+
+    const chats = await getAllChats();
+    
+    if (chats.length === 0) {
+        container.innerHTML = '<div class="results-placeholder">У вас пока нет активных чатов.</div>';
+        return;
+    }
+
+    container.innerHTML = chats.map(createChatCard).join('');
+
+    // Глобальная индикация в заголовке списка
+    const hasUnread = await hasUnreadMessages();
+    const title = document.querySelector('.chat-screen .screen-title');
+    if (title) {
+        title.classList.toggle('has-unread-global', hasUnread);
+    }
 }
 
 function openChat(chatId) {
@@ -133,7 +144,49 @@ async function initChatConversation() {
   const chatId = new URLSearchParams(location.search).get("id");
   if (!chatId) { box.innerHTML = '<div class="empty-small">Чат не найден</div>'; return; }
 
-  try { await apiRequest(`/chats/${chatId}/read`, { method: "POST", auth: true }); } catch (e) {}
+async function manualMarkAsRead() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatId = urlParams.get('id');
+    if (!chatId) return;
+
+    try {
+        await markChatAsRead(chatId);
+        const btn = document.querySelector('.mark-read-btn');
+        if (btn) btn.classList.add('success');
+    } catch (err) { console.error(err); }
+}
+
+// TODO: Реализовать логику для acceptVolunteer и declineVolunteer
+// Эти функции должны взаимодействовать с бэкендом для изменения статуса заявки/отклика
+// и затем обновлять UI чата (скрывать acceptNotification).
+function acceptVolunteer() {
+    alert('Принять волонтера (логика будет реализована)');
+    // Здесь должна быть логика отправки запроса на бэкенд (например, PATCH /task_responses/{id})
+    // document.getElementById('acceptNotification').classList.add('hidden');
+}
+
+function declineVolunteer() {
+    alert('Отказаться от волонтера (логика будет реализована)');
+    // Здесь должна быть логика отправки запроса на бэкенд
+    // document.getElementById('acceptNotification').classList.add('hidden');
+}
+
+function createChatCard(chat) {
+  return `
+    <div class="chat-card ${chat.unread > 0 ? 'unread' : ''}" onclick="openChat(${chat.id})">
+      <div class="chat-avatar">💬</div>
+      <div class="chat-info">
+        <div class="chat-name">${chat.name}</div>
+        <div class="chat-message">${chat.lastMessage}</div>
+      </div>
+      <div class="chat-meta">
+        <div class="chat-time">${chat.time}</div>
+        ${chat.unread > 0 ? `<div class="unread-badge">${chat.unread}</div>` : ''}
+        ${chat.online ? '<div class="online-indicator"></div>' : ''}
+      </div>
+    </div>
+  `;
+}
 
   try {
     const { data: chat } = await apiRequest(`/chats/${chatId}`, { auth: true });
@@ -178,10 +231,13 @@ function leaveReviewFromChat() {
   window.location.href = `leave-review.html?context_type=${encodeURIComponent(ct)}&context_id=${encodeURIComponent(ci)}`;
 }
 
-// Меню чата (3 точки)
-function toggleChatMenu() {
-  document.getElementById("chatMenu")?.classList.toggle("open");
-}
+    if (document.querySelector('.chat-title')) {
+        document.querySelector('.chat-title').innerText = chatData.name;
+    }
+    
+    // TODO: Здесь должна быть логика для отображения acceptNotification
+    // Например, если chatData содержит информацию о pending-заявке волонтера
+    // document.getElementById('acceptNotification').classList.remove('hidden');
 
 // ----- Экран «Оставить отзыв» (leave-review.html), дизайн: оставить отзыв.svg -----
 async function initLeaveReview() {
@@ -223,14 +279,26 @@ async function initLeaveReview() {
   setReviewStars(5);
 }
 
-function setReviewStars(n) {
-  const hidden = document.getElementById("reviewRating");
-  if (hidden) hidden.value = n;
-  const num = document.getElementById("reviewRatingNum");
-  if (num) num.textContent = n;
-  document.querySelectorAll("#reviewStars .rev-star").forEach((s) => {
-    s.classList.toggle("on", Number(s.dataset.v) <= n);
-  });
+    setupChatEventListeners();
+
+    if (chatRefreshInterval) clearInterval(chatRefreshInterval);
+    chatRefreshInterval = setInterval(async () => {
+        const newMessages = await getChatMessages(chatId);
+        await markChatAsRead(chatId).catch(() => {});
+
+        const list = document.getElementById('messagesList');
+        if (list) {
+            const isAtBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 50;
+            
+            list.innerHTML = newMessages.map(createMessageBubble).join('');
+            
+            if (isAtBottom) {
+                list.scrollTop = list.scrollHeight;
+            }
+        }
+    }, 5000);
+    
+    isChatInitializing = false;
 }
 
 async function submitLeaveReview(e) {

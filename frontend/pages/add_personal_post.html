@@ -8,22 +8,36 @@
 </head>
 <body>
   <main class="phone-shell">
+    <div class="bg-paw-overlay"><span>
+      <img src="../assets/paw-bg.png" alt="Paw Background" class="bg-paw-image">
+    </span></div>
+
     <header class="topbar">
-      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+      <div class="topbar-left">
+        <button class="icon-btn" type="button" onclick="toggleMenu()">
+          <img src="../assets/topbar/icon-menu.svg" alt="Меню" class="topbar-icon">
+        </button>
+      </div>
+
       <a href="post_feed.html" class="topbar-logo">
-        <div class="paw-icon">🐾</div>
-        <div class="paw-title">Paw</div>
+        <div class="paw-icon">
+          <img src="../assets/topbar/paw-logo.svg" alt="Paw" class="paw-icon-img">
+        </div>
       </a>
-      <div class="topbar-side profile-icons">
+
+      <div class="topbar-right">
         <div class="notification-container-wrapper"></div>
+        
         <a href="profile.html" class="topbar-profile-link">
-          👤
+          <img src="../assets/topbar/profile-icon.svg" alt="Профиль" class="topbar-icon">
         </a>
       </div>
     </header>
-    
+
     <div class="back-btn-container">
-      <button class="icon-btn" type="button" onclick="history.back()">←</button>
+      <button class="icon-btn" type="button" onclick="history.back()">
+        <img src="../assets/topbar/arrow.svg" alt="Назад" class="topbar-icon">
+      </button>
     </div>
 
     <aside id="sideMenu" class="side-menu">

@@ -111,21 +111,27 @@ function renderOrgSection(title, orgs, type) {
 }
 
 function renderKebabOptions(org, type, myId) {
+    let options = '';
     if (type === 'invite') {
-        return `
+        options = `
             <button class="org-dropdown-item" onclick="handleInvite(${org.id}, 'accept')">✅ Принять</button>
             <button class="org-dropdown-item" onclick="handleInvite(${org.id}, 'decline')">❌ Отклонить</button>
         `;
-    }
-    if (type === 'my') {
-        return `
+    } else if (type === 'my') {
+        options = `
             <button class="org-dropdown-item" onclick="location.href='edit_profile.html?id=${org.id}'">✏️ Редактировать</button>
         `;
+    } else if (type === 'sub') {
+        options = `<button class="org-dropdown-item" onclick="toggleSubscription(${org.id}, false)">🚶 Отписаться</button>`;
+    } else {
+        options = `<button class="org-dropdown-item" onclick="toggleSubscription(${org.id}, true)">🔔 Подписаться</button>`;
     }
-    if (type === 'sub') {
-        return `<button class="org-dropdown-item" onclick="toggleSubscription(${org.id}, false)">🚶 Отписаться</button>`;
+
+    const isCreator = myId == org.created_by;
+    if (myId && !isCreator) {
+        options += `<button class="org-dropdown-item" onclick="handleReportOrg(${org.id})">🚩 Пожаловаться</button>`;
     }
-    return `<button class="org-dropdown-item" onclick="toggleSubscription(${org.id}, true)">🔔 Подписаться</button>`;
+    return options;
 }
 
 function toggleOrgKebab(event, id) {
@@ -153,6 +159,26 @@ async function handleInvite(orgId, action) {
         loadOrganizationCatalog();
     } catch (err) {
         alert("Ошибка: " + err.message);
+    }
+}
+
+async function handleReportOrg(orgId) {
+    if (!confirm("Вы уверены, что хотите пожаловаться на эту организацию?")) return;
+    try {
+        await apiRequest('/reports/', {
+            method: 'POST',
+            auth: true,
+            body: JSON.stringify({
+                target_type: 'organization',
+                target_id: orgId,
+                reason_code: 'other',
+                description: 'Жалоба из каталога организаций'
+            })
+        });
+        alert("Жалоба отправлена. Спасибо за бдительность!");
+    } catch (err) {
+        console.error(err);
+        alert("Не удалось отправить жалобу: " + (err.detail || err.message));
     }
 }
 
