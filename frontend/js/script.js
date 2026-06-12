@@ -55,6 +55,17 @@ async function apiRequest(path, options = {}) {
   return { ok: true, status: res.status, data };
 }
 
+async function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await apiRequest('/uploads', {
+        method: 'POST',
+        auth: true,
+        body: formData
+    });
+    return data.url;
+}
+
 function parseErrorDetail(data, fallback) {
   if (!data) return fallback;
   if (typeof data.detail === "string") {
@@ -561,6 +572,13 @@ function formatDateTime(value) {
   }
 }
 
+
+function truncateText(text, maxLength = 150) {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -569,3 +587,16 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        if (typeof injectNotificationUI === "function") {
+            injectNotificationUI();
+        }
+        if (typeof updateNotificationDot === "function") {
+            updateNotificationDot();
+        }
+    } catch (err) {
+        console.warn("Система уведомлений не смогла инициализироваться:", err);
+    }
+});

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Список кураторов</title>
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <a href="post_feed.html" class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </a>
+
+      <div class="topbar-side profile-icons">
+        <div class="notification-container-wrapper"></div>
+        <a href="profile.html" class="topbar-profile-link">
+          👤
+        </a>
+      </div>
+    </header>
+
+    <div class="back-btn-container">
+      <button class="icon-btn" type="button" onclick="history.back()">←</button>
+    </div>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="org_selector.html" class="side-link">Организации</a>
+        <a href="knowledge_base.html" class="side-link">База знаний</a>
+        <a href="post_feed.html" class="side-link">Лента новостей</a>
+        <a href="chats.html" class="side-link">Чаты</a>
+      </div>
+    </aside>
+
+    <section class="curators-screen">
+      <h1 class="screen-title">Список кураторов</h1>
+
+      <div class="curators-main-card">
+        <div class="curators-section">
+          <div class="section-title">Администратор:</div>
+          <div id="administratorSection">
+          </div>
+        </div>
+
+        <div class="curators-section">
+          <div class="section-title">Кураторы:</div>
+          <div id="curatorsSection">
+          </div>
+        </div>
+      </div>
+
+      <div class="invite-section">
+        <a href="#" class="invite-btn">Отправить приглашение куратору</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/orgTemplates.js"></script>
+  <script src="../js/dropdown.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentOrgId = urlParams.get('organization_id') || urlParams.get('id');
+
+    async function loadCurators() {
+      try {
+        const myProfileRes = await apiRequest(`/users/me`, { auth: true }); 
+        const meUser = myProfileRes.data;
+
+        const response = await apiRequest(`/organizations/${currentOrgId}/users`, { auth: true });
+        const rawUsers = response.data;
+
+        const users = await Promise.all(rawUsers.map(async (u) => {
+          if (u.user_id === meUser.id) {
+            return { ...u, username: meUser.username };
+          }
+          try {
+            const userDetails = await apiRequest(`/users/${u.user_id}`, { auth: true });
+            return { ...u, username: userDetails.data.username };
+          } catch (e) {
+            return { ...u, username: u.role === 'admin' ? 'Администратор' : 'Куратор' };
+          }
+        }));
+
+        const acceptedAdmins = users.filter(u => u.role === 'admin' && u.invitation_status === 'accepted');
+        const acceptedAdminsCount = acceptedAdmins.length;
+
+        const admins = users.filter(u => u.role === 'admin');
+        const curators = users.filter(u => u.role === 'curator');
+
+        const isAdmin = users.some(u => u.user_id === meUser.id && u.role === 'admin');
+        
+        const inviteSection = document.querySelector('.invite-section');
+        if (inviteSection) {
+            inviteSection.style.display = isAdmin ? 'block' : 'none';
+            const inviteLink = inviteSection.querySelector('.invite-btn');
+            if (inviteLink) inviteLink.href = `invite_curator.html?id=${currentOrgId}`;
+        }
+
+        const createUserItem = (u) => {
+            const isSelf = (u.user_id === meUser.id);
+            const deleteButtonText = isSelf ? "Выйти из организации" : "Удалить из организации";
+            const isLastAdmin = u.role === 'admin' && u.invitation_status === 'accepted' && acceptedAdminsCount === 1;
+
+            return `
+              <div class="curator-item">
+                <div>
+                  <span class="curator-avatar-small">${u.role === 'admin' ? '👑' : '👤'}</span>
+                  <span class="curator-name-small">${u.username || u.name || 'Пользователь ' + u.user_id}</span>
+                </div>
+                <div class="org-menu-container" onclick="event.stopPropagation()">
+                  <button class="org-kebab-btn" onclick="toggleActionMenu(${u.user_id})">⋮</button>
+                  <div id="menu-${u.user_id}" class="org-dropdown hidden">
+                    ${isLastAdmin 
+                      ? `<div class="org-dropdown-item" style="cursor: default; opacity: 0.6; font-size: 11px; line-height: 1.2;">
+                           Единственный админ.<br>Разжалование невозможно.
+                         </div>`
+                      : (u.role === 'admin' 
+                      ? `<button onclick="changeRole(${u.user_id}, 'curator')">Сделать куратором</button>` 
+                      : `<button class="org-dropdown-item" onclick="changeRole(${u.user_id}, 'admin')">Сделать админом</button>`)
+                    }
+                    
+                    ${!isLastAdmin ? `<button class="org-dropdown-item delete-btn" onclick="removeUser(${u.user_id})">${deleteButtonText}</button>` : ''}
+                  </div>
+                </div>
+              </div>
+            `;
+        };
+
+        document.getElementById('administratorSection').innerHTML = admins.map(createUserItem).join('');
+        document.getElementById('curatorsSection').innerHTML = curators.length > 0 
+          ? curators.map(createUserItem).join('') 
+          : '<div style="padding: 10px; color: #888;">Кураторов нет.</div>';
+
+      } catch (err) {
+        console.error("Ошибка:", err);
+        alert("Не удалось загрузить список.");
+      }
+    }
+    
+    function toggleActionMenu(userId) {
+      event.stopPropagation();
+      document.querySelectorAll('.org-dropdown').forEach(m => {
+        if(m.id !== `menu-${userId}`) m.classList.add('hidden');
+      });
+      document.getElementById(`menu-${userId}`).classList.toggle('hidden');
+    }
+
+    async function changeRole(userId, newRole) {
+      try {
+        await apiRequest(`/organizations/${currentOrgId}/users/${userId}/role`, {
+          method: 'PATCH',
+          auth: true,
+          body: JSON.stringify({ role: newRole })
+        });
+        loadCurators();
+      } catch (err) {
+        alert("Ошибка смены роли: " + (err.detail || "Нет прав"));
+      }
+    }
+
+    async function removeUser(userId) {
+      if (!confirm("Вы уверены?")) return;
+      try {
+        await apiRequest(`/organizations/${currentOrgId}/users/${userId}`, { 
+          method: 'DELETE', 
+          auth: true 
+        });
+        loadCurators();
+      } catch (err) {
+        alert("Ошибка удаления: " + (err.detail || "Нет прав"));
+      }
+    }
+
+    function goBack() {
+      window.history.back();
+    }
+
+    function toggleMenu() {
+      const sideMenu = document.getElementById('sideMenu');
+      if (sideMenu) {
+        sideMenu.classList.toggle('open');
+      }
+    }
+    
+    document.addEventListener('click', function(event) {
+        document.querySelectorAll('.org-dropdown').forEach(m => m.classList.add('hidden'));
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+      
+      if (!token) {
+        window.location.href = 'login.html'; 
+        return;
+      }
+
+      loadCurators();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Изменить профиль</title>
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <div class="bg-paw-overlay"><span>🐾</span></div>
+
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <a href="post_feed.html" class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </a>
+
+      <div class="topbar-side profile-icons">
+        <div class="notification-container-wrapper"></div>
+        <a href="profile.html" class="topbar-profile-link">
+          👤
+        </a>
+      </div>
+    </header>
+    
+    <div class="back-btn-container">
+      <button class="icon-btn" type="button" onclick="history.back()">←</button>
+    </div>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="org_selector.html" class="side-link">Организации</a>
+        <a href="knowledge_base.html" class="side-link">База знаний</a>
+        <a href="post_feed.html" class="side-link">Лента новостей</a>
+        <a href="chats.html" class="side-link">Чаты</a>
+      </div>
+    </aside>
+
+    <section class="edit-profile-screen">
+      <h1 class="screen-title">Изменение профиля</h1>
+
+      <div class="profile-edit-card">
+        <div class="logo-section">
+          <div class="logo-upload">
+            <div class="logo-preview">
+              <div class="logo-icon" id="logoIcon">📷</div>
+            </div>
+            <input type="file" id="logoInput" style="display: none;" onchange="handleLogoUpload(this.files[0])" accept="image/*" />
+            <button class="logo-change-btn" type="button" onclick="document.getElementById('logoInput').click()">📎 Изменить логотип</button>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-label">Название</div>
+          <input class="field" type="text" id="orgName" placeholder="Введите название организации" />
+          
+          <div class="form-label">Описание</div>
+          <textarea class="field textarea" id="orgDescription" placeholder="Опишите вашу организацию"></textarea>
+          
+          <div class="form-label">ИНН</div>
+          <input class="field" type="text" id="orgINN" placeholder="Введите ИНН" />
+          
+          <div class="form-label">Адрес</div>
+          <textarea class="field textarea" id="orgAddress" placeholder="Введите адрес организации"></textarea>
+          
+          <div class="form-label">Контакты</div>
+          <div class="contacts-section">
+            <input class="field" type="text" id="orgContacts" placeholder="Введите контактные данные" />
+            <button class="add-contact-btn" type="button" onclick="addContact()">+</button>
+          </div>
+          
+          <div class="form-label documents-label">
+            📎 Документы
+          </div>
+          <div class="documents-section">
+            <input class="field file-input" type="file" id="documents" multiple style="display: none;" />
+            <button class="file-upload-btn" type="button" onclick="document.getElementById('documents').click()">
+              Прикрепить файлы
+            </button>
+            <div class="uploaded-files" id="uploadedFiles"></div>
+          </div>
+        </div>
+
+        <div class="photos-section">
+          <div class="form-label">Фото</div>
+          <div class="photos-grid">
+            <div class="photo-placeholder">
+              <div class="photo-add-icon">+</div>
+            </div>
+            <div class="photo-placeholder">
+              <div class="photo-text">Фото</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="submit-btn full-width" type="button" onclick="submitForModeration()">
+          Отправить на модерацию
+        </button>
+      </div>
+
+      <div class="paw-bg paw-bg-profile">🐾</div>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/orgTemplates.js"></script>
+  <script src="../js/dropdown.js"></script>
+  <script>
+    const orgId = getOrganizationIdFromUrl();
+    let currentLogoUrl = null;
+
+    async function loadProfileData() {
+      if (!orgId) return;
+
+      try {
+          const [data, usersRes] = await Promise.all([
+              getOrgData(orgId),
+              apiRequest(`/organizations/${orgId}/users`, { auth: true }).catch(() => ({ data: [] }))
+          ]);
+          
+          const currentUserId = getUserIdFromToken();
+          const myRole = usersRes.data.find(u => u.user_id === currentUserId)?.role;
+
+          currentLogoUrl = data.logo_url;
+
+          document.getElementById('orgName').value = data.name || '';
+          document.getElementById('orgDescription').value = data.description || '';
+          document.getElementById('orgINN').value = data.inn || '';
+          document.getElementById('orgAddress').value = data.address || '';
+          
+          if (data.contacts) {
+              document.getElementById('orgContacts').value = data.contacts.phone || (typeof data.contacts === 'string' ? data.contacts : '');
+          }
+          
+          const logoContainer = document.getElementById('logoIcon');
+          if (logoContainer) {
+              const isInvalidUrl = !data.logo_url || data.logo_url.includes('via.placeholder');
+              if (!isInvalidUrl) {
+                  logoContainer.innerHTML = `<img src="${data.logo_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+              } else {
+                  logoContainer.innerHTML = '📷';
+              }
+          }
+          
+          if (myRole === 'curator') {
+              const restrictedIds = ['orgName', 'orgDescription', 'orgINN', 'orgAddress', 'orgContacts', 'documents'];
+              restrictedIds.forEach(id => {
+                  const el = document.getElementById(id);
+                  if (el) el.disabled = true;
+              });
+              const addContactBtn = document.querySelector('.add-contact-btn');
+              if (addContactBtn) addContactBtn.style.display = 'none';
+              
+              const title = document.querySelector('.screen-title');
+              if (title) title.textContent += ' (Куратор)';
+          }
+      } catch (err) {
+          console.error("Ошибка загрузки профиля:", err);
+      }
+    }
+
+    function disableAdminFields() {
+        const adminIds = ['orgName', 'orgDescription', 'orgINN', 'orgAddress'];
+        adminIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = true;
+        });
+        
+        const btn = document.querySelector('.submit-btn');
+        if (btn) {
+            btn.style.display = 'none';
+        }
+    }
+
+    async function handleLogoUpload(file) {
+        if (!file) return;
+        try {
+            const logoContainer = document.getElementById('logoIcon');
+            logoContainer.innerHTML = '⌛';
+            
+            const url = await uploadFile(file);
+            currentLogoUrl = url;
+            
+            logoContainer.innerHTML = `<img src="${url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+        } catch (err) {
+            alert("Ошибка загрузки: " + err.message);
+            document.getElementById('logoIcon').innerHTML = '📷';
+        }
+    }
+
+    async function submitForModeration() {
+        const updatedData = {
+            name: document.getElementById('orgName').value,
+            description: document.getElementById('orgDescription').value,
+            inn: document.getElementById('orgINN').value,
+            address: document.getElementById('orgAddress').value,
+            logo_url: currentLogoUrl
+        };
+
+        try {
+            await apiRequest(`/organizations/${orgId}`, {
+                method: 'PATCH',
+                auth: true,
+                body: JSON.stringify(updatedData)
+            });
+            alert('Изменения сохранены!');
+            history.back();
+        } catch (err) {
+            alert("Ошибка сохранения: " + (err.detail || "Нет прав"));
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProfileData);
+  </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Написать статью</title>
+  <link rel="stylesheet" href="../css/global.css" />
+</head>
+<body>
+  <main class="phone-shell">
+    <header class="topbar">
+      <button class="icon-btn" type="button" onclick="toggleMenu()">☰</button>
+
+      <a href="post_feed.html" class="topbar-logo">
+        <div class="paw-icon">🐾</div>
+        <div class="paw-title">Paw</div>
+      </a>
+
+      <div class="topbar-side profile-icons">
+        <div class="notification-container-wrapper"></div>
+        <a href="profile.html" class="topbar-profile-link">
+          👤
+        </a>
+      </div>
+    </header>
+
+    <div class="back-btn-container">
+      <button class="icon-btn" type="button" onclick="history.back()">←</button>
+    </div>
+
+    <aside id="sideMenu" class="side-menu">
+      <div class="side-menu-inner">
+        <a href="profile.html" class="side-link">Профиль</a>
+        <a href="settings.html" class="side-link">Настройки</a>
+        <a href="tasks.html" class="side-link">Задачи</a>
+        <a href="feed.html" class="side-link">Лента задач</a>
+        <a href="events.html" class="side-link">Мероприятия</a>
+        <a href="calendar.html" class="side-link">Календарь</a>
+        <a href="reviews.html" class="side-link">Отзывы</a>
+        <a href="complaints.html" class="side-link">Жалобы</a>
+        <a href="animal-select.html" class="side-link">Животные</a>
+        <a href="org_selector.html" class="side-link">Организации</a>
+        <a href="knowledge_base.html" class="side-link">База знаний</a>
+        <a href="post_feed.html" class="side-link">Лента новостей</a>
+        <a href="chats.html" class="side-link">Чаты</a>
+      </div>
+    </aside>
+
+    <section class="add-post-screen">
+
+      <h1 class="screen-title">Написать статью</h1>
+
+      <div class="post-editor">
+        <div class="post-header">
+          <input 
+            type="text" 
+            class="post-title-input" 
+            id="articleTitle" 
+            placeholder="Заголовок статьи..."
+            oninput="updateCharCount()"
+            maxlength="100"
+          >
+        </div>
+
+        <textarea 
+          class="post-textarea" 
+          id="articleContent" 
+          placeholder="Содержание статьи..."
+          oninput="updateCharCount()"
+        ></textarea>
+        <div id="charCountDisplay" class="char-counter">0 / 2000</div>
+      </div>
+
+      <div class="publish-section">
+        <button class="publish-btn" type="button" onclick="publishArticle()">
+          Опубликовать статью
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/script.js"></script>
+  <script src="../js/menu.js"></script>
+  <script src="../js/notifications.js"></script>
+  <script src="../js/knowledgeTemplates.js"></script>
+  <script src="../js/dropdown.js"></script>
+  <script>
+    function updateCharCount() {
+      const textarea = document.getElementById('articleContent');
+      const counter = document.getElementById('charCountDisplay');
+      const min = 100;
+      const max = 2000;
+      const length = textarea.value.length;
+
+      if (counter) {
+        counter.textContent = `${length} / ${max}`;
+        counter.style.color = (length < min) ? "red" : "green";
+      }
+    }
+
+    async function publishArticle() {
+      const title = document.getElementById('articleTitle').value.trim();
+      const content = document.getElementById('articleContent').value.trim();
+      
+      if (!title || !content) {
+        alert('Пожалуйста, заполните заголовок и содержание');
+        return;
+      }
+      if (content.length < 100) {
+        alert('Статья слишком короткая (минимум 100 символов)!');
+        return;
+      }
+
+      try {
+        const articleData = {
+          title: title,
+          content: content
+        };
+
+        const response = await apiRequest('/knowledge-base/articles', {
+          method: 'POST',
+          auth: true, 
+          body: JSON.stringify(articleData)
+        });
+
+        if (response) {
+          window.location.href = 'knowledge_base.html';
+        }
+      } catch (err) {
+        console.error('Ошибка публикации:', err);
+      }
+    }
+  </script>
+</body>
+</html>
