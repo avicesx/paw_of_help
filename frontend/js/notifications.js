@@ -38,7 +38,7 @@ async function getNotifications(isRead = null, limit = 50, offset = 0) {
 async function getUnreadCount() {
     try {
         const res = await apiRequest('/notifications/unread-count', { auth: true });
-        return parseInt(res.data) || 0;
+        return res.data.unread_count || 0;
     } catch { return 0; }
 }
 
@@ -104,9 +104,26 @@ async function refreshNotificationsUI() {
 
 async function updateNotificationDot() {
     const dot = document.getElementById('notificationDot');
-    if (!dot) return;
-    const count = await getUnreadCount();
-    dot.style.display = count > 0 ? 'block' : 'none';
+    const bellImg = document.querySelector('.notification-btn .layout-bell');
+    if (!dot && !bellImg) return;
+
+    try {
+        const count = await getUnreadCount();
+        const hasUnread = count > 0;
+
+        if (dot) dot.style.display = hasUnread ? 'block' : 'none';
+        
+        if (bellImg) {
+            const isNested = window.location.pathname.includes('/chats/') || window.location.pathname.includes('/comments/');
+            const assetPath = isNested ? '../../assets/topbar/' : '../assets/topbar/';
+            
+            bellImg.src = hasUnread 
+                ? `${assetPath}notifications-active.svg` 
+                : `${assetPath}notifications-inactive.svg`;
+        }
+    } catch (err) {
+        console.error("Ошибка обновления индикатора уведомлений:", err);
+    }
 }
 
 function toggleNotifications() {

@@ -98,6 +98,9 @@ async function renderOrgPosts() {
             return;
         }
 
+        const missingUserIds = posts.filter(p => !p.organization_id && !p.author_username).map(p => p.author_user_id || p.user_id);
+        if (missingUserIds.length > 0) await resolveUserNames(missingUserIds);
+
         const canManage = userId && (userId == org.created_by); 
         container.innerHTML = posts.map(post => renderPostCard(post, canManage)).join('');
     } catch (err) {

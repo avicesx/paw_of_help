@@ -600,3 +600,28 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Система уведомлений не смогла инициализироваться:", err);
     }
 });
+
+function getCurrentUserId() {
+  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+  if (!token) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub ? parseInt(payload.sub) : null;
+  } catch (e) { return null; }
+}
+
+window.userNameCache = {};
+
+function getUserDisplayName(userId, data = {}) {
+  if (!userId) return 'Пользователь';
+  if (userId === getCurrentUserId()) return 'Вы';
+  return data.author_username || data.author_name || data.username || window.userNameCache[userId] || `Пользователь #${userId}`;
+}
+
+async function resolveUserNames(userIds) {
+  const uniqueIds = [...new Set(userIds.filter(id => id && !window.userNameCache[id]))];
+  if (uniqueIds.length === 0) return;
+  uniqueIds.forEach(id => {
+    window.userNameCache[id] = `Пользователь #${id}`;
+  });
+}

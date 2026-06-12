@@ -52,6 +52,13 @@ async function loadChatList() {
     }
 
     container.innerHTML = chats.map(createChatCard).join('');
+
+    // Глобальная индикация в заголовке списка
+    const hasUnread = await hasUnreadMessages();
+    const title = document.querySelector('.chat-screen .screen-title');
+    if (title) {
+        title.classList.toggle('has-unread-global', hasUnread);
+    }
 }
 
 function openChat(chatId) {
@@ -176,6 +183,33 @@ async function markChatAsRead(chatId) {
     }
 }
 
+async function manualMarkAsRead() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatId = urlParams.get('id');
+    if (!chatId) return;
+
+    try {
+        await markChatAsRead(chatId);
+        const btn = document.querySelector('.mark-read-btn');
+        if (btn) btn.classList.add('success');
+    } catch (err) { console.error(err); }
+}
+
+// TODO: Реализовать логику для acceptVolunteer и declineVolunteer
+// Эти функции должны взаимодействовать с бэкендом для изменения статуса заявки/отклика
+// и затем обновлять UI чата (скрывать acceptNotification).
+function acceptVolunteer() {
+    alert('Принять волонтера (логика будет реализована)');
+    // Здесь должна быть логика отправки запроса на бэкенд (например, PATCH /task_responses/{id})
+    // document.getElementById('acceptNotification').classList.add('hidden');
+}
+
+function declineVolunteer() {
+    alert('Отказаться от волонтера (логика будет реализована)');
+    // Здесь должна быть логика отправки запроса на бэкенд
+    // document.getElementById('acceptNotification').classList.add('hidden');
+}
+
 function createChatCard(chat) {
   return `
     <div class="chat-card ${chat.unread > 0 ? 'unread' : ''}" onclick="openChat(${chat.id})">
@@ -247,6 +281,10 @@ async function initChat() {
     if (document.querySelector('.chat-title')) {
         document.querySelector('.chat-title').innerText = chatData.name;
     }
+    
+    // TODO: Здесь должна быть логика для отображения acceptNotification
+    // Например, если chatData содержит информацию о pending-заявке волонтера
+    // document.getElementById('acceptNotification').classList.remove('hidden');
 
     let messages = [];
     try {
@@ -271,6 +309,8 @@ async function initChat() {
     if (chatRefreshInterval) clearInterval(chatRefreshInterval);
     chatRefreshInterval = setInterval(async () => {
         const newMessages = await getChatMessages(chatId);
+        await markChatAsRead(chatId).catch(() => {});
+
         const list = document.getElementById('messagesList');
         if (list) {
             const isAtBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 50;

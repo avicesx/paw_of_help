@@ -1,7 +1,7 @@
 const NOTIFICATION_HTML = `
   <div class="notification-container">
-    <button class="notification-btn" type="button" onclick="toggleNotifications()">
-      🔔
+    <button class="notification-btn" type="button" onclick="toggleNotifications()" aria-label="Уведомления">
+      <img src="../assets/topbar/notifications-inactive.svg" alt="Уведомления" class="topbar-icon layout-bell">
       <span class="notification-dot" id="notificationDot" style="display:none;"></span>
     </button>
     <div id="notificationsDropdown" class="notifications-dropdown hidden">

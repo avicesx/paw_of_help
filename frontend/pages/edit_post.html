@@ -47,9 +47,14 @@
         <input type="text" id="postTitle" class="post-title-input" placeholder="Заголовок" />
         <textarea class="post-textarea" id="postContent" placeholder="Текст поста..."></textarea>
         <div class="post-actions">
-          <input type="text" id="postImage" class="notebook-line-input" placeholder="Ссылка на фото">
+          <button type="button" class="icon-btn" onclick="document.getElementById('fileInput').click()" style="font-size: 24px;">📎</button>
+        </div>
+        <div id="imagePreview" style="margin-top: 10px; position: relative; display: none;">
+            <img src="" id="previewImg" style="width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover;">
+            <button type="button" onclick="removeImage()" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.5); color: #fff; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-weight: bold;">✕</button>
         </div>
       </div>
+      <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this.files[0])" accept="image/*" />
       <div class="publish-section">
         <button class="publish-btn" type="button" onclick="handleUpdate()">Сохранить изменения</button>
       </div>
@@ -61,6 +66,7 @@
   <script src="../js/posts.js"></script>
   <script>
     const postId = new URLSearchParams(window.location.search).get('id');
+    let uploadedImageUrl = null;
 
     async function loadPostForEdit() {
       if (!postId) return;
@@ -68,18 +74,39 @@
         const { data: post } = await apiRequest(`/posts/${postId}`, { auth: true });
         document.getElementById('postTitle').value = post.title || '';
         document.getElementById('postContent').value = post.content || '';
-        if (post.attachments?.length) document.getElementById('postImage').value = post.attachments[0];
+        if (post.attachments?.length) {
+            uploadedImageUrl = post.attachments[0];
+            const preview = document.getElementById('imagePreview');
+            const img = document.getElementById('previewImg');
+            img.src = uploadedImageUrl;
+            preview.style.display = 'block';
+        }
       } catch (err) {
         alert("Не удалось загрузить пост");
         history.back();
       }
     }
 
+    async function handleFileSelect(file) {
+        if (!file) return;
+        try {
+            uploadedImageUrl = await uploadFile(file);
+            document.getElementById('previewImg').src = uploadedImageUrl;
+            document.getElementById('imagePreview').style.display = 'block';
+        } catch (err) { alert("Ошибка загрузки: " + err.message); }
+    }
+
+    function removeImage() {
+        uploadedImageUrl = null;
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('fileInput').value = '';
+    }
+
     async function handleUpdate() {
       const payload = {
         title: document.getElementById('postTitle').value.trim(),
         content: document.getElementById('postContent').value.trim(),
-        attachments: [document.getElementById('postImage').value.trim()].filter(Boolean),
+        attachments: uploadedImageUrl ? [uploadedImageUrl] : [],
         is_published: false
       };
       try {
