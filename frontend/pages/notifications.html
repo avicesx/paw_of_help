@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Уведомления</title>
-  <link rel="stylesheet" href="../css/global.css" />
+  <title>Уведомления — Paw</title>
+  <link rel="stylesheet" href="../css/styles.css" />
 </head>
-<body>
+<body class="paw-designed page_notifications">
   <main class="phone-shell">
     <div class="bg-paw-overlay"><span>
       <img src="../assets/paw-bg.png" alt="Paw Background" class="bg-paw-image">
@@ -58,16 +58,17 @@
       </div>
     </aside>
 
-    <section class="notifications-screen">
-      <h1 class="screen-title">Уведомления</h1>
-      
-      <div class="notifications-controls">
-          <button onclick="markAllAsRead()">Прочитать все</button>
-          <button onclick="clearAllNotifications()">Очистить всё</button>
+    <aside id="sideMenu" class="side-menu"><div class="side-menu-inner"></div></aside>
+
+    <section class="notif-screen">
+      <div class="notif-head-row">
+        <a href="profile.html" class="back-link" aria-label="Назад">⬅</a>
+        <button type="button" class="notif-readall" onclick="markAllNotificationsRead()">Прочитать все</button>
       </div>
 
-      <div class="notifications-main-card">
-        <div id="mainNotificationsList"></div>
+      <div class="notif-panel">
+        <h1 class="notif-panel-title">Уведомления</h1>
+        <div id="notifList" class="notif-list"></div>
       </div>
     </section>
   </main>
@@ -75,34 +76,5 @@
   <script src="../js/script.js"></script>
   <script src="../js/menu.js"></script>
   <script src="../js/notifications.js"></script>
-  <script src="../js/dropdown.js"></script>
-  <script>
-    async function loadNotifications() {
-      console.log("Отрисовка списка...");
-      const list = document.getElementById('mainNotificationsList');
-      if (!list) return;
-
-      const data = await getNotifications();
-
-      if (data.length === 0) {
-          list.innerHTML = '<div class="notification-item">Нет уведомлений</div>';
-      } else {
-          list.innerHTML = data.map(n => `
-              <div class="notification-item ${n.is_read ? '' : 'unread'}" id="notif-${n.id}">
-                  <div class="notification-content">
-                      <strong>${n.title}</strong>
-                      <p>${n.body}</p>
-                  </div>
-                  <div class="notification-actions">
-                      ${!n.is_read ? `<button onclick="markAsRead(${n.id})">Прочитать</button>` : ''}
-                      <button onclick="deleteNotification(${n.id})">Удалить</button>
-                  </div>
-              </div>
-          `).join('');
-      }
-    }
-    
-    window.addEventListener('load', loadNotifications);
-  </script>
 </body>
 </html>

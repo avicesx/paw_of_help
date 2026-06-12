@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Организация Paw</title>
-  <link rel="stylesheet" href="../css/global.css" />
+  <title>Организация — Paw</title>
+  <link rel="stylesheet" href="../css/styles.css" />
 </head>
-<body>
+<body class="paw-designed page_org">
   <main class="phone-shell">
     <div class="bg-paw-overlay"><span>
       <img src="../assets/paw-bg.png" alt="Paw Background" class="bg-paw-image">
@@ -40,98 +40,40 @@
       </button>
     </div>
 
-    <aside id="sideMenu" class="side-menu">
-      <div class="side-menu-inner">
-        <a href="profile.html" class="side-link">Профиль</a>
-        <a href="settings.html" class="side-link">Настройки</a>
-        <a href="tasks.html" class="side-link">Задачи</a>
-        <a href="feed.html" class="side-link">Лента задач</a>
-        <a href="events.html" class="side-link">Мероприятия</a>
-        <a href="calendar.html" class="side-link">Календарь</a>
-        <a href="reviews.html" class="side-link">Отзывы</a>
-        <a href="complaints.html" class="side-link">Жалобы</a>
-        <a href="animal-select.html" class="side-link">Животные</a>
-        <a href="org_selector.html" class="side-link">Организации</a>
-        <a href="knowledge_base.html" class="side-link">База знаний</a>
-        <a href="post_feed.html" class="side-link">Лента новостей</a>
-        <a href="chats.html" class="side-link">Чаты</a>
-      </div>
-    </aside>
-
-    <section class="org-screen">
-      <h1 class="screen-title">Организация</h1>
-
-      <div class="org-header" id="orgHeader">
+    <section class="org-profile-screen">
+      <div class="back-row">
+        <a href="org-catalog.html" class="back-link" aria-label="Назад">⬅</a>
       </div>
 
-      <div class="section-label">Информация</div>
-      
-      <div class="info-block">
-        <div class="info-text" id="infoText">
-        </div>
-        <button class="expand-btn" type="button" onclick="toggleInfo()">Развернуть...</button>
+      <div class="org-profile-head">
+        <div id="orgProfileIcon" class="org-profile-icon" aria-hidden="true"></div>
+        <h1 id="orgProfileName" class="org-profile-name">Организация</h1>
       </div>
 
-      <div class="nav-buttons">
-        <button class="nav-btn active" type="button" onclick="switchTab('posts')">Посты</button>
-        <button class="nav-btn" type="button" onclick="switchTab('animals')">Наши животные</button>
-        <button class="nav-btn" type="button" onclick="switchTab('applications')">Заявки</button>
+      <div class="org-info-box">
+        <div class="org-info-label">Информация</div>
+        <div id="orgProfileInfo" class="org-info-text"></div>
       </div>
 
-      <div class="action-wrap hidden" id="addPostContainer">
-        <button 
-            class="add-post-btn" 
-            type="button" 
-            onclick="window.location.href = 'add_post.html?org_id=' + getOrganizationIdFromUrl();">
-            + Пост
-        </button>
+      <button id="orgSubscribeBtn" class="org-subscribe-btn" type="button" onclick="toggleSubscribe()">Подписаться</button>
+
+      <div id="orgManageBar" class="org-manage-bar" style="display:none">
+        <button id="orgPostBtn" type="button" class="org-manage-btn" onclick="orgGoPost()">+ Пост</button>
+        <button id="orgCuratorsBtn" type="button" class="org-manage-btn" onclick="orgGoCurators()">Кураторы</button>
+        <button id="orgEditBtn" type="button" class="org-manage-btn" onclick="orgGoEdit()" style="display:none">Изменить</button>
       </div>
-      <div id="postsList" class="posts-list"></div>
 
-      <div id="animalsList" class="animals-list hidden"></div>
-
-      <div id="applicationsList" class="applications-list hidden"></div>
+      <div class="org-tabs">
+        <button class="org-tab active" type="button" data-tab="posts" onclick="switchOrgTab('posts')">Посты</button>
+        <button class="org-tab" type="button" data-tab="animals" onclick="switchOrgTab('animals')">Наши животные</button>
+        <button class="org-tab" type="button" data-tab="tasks" onclick="switchOrgTab('tasks')">Заявки</button>
+      </div>
+      <div id="orgTabContent" class="org-tab-content"></div>
     </section>
   </main>
 
   <script src="../js/script.js"></script>
-  <script src="../js/orgTemplates.js"></script>
-  <script src="../js/org.js"></script>
-  <script src="../js/posts.js"></script>
-  <script src="../js/notifications.js"></script>
   <script src="../js/menu.js"></script>
-  <script src="../js/dropdown.js"></script>
-  <script>
-
-    function switchTab(tabName) {
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.posts-list, .animals-list, .applications-list').forEach(el => el.classList.add('hidden'));
-      
-      const activeBtn = document.querySelector(`[onclick="switchTab('${tabName}')"]`);
-      if (activeBtn) activeBtn.classList.add('active');
-      
-      const target = document.getElementById(`${tabName}List`);
-      if (target) target.classList.remove('hidden');
-
-      const postContainer = document.getElementById('addPostContainer');
-      if (postContainer) {
-        postContainer.classList.toggle('hidden', tabName !== 'posts' || !window.isOrgMember);
-      }
-
-      if (tabName === 'posts') renderOrgPosts();
-      if (tabName === 'animals') renderOrgAnimals();
-      if (tabName === 'applications') renderOrgApplications();
-    }
-
-    function renderOrgAnimals() {
-      const animals = getOrgAnimals();
-      document.getElementById('animalsList').innerHTML = animals.map(createAnimalCard).join('');
-    }
-    
-    function renderOrgApplications() {
-      const applications = getOrgApplications();
-       document.getElementById('applicationsList').innerHTML = applications.map(createApplicationCard).join('');
-    }
-  </script>
+  <script src="../js/org.js"></script>
 </body>
 </html>

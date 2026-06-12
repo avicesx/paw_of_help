@@ -111,10 +111,14 @@ async def _to_response(
     c: BlogComment,
     *,
     current_user_id: int | None,
+    users_map: dict[int, User] | None = None,
 ) -> BlogCommentResponse:
     r = BlogCommentResponse.model_validate(c)
     if r.is_deleted:
         r.content = "Комментарий удалён"
+    author = users_map.get(c.user_id) if users_map is not None else await db.get(User, c.user_id)
+    r.author_username = author.username if author else None
+    r.author_name = (author.name or author.username or "Неизвестный") if author else "Неизвестный"
     likes, dislikes, my_vote = await _comment_reaction_stats(
         db, comment_id=c.id, current_user_id=current_user_id
     )
@@ -132,9 +136,17 @@ async def _build_comment_tree(
     current_user_id: int | None,
 ) -> list[BlogCommentResponse]:
     """Собирает дерево: parent_id=None — корень, иначе вложенность в replies родителя"""
+    user_ids = list({c.user_id for c in rows})
+    users_map: dict[int, User] = {}
+    if user_ids:
+        users = (await db.scalars(select(User).where(User.id.in_(user_ids)))).all()
+        users_map = {u.id: u for u in users}
+
     nodes: dict[int, BlogCommentResponse] = {}
     for c in rows:
-        nodes[c.id] = await _to_response(db, c, current_user_id=current_user_id)
+        nodes[c.id] = await _to_response(
+            db, c, current_user_id=current_user_id, users_map=users_map
+        )
 
     roots: list[BlogCommentResponse] = []
     for c in rows:

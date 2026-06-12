@@ -1,86 +1,106 @@
-let currentOrgId = getOrganizationIdFromUrl();
+// Организации: каталог, профиль, создание заявки.
+// Дизайн: Каталог организаций.svg, Посты\Профиль организации*, Создание профиля заявки организации.svg.
+
+function orgMediaUrl(u) {
+  if (!u) return "";
+  return /^https?:/i.test(u) ? u : `${API_URL}${u.startsWith("/") ? "" : "/"}${u}`;
+}
+
+function orgStatusBadge(o) {
+  if (!o.status || ["verified", "approved", "active"].includes(o.status)) return "";
+  const label = o.status === "pending" ? "на модерации" : (o.status === "rejected" ? "отклонена" : o.status);
+  return `<span class="org-badge">${escapeHtml(label)}</span>`;
+}
+
+function orgCardHtml(o) {
+  const icon = orgMediaUrl(o.logo_url);
+  return `
+    <button class="org-card" type="button" onclick="location.href='org.html?id=${o.id}'">
+      <div class="org-icon" aria-hidden="true">${icon ? `<img src="${escapeHtml(icon)}" alt="">` : ""}</div>
+      <div class="org-card-main">
+        <div class="org-card-name">${escapeHtml(o.name || "Организация")}</div>
+        ${orgStatusBadge(o)}
+      </div>
+    </button>`;
+}
+
+// ----- Каталог -----
+async function loadOrgCatalog() {
+  let all = [], my = [], subs = [];
+  try { all = (await apiRequest("/organizations")).data || []; } catch (e) {}
+  if (getToken()) {
+    try { my = (await apiRequest("/organizations/my", { auth: true })).data || []; } catch (e) {}
+    try { subs = (await apiRequest("/organizations/subscriptions", { auth: true })).data || []; } catch (e) {}
+  }
+  window.__orgAll = all;
+  const myBox = document.getElementById("orgMy");
+  const subBox = document.getElementById("orgSubs");
+  const allBox = document.getElementById("orgAll");
+  if (myBox) myBox.innerHTML = my.length ? my.map(orgCardHtml).join("") : '<div class="empty-small">Вы пока не состоите в организациях. Нажмите «+», чтобы подать заявку.</div>';
+  if (subBox) subBox.innerHTML = subs.length ? subs.map(orgCardHtml).join("") : '<div class="empty-small">Подписок нет</div>';
+  const exclude = new Set([...my, ...subs].map((o) => o.id));
+  const others = all.filter((o) => !exclude.has(o.id));
+  if (allBox) allBox.innerHTML = others.length ? others.map(orgCardHtml).join("") : '<div class="empty-small">Других организаций нет</div>';
+}
+
+function filterOrgCatalog() {
+  const q = (document.getElementById("orgSearch")?.value || "").trim().toLowerCase();
+  const all = window.__orgAll || [];
+  const allBox = document.getElementById("orgAll");
+  if (!allBox) return;
+  const filtered = q ? all.filter((o) => (o.name || "").toLowerCase().includes(q)) : all;
+  allBox.innerHTML = filtered.length ? filtered.map(orgCardHtml).join("") : '<div class="empty-small">Ничего не найдено</div>';
+}
+
+// ----- Создание заявки -----
+async function createOrg(e) {
+  if (e) e.preventDefault();
+  if (!getToken()) { location.href = "login.html"; return; }
+  const status = document.getElementById("orgCreateStatus");
+  const name = (document.getElementById("orgName")?.value || "").trim();
+  if (!name) { if (status) status.textContent = "Укажите название организации"; return; }
+  const body = {
+    name,
+    description: (document.getElementById("orgDescription")?.value || "").trim() || null,
+    inn: (document.getElementById("orgInn")?.value || "").trim() || null,
+    address: (document.getElementById("orgAddress")?.value || "").trim() || null,
+    address_components: {}, contacts: {}, documents: [], photos: [],
+  };
+  try {
+    if (status) status.textContent = "Отправляем заявку...";
+    const { data } = await apiRequest("/organizations", { method: "POST", auth: true, body: JSON.stringify(body) });
+    if (status) status.textContent = "Заявка отправлена!";
+    setTimeout(() => { location.href = `org.html?id=${data.id}`; }, 800);
+  } catch (err) {
+    if (status) status.textContent = err.message || "Не удалось создать организацию";
+  }
+}
+
+// ----- Профиль организации -----
+let _orgCurrent = null;
 
 async function loadOrgProfile() {
-    if (!currentOrgId) {
-        console.error("ID организации не найден!");
-        return;
-    }
+  const id = new URLSearchParams(location.search).get("id");
+  if (!id) return;
+  try {
+    const { data: org } = await apiRequest(`/organizations/${id}`);
+    _orgCurrent = org;
+    const nameEl = document.getElementById("orgProfileName");
+    if (nameEl) nameEl.textContent = org.name || "Организация";
+    const icon = orgMediaUrl(org.logo_url);
+    const iconEl = document.getElementById("orgProfileIcon");
+    if (icon && iconEl) iconEl.innerHTML = `<img src="${escapeHtml(icon)}" alt="">`;
+    const infoEl = document.getElementById("orgProfileInfo");
+    if (infoEl) infoEl.textContent = org.description || "Информация об организации не указана.";
 
-    try {
-        const [org, usersRes] = await Promise.all([
-            getOrgData(currentOrgId),
-            apiRequest(`/organizations/${currentOrgId}/users`, { auth: true }).catch(() => ({ data: [] }))
-        ]);
-
-        if (!org) return;
-
-        const elHeader = document.getElementById('orgHeader');
-        const currentUserId = getUserIdFromToken();
-        const myMemberInfo = usersRes.data.find(u => u.user_id == currentUserId && u.invitation_status === 'accepted');
-        
-        window.isOrgMember = !!myMemberInfo;
-        
-        const isCreator = currentUserId == org.created_by;
-        const acceptedAdmins = usersRes.data.filter(u => u.role === 'admin' && u.invitation_status === 'accepted');
-        const isLastAdmin = (myMemberInfo?.role === 'admin') && acceptedAdmins.length === 1;
-        const showReport = currentUserId && !isCreator && !isLastAdmin;
-
-        if (elHeader) {
-            elHeader.style.position = 'relative'; 
-            const logoSrc = getOrgImageUrl(org);
-            
-            let contactDisplay = '';
-            if (org.contacts) {
-                if (typeof org.contacts === 'string' && org.contacts !== '{}') contactDisplay = org.contacts;
-                else if (org.contacts.phone) contactDisplay = org.contacts.phone;
-                else if (org.contacts.email) contactDisplay = org.contacts.email;
-            }
-            if (!contactDisplay || contactDisplay === '{}') contactDisplay = 'Не указаны';
-
-            elHeader.innerHTML = `
-                <div class="org-avatar" style="width: 80px; height: 80px; overflow: hidden; border-radius: 50%;">
-                    <img src="${logoSrc}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='../assets/default-avatar.png'">
-                </div>
-                <div class="org-meta">
-                    <h2>${org.name}</h2>
-                    <p>📍 ${org.address || 'Адрес не указан'}</p>
-                    <p>ИНН: ${org.inn || 'Не указан'} | 📞 ${contactDisplay}</p>
-                </div>
-
-                <div class="org-header-actions" style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 10px; align-items: center;">
-                    ${myMemberInfo ? `
-                        <button class="kebab-menu-btn" type="button" onclick="toggleOrgMenu(event)" style="position: static;">⋮</button>
-                    ` : ''}
-                    
-                    ${showReport ? `
-                        <button class="report-org-icon-btn" onclick="handleReportOrg(${org.id})" title="Пожаловаться" style="background:none; border:none; cursor:pointer; padding:0; display:flex;">
-                            <img src="../assets/reactions/report.svg" style="width: 24px; height: 24px; display: block;">
-                        </button>
-                    ` : ''}
-                </div>
-                
-                <div id="orgContextMenu" class="context-menu hidden">
-                    <ul>
-                        <li onclick="navigateToEdit()">✏️ Изменить профиль</li>
-                        <li onclick="navigateToCurators()">👥 Список кураторов</li>
-                    </ul>
-                </div>
-            `;
-        }
-
-        const postContainer = document.getElementById('addPostContainer');
-        if (postContainer) {
-            postContainer.classList.toggle('hidden', !window.isOrgMember);
-        }
-
-        document.getElementById('infoText').textContent = org.description || 'Описание отсутствует.';
-        document.querySelector('.screen-title').textContent = org.name;
-
-        await renderOrgPosts();
-
-    } catch (err) {
-        console.error("Ошибка загрузки:", err);
-    }
+    // подписка
+    await refreshSubscribeBtn(org.id);
+    await setupOrgManagement(org.id);
+    switchOrgTab("posts");
+  } catch (e) {
+    const box = document.getElementById("orgTabContent");
+    if (box) box.innerHTML = '<div class="empty-small">Организация не найдена</div>';
+  }
 }
 
 async function renderOrgPosts() {
@@ -108,58 +128,177 @@ async function renderOrgPosts() {
     }
 }
 
-function toggleInfo() {
-    const infoText = document.getElementById('infoText');
-    const btn = document.querySelector('.expand-btn');
-    if (!infoText) return;
-
-    infoText.classList.toggle('expanded');
-    btn.textContent = infoText.classList.contains('expanded') ? 'Свернуть' : 'Развернуть...';
+// ----- Управление организацией (для персонала) -----
+let _myId = null;
+async function getMyId() {
+  if (_myId !== null) return _myId;
+  if (!getToken()) return (_myId = 0);
+  try {
+    const { data } = await apiRequest("/auth/me", { auth: true });
+    _myId = data.id;
+  } catch (e) { _myId = 0; }
+  return _myId;
 }
 
-function toggleOrgMenu(event) {
-    event.stopPropagation();
-    const menu = document.getElementById('orgContextMenu');
-    if (menu) menu.classList.toggle('hidden');
+// Возвращает роль текущего пользователя в организации (admin/curator) или null.
+async function getMyOrgRole(orgId) {
+  if (!getToken()) return null;
+  try {
+    const users = (await apiRequest(`/organizations/${orgId}/users`, { auth: true })).data || [];
+    const myId = await getMyId();
+    const me = users.find((u) => Number(u.user_id) === Number(myId));
+    return me && me.invitation_status === "accepted" ? me.role : null;
+  } catch (e) {
+    return null; // 403 => не сотрудник
+  }
 }
 
-async function handleReportOrg(orgId) {
-    if (!confirm("Вы уверены, что хотите пожаловаться на эту организацию?")) return;
-    try {
-        await apiRequest('/reports/', {
-            method: 'POST',
-            auth: true,
-            body: JSON.stringify({
-                target_type: 'organization',
-                target_id: orgId,
-                reason_code: 'other',
-                description: 'Жалоба со страницы организации'
-            })
-        });
-        alert("Жалоба отправлена. Спасибо за бдительность!");
-    } catch (err) {
-        console.error(err);
-        alert("Не удалось отправить жалобу: " + (err.detail || err.message));
+async function setupOrgManagement(orgId) {
+  const bar = document.getElementById("orgManageBar");
+  if (!bar) return;
+  const role = await getMyOrgRole(orgId);
+  if (!role) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  const editBtn = document.getElementById("orgEditBtn");
+  if (editBtn) editBtn.style.display = role === "admin" ? "" : "none";
+  // сотрудник не подписывается на свою организацию
+  const subBtn = document.getElementById("orgSubscribeBtn");
+  if (subBtn) subBtn.style.display = "none";
+}
+
+function orgGoPost() { const id = _orgCurrent?.id; if (id) location.href = `post-create.html?org_id=${id}`; }
+function orgGoCurators() { const id = _orgCurrent?.id; if (id) location.href = `org-curators.html?id=${id}`; }
+function orgGoEdit() { const id = _orgCurrent?.id; if (id) location.href = `org-edit.html?id=${id}`; }
+
+// ----- Список кураторов -----
+async function loadOrgCurators() {
+  const id = new URLSearchParams(location.search).get("id");
+  if (!id) return;
+  window.__orgId = id;
+  const addLink = document.getElementById("orgInviteLink");
+  if (addLink) addLink.href = `org-invite.html?id=${id}`;
+  const adminBox = document.getElementById("orgAdminsList");
+  const curBox = document.getElementById("orgCuratorsList");
+  try {
+    const users = (await apiRequest(`/organizations/${id}/users`, { auth: true })).data || [];
+    const myId = await getMyId();
+    const accepted = users.filter((u) => u.invitation_status === "accepted");
+    const pending = users.filter((u) => u.invitation_status === "pending");
+    const admins = accepted.filter((u) => u.role === "admin");
+    const curators = accepted.filter((u) => u.role === "curator");
+    const me = accepted.find((u) => Number(u.user_id) === Number(myId));
+    const iAmAdmin = me && me.role === "admin";
+
+    if (adminBox) adminBox.innerHTML = admins.map((u) => curatorCardHtml(u, myId, iAmAdmin, id)).join("") || '<div class="empty-small">—</div>';
+    if (curBox) {
+      const cards = curators.map((u) => curatorCardHtml(u, myId, iAmAdmin, id));
+      const pend = pending.map((u) => curatorCardHtml(u, myId, iAmAdmin, id, true));
+      curBox.innerHTML = (cards.concat(pend)).join("") || '<div class="empty-small">Кураторов пока нет</div>';
     }
+    // ссылку «добавить» показываем только админу
+    if (addLink) addLink.style.display = iAmAdmin ? "" : "none";
+  } catch (e) {
+    if (adminBox) adminBox.innerHTML = '<div class="empty-small">Нет доступа к списку сотрудников</div>';
+  }
 }
 
-function navigateToEdit() { window.location.href = `edit_profile.html?id=${currentOrgId}`; }
-function navigateToCurators() { window.location.href = `curators.html?id=${currentOrgId}`; }
-
-function getUserIdFromToken() {
-    const token = localStorage.getItem('token') || localStorage.getItem('access_token');
-    if (!token) return null;
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return parseInt(payload.sub);
-    } catch (e) { return null; }
+function curatorCardHtml(u, myId, iAmAdmin, orgId, pending) {
+  const mine = Number(u.user_id) === Number(myId);
+  const name = `Пользователь #${u.user_id}${mine ? " (вы)" : ""}`;
+  const canRemove = iAmAdmin && !mine;
+  return `
+    <div class="curator-card">
+      <span class="curator-avatar" aria-hidden="true"></span>
+      <span class="curator-name">${escapeHtml(name)}${pending ? ' <span class="curator-pending">приглашён</span>' : ""}</span>
+      ${canRemove ? `<button type="button" class="curator-remove" title="Удалить" onclick="removeCurator(${orgId}, ${u.user_id})">✕</button>` : ""}
+    </div>`;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (ensureAuth()) loadOrgProfile();
-});
+async function removeCurator(orgId, userId) {
+  if (!confirm("Удалить этого сотрудника из организации?")) return;
+  try {
+    await apiRequest(`/organizations/${orgId}/users/${userId}`, { method: "DELETE", auth: true });
+    await loadOrgCurators();
+  } catch (e) { alert(e.message || "Не удалось удалить"); }
+}
 
-document.addEventListener('click', () => {
-    const menu = document.getElementById('orgContextMenu');
-    if (menu) menu.classList.add('hidden');
+// ----- Приглашение куратора -----
+async function inviteCurator(e) {
+  if (e) e.preventDefault();
+  const id = new URLSearchParams(location.search).get("id");
+  const status = document.getElementById("orgInviteStatus");
+  const username = (document.getElementById("inviteUsername")?.value || "").trim();
+  if (!username) { if (status) status.textContent = "Укажите логин куратора"; return; }
+  try {
+    if (status) status.textContent = "Отправляем приглашение...";
+    await apiRequest(`/organizations/${id}/invite`, {
+      method: "POST", auth: true,
+      body: JSON.stringify({ username, role: "curator" }),
+    });
+    if (status) status.textContent = "Приглашение отправлено!";
+    setTimeout(() => { location.href = `org-curators.html?id=${id}`; }, 800);
+  } catch (err) {
+    if (status) status.textContent = err.message || "Не удалось пригласить";
+  }
+}
+
+// ----- Редактирование профиля организации -----
+async function loadOrgEdit() {
+  const id = new URLSearchParams(location.search).get("id");
+  if (!id) return;
+  try {
+    const { data: org } = await apiRequest(`/organizations/${id}`);
+    setValue("edit_org_name", org.name);
+    setValue("edit_org_description", org.description);
+    setValue("edit_org_inn", org.inn);
+    setValue("edit_org_address", org.address);
+    const logoEl = document.getElementById("editOrgLogo");
+    const icon = orgMediaUrl(org.logo_url);
+    if (icon && logoEl) logoEl.style.backgroundImage = `url('${icon}')`;
+    window.__editOrgLogoUrl = org.logo_url || null;
+  } catch (e) {
+    setStatus("orgEditStatus", "Не удалось загрузить организацию");
+  }
+}
+
+async function uploadOrgLogo(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  try {
+    setStatus("orgEditStatus", "Загружаем логотип...");
+    const fd = new FormData();
+    fd.append("file", file);
+    const { data } = await apiRequest("/uploads", { method: "POST", auth: true, body: fd });
+    window.__editOrgLogoUrl = data.url;
+    const logoEl = document.getElementById("editOrgLogo");
+    if (logoEl) logoEl.style.backgroundImage = `url('${orgMediaUrl(data.url)}')`;
+    setStatus("orgEditStatus", "Логотип обновлён");
+  } catch (e) { setStatus("orgEditStatus", e.message || "Не удалось загрузить логотип"); }
+}
+
+async function saveOrgEdit(e) {
+  if (e) e.preventDefault();
+  const id = new URLSearchParams(location.search).get("id");
+  const body = {
+    name: getValue("edit_org_name") || null,
+    description: getValue("edit_org_description") || null,
+    inn: getValue("edit_org_inn") || null,
+    address: getValue("edit_org_address") || null,
+  };
+  if (window.__editOrgLogoUrl) body.logo_url = window.__editOrgLogoUrl;
+  try {
+    setStatus("orgEditStatus", "Сохраняем...");
+    await apiRequest(`/organizations/${id}`, { method: "PATCH", auth: true, body: JSON.stringify(body) });
+    setStatus("orgEditStatus", "Сохранено!");
+    setTimeout(() => { location.href = `org.html?id=${id}`; }, 700);
+  } catch (err) {
+    setStatus("orgEditStatus", err.message || "Не удалось сохранить");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.getElementById("orgAll")) loadOrgCatalog();
+  if (document.getElementById("orgTabContent")) loadOrgProfile();
+  if (document.getElementById("orgAdminsList")) loadOrgCurators();
+  if (document.getElementById("editOrgLogo")) loadOrgEdit();
 });

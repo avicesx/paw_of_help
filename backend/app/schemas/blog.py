@@ -26,6 +26,8 @@ class PostResponse(BaseModel):
     organization_name: Optional[str] = None
     organization_icon_url: Optional[str] = None
     author_user_id: int
+    author_username: Optional[str] = None
+    author_name: Optional[str] = None
     title: str
     content: Optional[str] = None
     attachments: List[Any] = []
@@ -57,6 +59,8 @@ class BlogCommentResponse(BaseModel):
     id: int
     post_id: int
     user_id: int
+    author_username: Optional[str] = None
+    author_name: Optional[str] = None
     parent_id: Optional[int] = None
     organization_id: Optional[int] = None
     content: str

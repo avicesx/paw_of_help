@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Чаты - Paw of Help</title>
-  <link rel="stylesheet" href="../css/global.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Чаты — Paw</title>
+  <link rel="stylesheet" href="../css/styles.css" />
 </head>
-<body>
+<body class="paw-designed page_chats">
   <main class="phone-shell">
     <div class="bg-paw-overlay"><span>
       <img src="../assets/paw-bg.png" alt="Paw Background" class="bg-paw-image">
@@ -58,24 +58,17 @@
       </div>
     </aside>
 
-    <section class="chat-screen">
+    <aside id="sideMenu" class="side-menu"><div class="side-menu-inner"></div></aside>
+
+    <section class="chats-screen">
       <h1 class="screen-title">Чаты</h1>
-      <div class="chat-list" id="chatList">
-      </div>
+      <div id="chatList" class="chats-list"><div class="empty-small">Загрузка чатов...</div></div>
     </section>
   </main>
 
   <script src="../js/script.js"></script>
   <script src="../js/menu.js"></script>
-  <script src="../js/notifications.js"></script>
   <script src="../js/chats.js"></script>
-  <script src="../js/dropdown.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const list = document.getElementById('chatList');
-        const chats = await getAllChats();
-        list.innerHTML = chats.map(createChatCard).join('');
-    });
-  </script>
+  <script>ensureAuth("login.html");</script>
 </body>
 </html>

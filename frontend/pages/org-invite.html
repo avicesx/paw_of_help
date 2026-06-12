@@ -3,21 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Лента задач</title>
+  <title>Приглашение куратора — Paw</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
-<body class="paw-designed page_feed">
+<body class="paw-designed page_org_invite">
   <main class="phone-shell">
     <header class="topbar">
       <button class="icon-btn topbar-side menu-button" type="button" onclick="if (window.toggleMenu) toggleMenu()" aria-label="Открыть меню">
         <img src="../assets/topbar/icon-menu.svg" class="topbar-svg-icon topbar-menu-icon" alt="" />
       </button>
-
       <div class="topbar-logo">
         <img src="../assets/topbar/paw-logo.svg" class="topbar-paw-logo" alt="Paw" />
         <div class="paw-title">Paw</div>
       </div>
-
       <div class="topbar-side profile-icons">
         <span class="topbar-icon-wrap">
           <img src="../assets/topbar/icon-bell.svg" class="topbar-svg-icon topbar-bell-icon" alt="Уведомления" />
@@ -29,34 +27,28 @@
       </div>
     </header>
 
-    <aside id="sideMenu" class="side-menu">
-      <div class="side-menu-inner">
-        <a href="profile.html" class="side-link">Профиль</a>
-        <a href="settings.html" class="side-link">Настройки</a>
-        <a href="tasks.html" class="side-link">Задачи</a>
-        <a href="feed.html" class="side-link">Лента задач</a>
-        <a href="events.html" class="side-link">Мероприятия</a>
-        <a href="calendar.html" class="side-link">Календарь</a>
-        <a href="reviews.html" class="side-link">Отзывы</a>
-        <a href="complaints.html" class="side-link">Жалобы</a>
-        <a href="animal-select.html" class="side-link">Животные</a>
-        <a href="#" class="side-link">Организации</a>
-        <a href="#" class="side-link">База знаний</a>
-      </div>
-    </aside>
+    <aside id="sideMenu" class="side-menu"><div class="side-menu-inner"></div></aside>
 
-    <section class="feed-screen posts-feed-screen">
-      <div id="postsFeed" class="posts-feed">
-        <div class="empty-small">Загрузка ленты...</div>
+    <section class="org-invite-screen">
+      <div class="back-row">
+        <a href="javascript:history.back()" class="back-link" aria-label="Назад">⬅</a>
       </div>
+
+      <form class="invite-card" onsubmit="inviteCurator(event)">
+        <h1 class="invite-title">Приглашение</h1>
+        <label class="invite-label">
+          Логин куратора:
+          <input id="inviteUsername" class="invite-input" type="text" placeholder="логин латиницей" autocomplete="off" />
+        </label>
+      </form>
+
+      <p id="orgInviteStatus" class="save-status"></p>
+      <button type="button" class="invite-send-btn" onclick="inviteCurator()">Отправить</button>
     </section>
-
-    <a class="feed-write-fab" href="post-create.html" aria-label="Написать пост" title="Написать пост">+</a>
   </main>
 
   <script src="../js/script.js"></script>
   <script src="../js/menu.js"></script>
-  <script src="../js/feed.js"></script>
-  <script>loadPostsFeed();</script>
+  <script src="../js/org.js"></script>
 </body>
 </html>

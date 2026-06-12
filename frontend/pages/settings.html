@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Настройки</title>
   <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="paw-designed page_settings">
   <main class="phone-shell">
@@ -77,8 +78,15 @@
         <div id="volunteerStats" class="small-muted">—</div>
 
         <label class="form-label">Локация
-          <input id="vol_location" class="field" type="text" />
+          <input id="vol_location" class="field" type="text" placeholder="Адрес или район" />
+          <input id="vol_location_lat" type="hidden" />
+          <input id="vol_location_lng" type="hidden" />
         </label>
+        <button id="volFindAddressBtn" class="map-search-btn full-width" type="button">Найти на карте</button>
+        <div class="figma-map-block">
+          <div id="volLocationMap" class="address-map"></div>
+        </div>
+        <p class="small-muted">Отметьте на карте, где вам удобно помогать — задачи рядом будут показываться выше.</p>
 
         <div class="double-grid">
           <label class="form-label">Радиус, км
@@ -92,6 +100,10 @@
         <label class="form-label">Предпочтительные животные
           <input id="vol_preferred_animal_types" class="field" type="text" placeholder="Кошки, собаки" />
         </label>
+
+        <div class="form-label">Ваши компетенции</div>
+        <p class="small-muted" style="margin-top:-4px">Например: только перевозка, или ветеринарная помощь (уколы, лечение).</p>
+        <div id="skillsList" class="skills-list"><div class="small-muted">Загрузка компетенций…</div></div>
 
         <label class="form-label">Доступность</label>
         <div class="availability-grid" id="availability-ui">
@@ -159,10 +171,19 @@
     </section>
   </main>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="../js/script.js"></script>
   <script src="../js/menu.js"></script>
+  <script src="../js/maps.js"></script>
   <script>
     loadSettingsPage();
+    window.volMapCtl = initAddressMap({
+      mapId: "volLocationMap",
+      inputId: "vol_location",
+      latId: "vol_location_lat",
+      lngId: "vol_location_lng",
+      searchButtonId: "volFindAddressBtn"
+    });
   </script>
 </body>
 </html>
