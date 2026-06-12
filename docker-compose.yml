@@ -50,9 +50,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@db:5432/paw_of_help}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-paw_of_help}}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-change-me}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080,http://127.0.0.1:8080,http://localhost:5500,http://127.0.0.1:5500}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Moscow}
       DATABASE_ECHO: ${DATABASE_ECHO:-false}
@@ -61,7 +61,7 @@ services:
       UPLOAD_DIR: /app/uploads
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8000}
       UPLOAD_MAX_SIZE_MB: ${UPLOAD_MAX_SIZE_MB:-10}
-      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
       OLLAMA_TAG_MODEL: ${OLLAMA_TAG_MODEL:-gemma2:9b}
       CONTENT_MODEL_BASE: ${CONTENT_MODEL_BASE:-weeqeen/rubert-base-cased-finetuned-moderation}
       CONTENT_MODEL_TINY: ${CONTENT_MODEL_TINY:-weeqeen/rubert-tiny2-moderation}

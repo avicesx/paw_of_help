@@ -71,7 +71,11 @@ async def get_article(
     rating = await db.get(ArticleRating, (article_id, current_user.id))
     liked = rating.vote if rating else None
 
-    author_name = (await db.get(User, article.author_id)).name or "Неизвестный"
+    author_name = "Неизвестный"
+    if article.author_id:
+        author = await db.get(User, article.author_id)
+        if author:
+            author_name = author.name or author.username or "Неизвестный"
 
     return ArticleDetailResponse(
         id=article.id,
@@ -83,7 +87,7 @@ async def get_article(
         created_at=article.created_at,
         updated_at=article.updated_at,
         views=article.views,
-        tags=article.tags,
+        tags=article.tags or [],
         liked_by_user=liked == 1 if liked is not None else None,
     )
 
