@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Уведомления — Paw</title>
+  <title>Оставить отзыв — Paw</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
-<body class="paw-designed page_notifications">
+<body class="paw-designed page_leave_review">
   <main class="phone-shell">
     <header class="topbar">
       <button class="icon-btn topbar-side menu-button" type="button" onclick="if (window.toggleMenu) toggleMenu()" aria-label="Открыть меню">
@@ -29,21 +29,35 @@
 
     <aside id="sideMenu" class="side-menu"><div class="side-menu-inner"></div></aside>
 
-    <section class="notif-screen">
-      <div class="notif-head-row">
-        <a href="profile.html" class="back-link" aria-label="Назад">⬅</a>
-        <button type="button" class="notif-readall" onclick="markAllNotificationsRead()">Прочитать все</button>
+    <section class="leave-review-screen">
+      <div class="back-row">
+        <a href="chats.html" class="back-link" aria-label="Назад">⬅</a>
       </div>
 
-      <div class="notif-panel">
-        <h1 class="notif-panel-title">Уведомления</h1>
-        <div id="notifList" class="notif-list"></div>
+      <div id="reviewContext" class="review-context-card"></div>
+
+      <div class="review-rating-row">
+        <span id="reviewRatingNum" class="review-rating-num">5</span>
+        <div id="reviewStars" class="review-stars">
+          <span class="rev-star on" data-v="1" onclick="setReviewStars(1)">★</span>
+          <span class="rev-star on" data-v="2" onclick="setReviewStars(2)">★</span>
+          <span class="rev-star on" data-v="3" onclick="setReviewStars(3)">★</span>
+          <span class="rev-star on" data-v="4" onclick="setReviewStars(4)">★</span>
+          <span class="rev-star on" data-v="5" onclick="setReviewStars(5)">★</span>
+        </div>
       </div>
+      <input type="hidden" id="reviewRating" value="5" />
+
+      <textarea id="reviewComment" class="field textarea review-comment" placeholder="Поделитесь впечатлениями..."></textarea>
+      <p id="reviewStatus" class="save-status"></p>
+
+      <button class="submit-btn full-width" type="button" onclick="submitLeaveReview()">Сохранить</button>
     </section>
   </main>
 
   <script src="../js/script.js"></script>
   <script src="../js/menu.js"></script>
-  <script src="../js/notifications.js"></script>
+  <script src="../js/tasks.js"></script>
+  <script src="../js/chats.js"></script>
 </body>
 </html>

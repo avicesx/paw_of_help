@@ -56,22 +56,38 @@
 
       try {
         const { data: a } = await apiRequest(`/animals/${animalId}`);
+
+        // Значения справочников приходят на английском — показываем по-русски (как в дизайне).
+        const GENDER_RU = { male: 'Мужской', female: 'Женский', unknown: 'Не указан' };
+        const SIZE_RU = { small: 'Маленький', medium: 'Средний', large: 'Большой', extra_large: 'Очень большой' };
+        const val = (v) => (v === null || v === undefined || String(v).trim() === '') ? '—' : escapeHtml(String(v));
+        const mediaUrl = (u) => !u ? '' : (/^https?:/i.test(u) ? u : `${API_URL}${u.startsWith('/') ? '' : '/'}${u}`);
+
+        const animalPhoto = Array.isArray(a.photos) && a.photos.length ? mediaUrl(a.photos[0]) : null;
+
+        // Поля профиля животного в порядке дизайна (Профиль животного.svg)
+        const rows = [
+          ['Кличка', a.name],
+          ['Возраст', a.age],
+          ['Вид', a.species],
+          ['Порода', a.breed],
+          ['Пол', a.gender ? (GENDER_RU[a.gender] || a.gender) : null],
+          ['Размер', a.size ? (SIZE_RU[a.size] || a.size) : null],
+          ['Характер', a.character],
+          ['Состояние здоровья', a.health_status],
+          ['Особые потребности', a.special_needs],
+          ['История животного', a.description],
+        ];
+
         content.innerHTML = `
           <div class="animal-profile-card">
-            <div class="animal-profile-avatar"></div>
-            <h2 class="animal-profile-name">${escapeHtml(a.name || 'Без имени')}</h2>
-            <div class="animal-profile-sub">${escapeHtml(a.species || 'Вид не указан')} · ${escapeHtml(a.breed || 'Порода не указана')}</div>
+            <div class="animal-profile-avatar">${animalPhoto ? `<img src="${escapeHtml(animalPhoto)}" alt="${escapeHtml(a.name || '')}">` : ''}</div>
+            <input type="file" id="animalPhotoInput" accept="image/*" style="display:none" onchange="uploadAnimalPhoto(${a.id})" />
+            <button type="button" class="animal-photo-btn" onclick="document.getElementById('animalPhotoInput').click()">${animalPhoto ? '📷 Изменить фото' : '📷 Добавить фото'}</button>
 
             <div class="animal-profile-section">
-              <div class="animal-profile-row"><span class="apl">Возраст</span><span>${escapeHtml(String(a.age_years ?? '—'))}</span></div>
-              <div class="animal-profile-row"><span class="apl">Пол</span><span>${escapeHtml(a.gender || '—')}</span></div>
-              <div class="animal-profile-row"><span class="apl">Окрас</span><span>${escapeHtml(a.color || '—')}</span></div>
-              <div class="animal-profile-row"><span class="apl">Вес</span><span>${a.weight_kg ? escapeHtml(String(a.weight_kg)) + ' кг' : '—'}</span></div>
-              <div class="animal-profile-row"><span class="apl">Стерилизован</span><span>${a.is_sterilized ? 'Да' : 'Нет'}</span></div>
-              <div class="animal-profile-row"><span class="apl">Вакцинирован</span><span>${a.is_vaccinated ? 'Да' : 'Нет'}</span></div>
+              ${rows.map(([label, value]) => `<div class="animal-profile-row"><span class="apl">${label}</span><span>${val(value)}</span></div>`).join('')}
             </div>
-
-            ${a.description ? `<div class="animal-profile-desc">${escapeHtml(a.description)}</div>` : ''}
 
             <div class="animal-profile-actions">
               <a href="task-create.html" class="primary-action-link" onclick="setSelectedAnimal(${JSON.stringify(a).replace(/"/g,'&quot;')})">

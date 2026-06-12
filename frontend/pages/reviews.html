@@ -45,47 +45,50 @@
       </div>
     </aside>
 
-    <section class="create-task-screen">
+    <section class="reviews-screen">
       <div class="back-row">
         <a href="profile.html" class="back-link">⬅</a>
-        <div class="back-title">Отзывы</div>
       </div>
 
-      <div class="task-form-card">
-        <div class="section-subtitle">Список отзывов</div>
-        <label class="form-label">Тип цели
-          <select id="review_target_type" class="field" onchange="fetchReviews()">
-            <option value="organization">organization</option>
-            <option value="volunteer">volunteer</option>
-            <option value="task">task</option>
-            <option value="foster_request">foster_request</option>
-          </select>
-        </label>
-        <label class="form-label">ID цели
-          <input id="review_target_id" class="field" type="number" oninput="fetchReviews()" />
-        </label>
-        <div id="reviewsList" class="reviews-list"></div>
-        <p id="reviewsStatus" class="save-status"></p>
+      <input type="hidden" id="review_target_type" value="organization" />
+      <input type="hidden" id="review_target_id" value="1" />
+      <input type="hidden" id="review_reviewee_id" />
+
+      <div class="reviews-summary">
+        <div class="reviews-avg-col">
+          <div id="reviewsAvg" class="big-rating">0,0</div>
+          <div id="reviewsCountLabel" class="reviews-count-label">0 отзывов</div>
+        </div>
+        <div id="reviewsHistogram" class="reviews-histogram"></div>
       </div>
 
-      <form class="task-form-card settings-gap" onsubmit="submitReview(event)">
-        <div class="section-subtitle">Оставить отзыв</div>
-        <label class="form-label">ID пользователя, кому отзыв
-          <input id="review_reviewee_id" class="field" type="number" />
-        </label>
-        <label class="form-label">Оценка
-          <select id="review_rating" class="field">
-            <option value="5">5</option>
-            <option value="4">4</option>
-            <option value="3">3</option>
-            <option value="2">2</option>
-            <option value="1">1</option>
-          </select>
-        </label>
-        <label class="form-label">Комментарий
-          <textarea id="review_comment" class="field textarea"></textarea>
-        </label>
-        <button class="submit-btn full-width" type="submit">Отправить отзыв</button>
+      <div class="reviews-sort-row">
+        <span class="reviews-sort-label">Сортировка</span>
+        <select id="reviewsSort" class="field" onchange="renderReviewsList(window.__reviews || [])">
+          <option value="new">Сначала новые</option>
+          <option value="old">Сначала старые</option>
+          <option value="high">Сначала высокий рейтинг</option>
+          <option value="low">Сначала низкий рейтинг</option>
+        </select>
+      </div>
+
+      <div id="reviewsList" class="reviews-list"></div>
+      <p id="reviewsStatus" class="save-status"></p>
+
+      <button type="button" class="submit-btn full-width reviews-leave-toggle" onclick="toggleLeaveReview()">Оставить отзыв</button>
+
+      <form id="leaveReviewForm" class="task-form-card reviews-leave-form hidden" onsubmit="submitReview(event)">
+        <div class="reviews-leave-title">Ваш отзыв</div>
+        <div class="reviews-stars-input" id="reviewStarsInput">
+          <span class="rev-star" data-v="1">★</span>
+          <span class="rev-star" data-v="2">★</span>
+          <span class="rev-star" data-v="3">★</span>
+          <span class="rev-star" data-v="4">★</span>
+          <span class="rev-star" data-v="5">★</span>
+        </div>
+        <input type="hidden" id="review_rating" value="5" />
+        <textarea id="review_comment" class="field textarea" placeholder="Поделитесь впечатлениями..."></textarea>
+        <button class="submit-btn full-width" type="submit">Сохранить</button>
       </form>
     </section>
   </main>

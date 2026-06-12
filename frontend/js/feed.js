@@ -1,89 +1,147 @@
-let currentFeedMode = "recommended";
+// «Лента» — социальная лента публикаций (дизайн: Лента.svg) + создание поста (Создание поста организации.svg).
+// Чтение — публичный GET /posts. Создание — POST /posts. Задачи живут на отдельном экране «Задачи».
 
-function switchFeedMode(mode) {
-  currentFeedMode = mode;
-  document.getElementById("feedRecommendedBtn")?.classList.toggle("active", mode === "recommended");
-  document.getElementById("feedAllBtn")?.classList.toggle("active", mode === "all");
-  loadTaskFeed();
+function postMediaUrl(u) {
+  if (!u) return "";
+  return /^https?:/i.test(u) ? u : `${API_URL}${u.startsWith("/") ? "" : "/"}${u}`;
 }
 
-async function loadTaskFeed() {
-  const list = document.getElementById("feedList");
+function firstPostImage(attachments) {
+  if (!Array.isArray(attachments)) return null;
+  for (const item of attachments) {
+    if (typeof item === "string") {
+      if (item) return item;
+    } else if (item && typeof item === "object") {
+      const u = item.url || item.src || item.path || item.image || item.image_url;
+      if (u) return u;
+    }
+  }
+  return null;
+}
+
+async function loadPostsFeed() {
+  const list = document.getElementById("postsFeed");
   if (!list) return;
   list.innerHTML = '<div class="empty-small">Загрузка ленты...</div>';
 
   try {
-    const search = (document.getElementById("feedSearch")?.value || "").trim().toLowerCase();
-    const type = document.getElementById("feedTypeFilter")?.value || "";
-    const urgency = document.getElementById("feedUrgencyFilter")?.value || "";
-    let tasks = [];
-
-    if (currentFeedMode === "recommended" && getToken()) {
-      const { data } = await apiRequest("/volunteer/feed?limit=50&offset=0", { auth: true });
-      tasks = data || [];
-    } else {
-      const query = new URLSearchParams();
-      if (type) query.set("task_type", type);
-      if (urgency) query.set("urgency", urgency);
-      const { data } = await apiRequest(`/tasks${query.toString() ? `?${query}` : ""}`);
-      tasks = data || [];
-    }
-
-    if (search) {
-      tasks = tasks.filter(task =>
-        (task.title || "").toLowerCase().includes(search) ||
-        (task.description || "").toLowerCase().includes(search)
-      );
-    }
-    if (type && currentFeedMode === "recommended") tasks = tasks.filter(task => task.task_type === type || !task.task_type);
-    if (urgency && currentFeedMode === "recommended") tasks = tasks.filter(task => task.urgency === urgency || !task.urgency);
-
-    renderFeed(tasks);
+    const { data } = await apiRequest("/posts", getToken() ? { auth: true } : {});
+    renderPostsFeed(data || []);
   } catch (err) {
-    list.innerHTML = `<div class="empty-small">${escapeHtml(err.message || "Ошибка загрузки ленты")}</div>`;
+    list.innerHTML = `<div class="empty-small">${escapeHtml(err.message || "Не удалось загрузить ленту")}</div>`;
   }
 }
 
-function renderFeed(tasks) {
-  const list = document.getElementById("feedList");
+function renderPostsFeed(posts) {
+  const list = document.getElementById("postsFeed");
   if (!list) return;
-  if (!tasks.length) {
-    list.innerHTML = '<div class="empty-small">Подходящих задач пока нет</div>';
+
+  if (!posts.length) {
+    list.innerHTML = '<div class="empty-small">Пока нет публикаций</div>';
     return;
   }
 
-  list.innerHTML = tasks.map(task => `
-    <article class="feed-card">
-      <div class="task-card-row">
-        <div class="task-paw">🐾</div>
-        <div class="task-main">
-          <div class="task-title">${escapeHtml(task.title || "Без названия")}</div>
-          <p>${escapeHtml(task.description || "Описание не указано")}</p>
-          <div class="task-status-label">Статус: ${escapeHtml(getStatusLabel(task.status || "open"))}</div>
-          <div class="task-status-label">До: ${escapeHtml(formatDateTime(task.end_date))}</div>
-          <div class="task-actions">
-            <button class="task-primary-btn" type="button" onclick="respondToTask(${task.id})">Откликнуться</button>
-            <button class="task-outline-btn" type="button" onclick="openTaskDetails(${task.id})">Подробнее</button>
-          </div>
+  list.innerHTML = posts
+    .map((p) => {
+      const author = p.organization_name || "Публикация пользователя";
+      const icon = postMediaUrl(p.organization_icon_url);
+      const image = postMediaUrl(firstPostImage(p.attachments));
+      // В дизайне у карточки один блок текста (подпись); content приоритетнее заголовка.
+      const caption = p.content || p.title || "";
+      const liked = p.my_vote === 1;
+
+      return `
+      <article class="post-card">
+        <div class="post-head">
+          <div class="post-avatar">${icon ? `<img src="${escapeHtml(icon)}" alt="">` : ""}</div>
+          <div class="post-author">${escapeHtml(author)}</div>
         </div>
-      </div>
-    </article>
-  `).join("");
+        ${image
+          ? `<div class="post-photo"><img src="${escapeHtml(image)}" alt=""></div>`
+          : `<div class="post-photo post-photo--empty">Фото</div>`}
+        <div class="post-text">
+          ${caption ? `<div class="post-caption">${escapeHtml(caption)}</div>` : ""}
+        </div>
+        <div class="post-stats">
+          <button type="button" class="post-stat post-like${liked ? " liked" : ""}" onclick="togglePostLike(${p.id}, this)">
+            <span class="post-ic">&#9829;</span><span data-likes>${p.likes_count || 0}</span>
+          </button>
+          <span class="post-stat"><span class="post-ic">&#128172;</span><span>0</span></span>
+          <span class="post-stat"><span class="post-ic">&#128065;</span><span>0</span></span>
+        </div>
+      </article>
+    `;
+    })
+    .join("");
 }
 
-async function respondToTask(taskId) {
+async function togglePostLike(postId, btn) {
+  if (!getToken()) {
+    window.location.href = "login.html";
+    return;
+  }
+  const liked = btn.classList.contains("liked");
   try {
-    await apiRequest(`/task-responses/${taskId}`, {
+    const { data } = await apiRequest(`/posts/${postId}/vote`, {
       method: "POST",
       auth: true,
-      body: JSON.stringify({ message: "Готов помочь" })
+      body: JSON.stringify({ vote: liked ? 0 : 1 }),
     });
-    alert("Отклик отправлен.");
+    btn.classList.toggle("liked", data.my_vote === 1);
+    const cnt = btn.querySelector("[data-likes]");
+    if (cnt) cnt.textContent = data.likes_count || 0;
   } catch (err) {
-    alert(err.message || "Ошибка отправки отклика");
+    alert(err.message || "Не удалось поставить отметку");
   }
 }
 
-function openTaskDetails(taskId) {
-  alert(`ID задачи: ${taskId}`);
+// ----- Создание поста (post-create.html) -----
+let _postAttachmentUrl = null;
+
+async function attachPostPhoto(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById("postStatus");
+  if (!getToken()) { window.location.href = "login.html"; return; }
+  try {
+    if (statusEl) statusEl.textContent = "Загружаем фото...";
+    const fd = new FormData();
+    fd.append("file", file);
+    const { data } = await apiRequest("/uploads", { method: "POST", auth: true, body: fd });
+    _postAttachmentUrl = data.url;
+    const thumb = document.getElementById("postPhotoThumb");
+    if (thumb) { thumb.src = postMediaUrl(data.url); thumb.style.display = "block"; }
+    if (statusEl) statusEl.textContent = "Фото прикреплено";
+  } catch (err) {
+    if (statusEl) statusEl.textContent = err.message || "Не удалось загрузить фото";
+  }
+}
+
+async function createPost() {
+  const textEl = document.getElementById("postText");
+  const statusEl = document.getElementById("postStatus");
+  const text = (textEl?.value || "").trim();
+  if (!text) { if (statusEl) statusEl.textContent = "Напишите текст поста"; return; }
+  if (!getToken()) { window.location.href = "login.html"; return; }
+
+  // title обязателен на бэке — берём первую строку (до 80 символов), весь текст идёт в content.
+  const firstLine = (text.split("\n")[0] || text).trim();
+  const title = firstLine.slice(0, 80) || "Пост";
+  const orgId = new URLSearchParams(location.search).get("org_id");
+  const body = {
+    title,
+    content: text,
+    attachments: _postAttachmentUrl ? [_postAttachmentUrl] : [],
+  };
+  if (orgId) body.organization_id = Number(orgId);
+
+  try {
+    if (statusEl) statusEl.textContent = "Публикуем...";
+    await apiRequest("/posts", { method: "POST", auth: true, body: JSON.stringify(body) });
+    if (statusEl) statusEl.textContent = "Опубликовано!";
+    // даём фоновой модерации опубликовать пост, затем возвращаемся туда, откуда пришли
+    setTimeout(() => { window.location.href = orgId ? `org.html?id=${orgId}` : "feed.html"; }, 1000);
+  } catch (err) {
+    if (statusEl) statusEl.textContent = err.message || "Не удалось опубликовать";
+  }
 }

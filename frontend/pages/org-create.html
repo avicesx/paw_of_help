@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Организация — Paw</title>
+  <title>Заявка организации — Paw</title>
   <link rel="stylesheet" href="../css/styles.css" />
 </head>
-<body class="paw-designed page_org">
+<body class="paw-designed page_org_create">
   <main class="phone-shell">
     <header class="topbar">
       <button class="icon-btn topbar-side menu-button" type="button" onclick="if (window.toggleMenu) toggleMenu()" aria-label="Открыть меню">
@@ -29,40 +29,34 @@
 
     <aside id="sideMenu" class="side-menu"><div class="side-menu-inner"></div></aside>
 
-    <section class="org-profile-screen">
+    <section class="org-create-screen">
       <div class="back-row">
         <a href="org-catalog.html" class="back-link" aria-label="Назад">⬅</a>
+        <div class="back-title">Заявка на организацию</div>
       </div>
 
-      <div class="org-profile-head">
-        <div id="orgProfileIcon" class="org-profile-icon" aria-hidden="true"></div>
-        <h1 id="orgProfileName" class="org-profile-name">Организация</h1>
-      </div>
-
-      <div class="org-info-box">
-        <div class="org-info-label">Информация</div>
-        <div id="orgProfileInfo" class="org-info-text"></div>
-      </div>
-
-      <button id="orgSubscribeBtn" class="org-subscribe-btn" type="button" onclick="toggleSubscribe()">Подписаться</button>
-
-      <div id="orgManageBar" class="org-manage-bar" style="display:none">
-        <button id="orgPostBtn" type="button" class="org-manage-btn" onclick="orgGoPost()">+ Пост</button>
-        <button id="orgCuratorsBtn" type="button" class="org-manage-btn" onclick="orgGoCurators()">Кураторы</button>
-        <button id="orgEditBtn" type="button" class="org-manage-btn" onclick="orgGoEdit()" style="display:none">Изменить</button>
-      </div>
-
-      <div class="org-tabs">
-        <button class="org-tab active" type="button" data-tab="posts" onclick="switchOrgTab('posts')">Посты</button>
-        <button class="org-tab" type="button" data-tab="animals" onclick="switchOrgTab('animals')">Наши животные</button>
-        <button class="org-tab" type="button" data-tab="tasks" onclick="switchOrgTab('tasks')">Заявки</button>
-      </div>
-      <div id="orgTabContent" class="org-tab-content"></div>
+      <form class="org-create-card task-form-card" onsubmit="createOrg(event)">
+        <label class="form-label">Название организации:
+          <input id="orgName" class="field" type="text" placeholder="Например: Приют «Лапа помощи»" />
+        </label>
+        <label class="form-label">Описание:
+          <textarea id="orgDescription" class="field textarea" placeholder="Чем занимается организация"></textarea>
+        </label>
+        <label class="form-label">ИНН:
+          <input id="orgInn" class="field" type="text" placeholder="Если есть" />
+        </label>
+        <label class="form-label">Адрес:
+          <input id="orgAddress" class="field" type="text" placeholder="Город, улица" />
+        </label>
+        <p id="orgCreateStatus" class="save-status"></p>
+        <button class="submit-btn full-width" type="submit">Подать заявку</button>
+      </form>
     </section>
   </main>
 
   <script src="../js/script.js"></script>
   <script src="../js/menu.js"></script>
   <script src="../js/org.js"></script>
+  <script>ensureAuth("login.html");</script>
 </body>
 </html>

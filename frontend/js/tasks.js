@@ -23,7 +23,10 @@ function getPageBack(defaultBack = "animal-select.html") {
 }
 
 function setupAnimalSelectPage() {
-  const back = getPageBack("task-create.html");
+  // По умолчанию (открытие из меню «Животные») возвращаемся на профиль,
+  // а НЕ на создание задачи. В поток задачи попадаем только когда явно
+  // передан ?back=task-create.html со страницы создания задачи (#9).
+  const back = getPageBack("profile.html");
   const backLink = document.getElementById("animalBackLink");
   const createLink = document.getElementById("createAnimalLink");
 
@@ -189,7 +192,43 @@ function restoreSelectedAnimal() {
     return;
   }
 
-  label.textContent = `Профиль ${animal.name || "животного"}`;
+  label.textContent = animal.name || "Без имени";
+}
+
+// --- Черновик задачи: сохраняем введённые поля, чтобы они не сбрасывались
+// при переходе на выбор животного и обратно (#11) ---
+const TASK_DRAFT_KEY = "paw_task_draft";
+const TASK_DRAFT_FIELDS = [
+  "taskTitle", "taskDescription", "taskDateFrom", "taskDateTo",
+  "taskLocation", "taskLocationLat", "taskLocationLng",
+  "taskConditions", "taskType", "taskUrgency"
+];
+
+function saveTaskDraft() {
+  const draft = {};
+  TASK_DRAFT_FIELDS.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) draft[id] = el.value;
+  });
+  localStorage.setItem(TASK_DRAFT_KEY, JSON.stringify(draft));
+}
+
+function restoreTaskDraft() {
+  let draft = null;
+  try {
+    draft = JSON.parse(localStorage.getItem(TASK_DRAFT_KEY) || "null");
+  } catch {
+    draft = null;
+  }
+  if (!draft) return;
+  TASK_DRAFT_FIELDS.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && draft[id] != null && draft[id] !== "") el.value = draft[id];
+  });
+}
+
+function clearTaskDraft() {
+  localStorage.removeItem(TASK_DRAFT_KEY);
 }
 
 async function findExistingUserOrganization() {
@@ -271,7 +310,7 @@ async function createTask(event) {
     location: location || null,
     location_lat: Number.isFinite(locationLat) ? locationLat : null,
     location_lng: Number.isFinite(locationLng) ? locationLng : null,
-    end_date: dateTo ? `${dateTo}T00:00:00` : null,
+    end_date: dateTo ? (dateTo.length === 16 ? `${dateTo}:00` : dateTo) : null,
     scheduled_time: dateFrom ? { from: dateFrom } : null,
     animal_id: selectedAnimal?.id || null
   };
@@ -296,6 +335,7 @@ async function createTask(event) {
     }
 
     localStorage.removeItem(TASKS_SELECTED_ANIMAL_KEY);
+    clearTaskDraft();
     setTaskCreateStatus("Задача сохранена.");
     setTimeout(() => {
       window.location.href = "tasks.html";
@@ -414,7 +454,7 @@ async function openTaskDetails(taskId) {
         <div class="task-detail-separator"></div>
         <div class="task-detail-label">Компетенции волонтёра</div>
         <div class="task-detail-badge">${getTaskTypeLabel(task.task_type)}</div>
-        <button class="task-outline-btn task-detail-contact" type="button">Связаться с владельцем</button>
+        <button class="task-outline-btn task-detail-contact" type="button" onclick="openTaskChat(${task.id})">Связаться с владельцем</button>
         <div class="task-detail-actions">
           <button type="button" onclick="changeTaskStatus(${task.id}, 'in_progress'); closeTaskDetails();">Принять</button>
           <button type="button" onclick="changeTaskStatus(${task.id}, 'cancelled'); closeTaskDetails();">Отказаться</button>

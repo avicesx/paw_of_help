@@ -48,7 +48,7 @@
 
     <section class="create-task-screen">
       <div class="back-row">
-        <a href="tasks.html" class="back-link">⬅</a>
+        <a href="tasks.html" class="back-link" onclick="clearTaskDraft()">⬅</a>
       </div>
 
       <form class="task-form-card" onsubmit="createTask(event)">
@@ -66,19 +66,19 @@
           Профиль животного:
           <div class="animal-attach-row">
             <div id="selectedAnimalLabel" class="selected-animal-box">Животное не выбрано</div>
-            <a href="animal-select.html?back=task-create.html" class="attach-animal-btn">Прикрепить профиль животного</a>
+            <a href="animal-select.html?back=task-create.html" class="attach-animal-btn" onclick="saveTaskDraft()">Прикрепить профиль животного</a>
           </div>
         </label>
 
         <div class="double-grid">
           <label class="form-label">
-            С
-            <input id="taskDateFrom" class="field" type="date" />
+            С (дата и время)
+            <input id="taskDateFrom" class="field" type="datetime-local" />
           </label>
 
           <label class="form-label">
-            До
-            <input id="taskDateTo" class="field" type="date" />
+            До (дата и время)
+            <input id="taskDateTo" class="field" type="datetime-local" />
           </label>
         </div>
 
@@ -88,11 +88,10 @@
           <input id="taskLocationLat" type="hidden" />
           <input id="taskLocationLng" type="hidden" />
         </label>
+        <button id="taskFindAddressBtn" class="map-search-btn full-width" type="button">Найти адрес</button>
 
         <div class="figma-map-block">
           <div id="taskLocationMap" class="address-map"></div>
-          <button id="taskFindAddressBtn" class="map-search-btn" type="button">Найти адрес</button>
-          <p id="taskMapStatus" class="map-status">Выбери точку на карте — адрес подставится автоматически.</p>
         </div>
 
         <label class="form-label">
@@ -132,6 +131,7 @@
   <script>
     initTaskStorage();
     restoreSelectedAnimal();
+    restoreTaskDraft();
     initAddressMap({
       mapId: "taskLocationMap",
       inputId: "taskLocation",
