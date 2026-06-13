@@ -13,22 +13,11 @@ function notifTarget(n) {
   return null;
 }
 
-async function loadNotifications() {
-  const box = document.getElementById("notifList");
-  if (!box) return;
-  if (!getToken()) { location.href = "login.html"; return; }
-  box.innerHTML = '<div class="empty-small">Загрузка...</div>';
-  try {
-    const { data } = await apiRequest("/notifications?limit=100", { auth: true });
-    const list = Array.isArray(data) ? data : [];
-    if (!list.length) {
-      box.innerHTML = '<div class="empty-small">Уведомлений пока нет</div>';
-      return;
-    }
-    box.innerHTML = list.map(notifCardHtml).join("");
-  } catch (e) {
-    box.innerHTML = '<div class="empty-small">Не удалось загрузить уведомления</div>';
-  }
+async function getUnreadCount() {
+    try {
+        const res = await apiRequest('/notifications/unread-count', { auth: true });
+        return res.data.unread_count || 0;
+    } catch { return 0; }
 }
 
 function notifCardHtml(n) {
@@ -64,12 +53,51 @@ async function respondInvite(orgId, accept, notifId) {
   }
 }
 
-async function markAllNotificationsRead() {
-  try {
-    await apiRequest("/notifications/read-all", { method: "POST", auth: true });
-    await loadNotifications();
-    if (typeof loadNotificationsCount === "function") loadNotificationsCount();
-  } catch (e) { alert(e.message || "Ошибка"); }
+async function updateNotificationDot() {
+    const dot = document.getElementById('notificationDot');
+    const bellImg = document.querySelector('.notification-btn .layout-bell');
+    if (!dot && !bellImg) return;
+
+    try {
+        const count = await getUnreadCount();
+        const hasUnread = count > 0;
+
+        if (dot) dot.style.display = hasUnread ? 'block' : 'none';
+        
+        if (bellImg) {
+            const isNested = window.location.pathname.includes('/chats/') || window.location.pathname.includes('/comments/');
+            const assetPath = isNested ? '../../assets/topbar/' : '../assets/topbar/';
+            
+            bellImg.src = hasUnread 
+                ? `${assetPath}notifications-active.svg` 
+                : `${assetPath}notifications-inactive.svg`;
+        }
+    } catch (err) {
+        console.error("Ошибка обновления индикатора уведомлений:", err);
+    }
+}
+
+function toggleNotifications() {
+    const dropdown = document.getElementById('notificationsDropdown');
+    dropdown.classList.toggle('hidden');
+    dropdown.classList.toggle('show');
+    if (dropdown.classList.contains('show')) {
+        renderDropdownList();
+    }
+}
+
+async function renderDropdownList() {
+    const list = document.getElementById('notificationsList');
+    if (!list) return;
+    const data = await getNotifications(null, 5);
+    
+    list.innerHTML = data.length ? data.map(n => `
+        <div class="notification-item ${n.is_read ? '' : 'unread'}">
+            <strong>${n.title}</strong>
+            <p>${n.body}</p>
+            ${!n.is_read ? `<button onclick="markAsRead(${n.id})">Прочитать</button>` : ''}
+        </div>
+    `).join('') : '<div class="notification-item">Уведомлений нет</div>';
 }
 
 document.addEventListener("DOMContentLoaded", () => {
