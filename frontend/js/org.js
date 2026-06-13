@@ -103,29 +103,63 @@ async function loadOrgProfile() {
   }
 }
 
-async function renderOrgPosts() {
-    const container = document.getElementById('postsList');
-    if (!container) return;
-    
-    container.innerHTML = '<div class="results-placeholder">Загрузка...</div>';
-    try {
-        const posts = await getOrgPosts(currentOrgId);
-        const userId = getUserIdFromToken();
-        const org = await getOrgData(currentOrgId);
+async function refreshSubscribeBtn(orgId) {
+  const btn = document.getElementById("orgSubscribeBtn");
+  if (!btn || !getToken()) { if (btn) btn.style.display = "none"; return; }
+  let subscribed = false;
+  try {
+    const subs = (await apiRequest("/organizations/subscriptions", { auth: true })).data || [];
+    subscribed = subs.some((o) => Number(o.id) === Number(orgId));
+  } catch (e) {}
+  btn.dataset.subscribed = subscribed ? "1" : "";
+  btn.textContent = subscribed ? "Отписаться" : "Подписаться";
+}
 
-        if (!posts || posts.length === 0) {
-            container.innerHTML = '<div class="results-placeholder">Пока нет постов</div>';
-            return;
-        }
+async function toggleSubscribe() {
+  if (!_orgCurrent) return;
+  if (!getToken()) { location.href = "login.html"; return; }
+  const btn = document.getElementById("orgSubscribeBtn");
+  const subscribed = btn?.dataset.subscribed === "1";
+  try {
+    await apiRequest(`/organizations/${_orgCurrent.id}/subscribe`, { method: subscribed ? "DELETE" : "POST", auth: true });
+    await refreshSubscribeBtn(_orgCurrent.id);
+  } catch (err) { alert(err.message || "Ошибка"); }
+}
 
-        const missingUserIds = posts.filter(p => !p.organization_id && !p.author_username).map(p => p.author_user_id || p.user_id);
-        if (missingUserIds.length > 0) await resolveUserNames(missingUserIds);
+function switchOrgTab(tab) {
+  document.querySelectorAll(".org-tab").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+  const box = document.getElementById("orgTabContent");
+  if (!box || !_orgCurrent) return;
+  box.innerHTML = '<div class="empty-small">Загрузка...</div>';
+  if (tab === "posts") loadOrgPosts(box);
+  else if (tab === "animals") loadOrgAnimals(box);
+  else loadOrgTasks(box);
+}
 
-        const canManage = userId && (userId == org.created_by); 
-        container.innerHTML = posts.map(post => renderPostCard(post, canManage)).join('');
-    } catch (err) {
-        container.innerHTML = '<div class="results-placeholder">Ошибка загрузки</div>';
-    }
+async function loadOrgPosts(box) {
+  try {
+    const posts = (await apiRequest(`/posts?organization_id=${_orgCurrent.id}`)).data || [];
+    box.innerHTML = posts.length
+      ? posts.map((p) => `<article class="org-post"><div class="org-post-text">${escapeHtml(p.content || p.title || "")}</div></article>`).join("")
+      : '<div class="empty-small">Постов пока нет</div>';
+  } catch (e) { box.innerHTML = '<div class="empty-small">Не удалось загрузить посты</div>'; }
+}
+async function loadOrgAnimals(box) {
+  try {
+    const all = (await apiRequest("/animals")).data || [];
+    const animals = all.filter((a) => a.owner_type === "organization" && Number(a.owner_id) === Number(_orgCurrent.id));
+    box.innerHTML = animals.length
+      ? animals.map((a) => `<button class="org-row" type="button" onclick="location.href='animal-profile.html?id=${a.id}'">${escapeHtml(a.name || "Животное")}</button>`).join("")
+      : '<div class="empty-small">Животных пока нет</div>';
+  } catch (e) { box.innerHTML = '<div class="empty-small">Не удалось загрузить</div>'; }
+}
+async function loadOrgTasks(box) {
+  try {
+    const tasks = (await apiRequest(`/tasks?organization_id=${_orgCurrent.id}`)).data || [];
+    box.innerHTML = tasks.length
+      ? tasks.map((t) => `<div class="org-row"><b>${escapeHtml(t.title || "Задача")}</b></div>`).join("")
+      : '<div class="empty-small">Заявок пока нет</div>';
+  } catch (e) { box.innerHTML = '<div class="empty-small">Не удалось загрузить</div>'; }
 }
 
 // ----- Управление организацией (для персонала) -----

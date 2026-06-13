@@ -21,16 +21,14 @@ async function loadFeed() {
             return;
         }
 
-        // Собираем ID авторов, у которых нет имен в ответе, и загружаем их пачкой
-        const missingUserIds = publishedPosts
-            .filter(p => !p.organization_id && !p.author_username)
-            .map(p => p.author_user_id || p.user_id);
+        const processedPosts = publishedPosts.map(post => {
+            if (!post.organization_id && post.author_user_id === currentUserCache.id) {
+                return { ...post, author_username: currentUserCache.username };
+            }
+            return post;
+        });
         
-        if (missingUserIds.length > 0) {
-            await resolveUserNames(missingUserIds);
-        }
-        
-        container.innerHTML = publishedPosts.map(post => renderPostCard(post)).join('');
+        container.innerHTML = processedPosts.map(post => renderPostCard(post)).join('');
         
     } catch (err) {
         container.innerHTML = '<div class="results-placeholder">Ошибка загрузки ленты</div>';

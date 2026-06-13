@@ -61,46 +61,21 @@ async function getPostData(postId) {
 async function loadCommentsFromAPI(postId) {
   try {
     const { data } = await apiRequest(`/comments/post/${postId}`, { auth: true });
-    
-    const mapComment = (c) => ({
-        id: c.id,
-        text: c.content,
-        likes: c.likes || 0,
-        dislikes: c.dislikes || 0,
-        my_vote: (c.my_vote === null || c.my_vote === undefined) ? 0 : c.my_vote,
-        parent_id: c.parent_id,
-        author_username: c.author_username,
-        author_name: c.author_name,
-        user_id: c.user_id,
-        created_at: c.created_at,
-        updated_at: c.updated_at,
-        is_deleted: c.is_deleted || false,
-        replies: Array.isArray(c.replies) ? c.replies.map(mapComment) : []
-    });
-
-    return data.map(mapComment);
+    return data.map(c => ({
+      id: c.id,
+      text: c.content,
+      likes: c.likes || 0,
+      dislikes: c.dislikes || 0,
+      my_vote: (c.my_vote === null || c.my_vote === undefined) ? 0 : c.my_vote,
+      user_id: c.user_id,
+      created_at: c.created_at,
+      updated_at: c.updated_at,
+      is_deleted: c.is_deleted || false
+    }));
   } catch (err) {
     console.error('Ошибка загрузки комментариев:', err);
     return [];
   }
-}
-
-function findCommentById(nodes, id) {
-  for (const node of nodes) {
-    if (node.id === id) return node;
-    if (node.replies && node.replies.length > 0) {
-      const found = findCommentById(node.replies, id);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-
-function getTotalCommentsCount(nodes) {
-  return nodes.reduce((acc, c) => {
-    if (c.is_deleted) return acc;
-    return acc + 1 + (c.replies ? getTotalCommentsCount(c.replies) : 0);
-  }, 0);
 }
 
 let currentPostId = null;
@@ -124,19 +99,6 @@ async function initCommentsPage(postId) {
     getPostData(postId),
     loadCommentsFromAPI(postId)
   ]);
-
-  const missingNameIds = [];
-  if (post && !post.organization_id && !post.author_username && !post.author_name) {
-    missingNameIds.push(post.author_user_id || post.user_id);
-  }
-  const collectMissingIds = (nodes) => {
-    nodes.forEach(c => {
-      if (!c.author_username && !c.author_name) missingNameIds.push(c.user_id);
-      if (c.replies) collectMissingIds(c.replies);
-    });
-  };
-  if (comments) collectMissingIds(comments);
-  if (missingNameIds.length > 0) await resolveUserNames(missingNameIds);
 
   if (post) {
     if (!post.author_username && !post.organization_name && !post.organization_id) {
@@ -170,32 +132,13 @@ async function initCommentsPage(postId) {
 }
 
 async function deleteComment(commentId) {
-    if (!confirm("Удалить комментарий и все ответы на него?")) return;
-
-    const comment = findCommentById(allComments, commentId);
-    if (!comment) return;
-
-    const idsToDelete = [];
-    const collectIds = (c) => {
-        idsToDelete.push(c.id);
-        if (c.replies && c.replies.length > 0) {
-            c.replies.forEach(collectIds);
-        }
-    };
-    collectIds(comment);
-
-    try {
-        await Promise.all(idsToDelete.map(id => 
-            apiRequest(`/comments/${id}`, { method: 'DELETE', auth: true })
-        ));
-    } catch (err) {
-        console.error("Ошибка при каскадном удалении:", err);
-    }
+    if (!confirm("Удалить комментарий?")) return;
+    await apiRequest(`/comments/${commentId}`, { method: 'DELETE', auth: true });
     initCommentsPage(currentPostId);
 }
 
 async function startEditComment(commentId) {
-    const comment = findCommentById(allComments, commentId);
+    const comment = allComments.find(c => c.id === commentId);
     if (!comment) return;
 
     const card = document.querySelector(`.comment-card[data-id="${commentId}"]`);
@@ -281,24 +224,34 @@ function getReactionHTML(c) {
 
 function renderComments(comments) {
   const list = document.getElementById('commentsList');
-  const rootComments = comments.filter(c => !c.parent_id);
-  const total = getTotalCommentsCount(rootComments);
-  document.getElementById('commentsTitle').textContent = `Комментарии ${total}`;
+  document.getElementById('commentsTitle').textContent = `Комментарии ${comments.length}`;
   
   const postCommentCount = document.querySelector('#postCard .post-stat:last-child .stat-count');
   if (postCommentCount) {
-      postCommentCount.textContent = total;
+      postCommentCount.textContent = comments.length;
   }
 
   const me = getCurrentUserId();
 
+  const roots = [];
+  const childrenMap = {};
+
+  comments.forEach(c => {
+    if (c.parent_id) {
+      if (!childrenMap[c.parent_id]) childrenMap[c.parent_id] = [];
+      childrenMap[c.parent_id].push(c);
+    } else {
+      roots.push(c);
+    }
+  });
+
   function buildHTML(nodes, depth = 0) {
-    if (depth > 5) return '';
     return nodes
       .filter(c => !c.is_deleted)
       .map(c => {
-      const authorName = getUserDisplayName(c.user_id, c);
-
+      const isAuthor = currentUserCache && c.user_id === currentUserCache.id;
+      const authorName = isAuthor ? (currentUserCache.username || 'Вы') : `Пользователь #${c.user_id}`;
+      
       const indent = depth * 25;
       const borderStyle = depth > 0 
         ? `border-left: 3px solid var(--brown); margin-left: ${indent}px; background: #fffdfd;` 
@@ -323,16 +276,16 @@ function renderComments(comments) {
             ${getReactionHTML(c)}
           </div>
           <div class="comment-footer-links">
-            ${depth < 5 ? `<button class="comment-link-btn" onclick="replyToComment(${c.id}, '${authorName}')">Ответить</button>` : ''}
+            <button class="comment-link-btn" onclick="replyToComment(${c.id}, '${authorName}')">Ответить</button>
             ${!isAuthor ? `<button class="comment-link-btn" onclick="reportComment(${c.id})">Пожаловаться</button>` : ''}
           </div>
         </div>
-        ${(c.replies && c.replies.length) ? buildHTML(c.replies, depth + 1) : ''}
+        ${childrenMap[c.id] ? buildHTML(childrenMap[c.id], depth + 1) : ''}
       `;
     }).join('');
   }
   
-  list.innerHTML = buildHTML(rootComments);
+  list.innerHTML = buildHTML(roots);
 }
 
 function renderCommentActions(c) {
@@ -387,7 +340,7 @@ document.getElementById('commentsList').addEventListener('click', async function
 
   const id = parseInt(target.dataset.id);
   const type = target.dataset.type;
-  const comment = findCommentById(allComments, id);
+  const comment = allComments.find(c => c.id === id);
   if (!comment) return;
 
   let voteToSend = 0;
