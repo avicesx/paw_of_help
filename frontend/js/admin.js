@@ -148,22 +148,14 @@ async function loadContentReview() {
   try {
     adminSetStatus("Загрузка контента...");
     const { data } = await adminRequest(`/admin/content-review${adminQuery({ content_type })}`);
-    document.getElementById("contentReviewList").innerHTML = (data || []).map(item => {
-      const fullText = item.content || "Без текста";
-      const preview = fullText.length > 220 ? `${fullText.slice(0, 220)}…` : fullText;
-      const reason = item.reason ? `<p>Причина: ${adminEscape(item.reason)}</p>` : "";
-      const fullBlock = fullText.length > 220
-        ? `<details class="admin-expand"><summary>Развернуть полный текст</summary><p>${adminEscape(fullText)}</p></details>`
-        : "";
-      return `
+    document.getElementById("contentReviewList").innerHTML = (data || []).map(item => `
       <article class="admin-card">
         <div class="admin-card-head"><div><h3>${adminEscape(labelContentType(item.type))} #${item.id}</h3><p>Автор: ${adminEscape(item.author_name || "—")}</p></div><span class="admin-badge warn">${adminDate(item.created_at)}</span></div>
-        <p class="admin-content-preview">${adminEscape(preview)}</p>
-        ${fullBlock}
-        ${reason}
+        <p>${adminEscape(item.content || "Без текста")}</p>
+        ${item.reason ? `<p>Причина: ${adminEscape(item.reason)}</p>` : ""}
         <div class="admin-actions"><button onclick="approveContent('${item.type}', ${item.id})">Одобрить</button><button onclick="rejectContent('${item.type}', ${item.id})">Отклонить</button><button onclick="blockContentAuthor('${item.type}', ${item.id})">Блок автора</button></div>
-      </article>`;
-    }).join("") || `<div class="admin-empty">Контента на модерации нет</div>`;
+      </article>
+    `).join("") || `<div class="admin-empty">Контента на модерации нет</div>`;
     adminSetStatus("");
   } catch (err) { adminSetStatus(err.message || "Ошибка загрузки модерации", "error"); }
 }
@@ -253,16 +245,10 @@ async function loadAuditLogs() {
     adminSetStatus("Загрузка аудита...");
     const { data } = await adminRequest(`/admin/audit-logs${adminQuery({ entity_type, entity_id, limit: 100 })}`);
     document.getElementById("auditList").innerHTML = (data || []).map(log => `
-      <article class="admin-card"><div class="admin-card-head"><div><h3>${adminEscape(log.action)}</h3><p>${adminEscape(log.entity_type)} #${adminEscape(log.entity_id)}</p></div><span class="admin-badge">${adminDate(log.created_at)}</span></div><p>actor_id: ${adminEscape(log.actor_id)}</p><details class="admin-expand"><summary>before/after</summary><pre>${adminEscape(JSON.stringify({ before: log.before_state, after: log.after_state }, null, 2))}</pre></details></article>
+      <article class="admin-card"><div class="admin-card-head"><div><h3>${adminEscape(log.action)}</h3><p>${adminEscape(log.entity_type)} #${adminEscape(log.entity_id)}</p></div><span class="admin-badge">${adminDate(log.created_at)}</span></div><p>actor_id: ${adminEscape(log.actor_id)}</p><details><summary>before/after</summary><pre>${adminEscape(JSON.stringify({ before: log.before_state, after: log.after_state }, null, 2))}</pre></details></article>
     `).join("") || `<div class="admin-empty">Журнал пуст</div>`;
     adminSetStatus("");
-  } catch (err) {
-    const list = document.getElementById("auditList");
-    if (list) {
-      list.innerHTML = `<div class="admin-empty admin-empty-error">Аудит сейчас не загрузился: сервер вернул ${adminEscape(err.status || "ошибку")}. Фронт не падает, но сами записи аудита должен отдать backend.</div>`;
-    }
-    adminSetStatus(err.message || "Ошибка загрузки аудита", "error");
-  }
+  } catch (err) { adminSetStatus(err.message || "Ошибка загрузки аудита. Возможно, backend-схеме AuditLogItem нужен from_attributes.", "error"); }
 }
 
 async function adminAction(path, options, after) {

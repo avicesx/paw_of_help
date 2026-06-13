@@ -56,11 +56,16 @@
 
       try {
         const { data: a } = await apiRequest(`/animals/${animalId}`);
+
+        // Значения справочников приходят на английском — показываем по-русски (как в дизайне).
         const GENDER_RU = { male: 'Мужской', female: 'Женский', unknown: 'Не указан' };
         const SIZE_RU = { small: 'Маленький', medium: 'Средний', large: 'Большой', extra_large: 'Очень большой' };
         const val = (v) => (v === null || v === undefined || String(v).trim() === '') ? '—' : escapeHtml(String(v));
         const mediaUrl = (u) => !u ? '' : (/^https?:/i.test(u) ? u : `${API_URL}${u.startsWith('/') ? '' : '/'}${u}`);
+
         const animalPhoto = Array.isArray(a.photos) && a.photos.length ? mediaUrl(a.photos[0]) : null;
+
+        // Поля профиля животного в порядке дизайна (Профиль животного.svg)
         const rows = [
           ['Кличка', a.name],
           ['Возраст', a.age],
