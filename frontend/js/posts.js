@@ -27,27 +27,32 @@ function getRelativeTime(dateStr) {
 }
 
 function formatEventDate(baseTime, updateTime) {
-  const isValid = (t) => t && t !== 'None' && t !== 'null';
-  if (!isValid(baseTime) && !isValid(updateTime)) return 'На модерации';
+  if (!baseTime) return 'На модерации';
+  const baseDate = new Date(baseTime);
+  const updateDate = updateTime ? new Date(updateTime) : null;
+  const isEdited = updateDate && (updateDate.getTime() - baseDate.getTime() > 60000);
   
-  const baseDate = isValid(baseTime) ? new Date(String(baseTime).replace(' ', 'T')) : null;
-  const updateDate = isValid(updateTime) ? new Date(String(updateTime).replace(' ', 'T')) : null;
-  
-  const isBaseValid = baseDate && !isNaN(baseDate.getTime());
-  const isUpdateValid = updateDate && !isNaN(updateDate.getTime());
-
-  if (!isBaseValid && !isUpdateValid) return 'Дата не указана';
-
-  const isEdited = isBaseValid && isUpdateValid && (updateDate.getTime() - baseDate.getTime() > 60000);
-  const dateToUse = (isEdited || !isBaseValid) ? updateDate : baseDate;
-
+  const dateToUse = isEdited ? updateDate : baseDate;
   const relative = getRelativeTime(dateToUse);
   const fullDate = dateToUse.toLocaleString('ru-RU', { 
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' 
   });
 
   const display = relative || fullDate;
-  return (isEdited && isBaseValid) ? `изменено ${display}` : display;
+  return isEdited ? `изменено ${display}` : display;
+}
+
+function getCurrentUserId() {
+  const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+  if (!token) return null;
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return parseInt(payload.sub); 
+  } catch (e) {
+    console.error("Ошибка при чтении ID из токена", e);
+    return null;
+  }
 }
 
 async function loadPosts() {
@@ -69,9 +74,13 @@ function renderPostCard(post, canManageOverride = false, showFullText = false) {
   const canManage = isCreator || canManageOverride;
   const isNotMyPost = currentUserId && !isCreator;
   
-  const displayName = post.organization_id 
-    ? (post.organization_name || 'Организация') 
-    : getUserDisplayName(authorId, post);
+  let displayName = 'Пользователь';
+  if (post.organization_id) {
+      displayName = post.organization_name || 'Организация';
+  } else {
+      displayName = post.author_username || post.author_name || (post.author?.username) || (post.author?.full_name);
+      if (!displayName && isCreator) displayName = 'Вы (автор)';
+  }
   
   const displayIcon = post.organization_icon_url 
     ? `<img src="${post.organization_icon_url}" class="post-org-img">` 
@@ -88,7 +97,7 @@ function renderPostCard(post, canManageOverride = false, showFullText = false) {
         <div class="post-org-icon">${displayIcon}</div>
         <div class="post-org-info">
           <div class="post-org-name">${displayName}</div>
-          <div class="post-time" style="font-size: 11px; color: var(--muted);">${formatEventDate(post.published_at || post.created_at, post.updated_at)}</div>
+          <div class="post-time" style="font-size: 11px; color: var(--muted);">${formatEventDate(post.published_at, post.updated_at)}</div>
         </div>
         
         <div class="org-menu-container" style="margin-left: auto;">
