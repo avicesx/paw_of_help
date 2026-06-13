@@ -150,7 +150,7 @@ function togglePostMenu(event, postId) {
 }
 
 function openComments(postId) {
-    window.location.href = `comments/index.html?id=${postId}`;
+    window.location.href = `comments.html?id=${postId}`;
 }
 
 async function votePost(postId, vote) {
