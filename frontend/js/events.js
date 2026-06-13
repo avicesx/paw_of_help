@@ -209,6 +209,15 @@ async function eventGetWorkingOrganizationId({ createIfMissing = true } = {}) {
   return String(created.id);
 }
 
+// Переключение «Мероприятие на один день» ↔ многодневное.
+function toggleEventOneDay() {
+  const on = document.getElementById("eventOneDay")?.checked;
+  const od = document.getElementById("eventOneDayBlock");
+  const rg = document.getElementById("eventRangeBlock");
+  if (od) od.style.display = on ? "block" : "none";
+  if (rg) rg.style.display = on ? "none" : "block";
+}
+
 async function createEvent(event) {
   event.preventDefault();
   const token = ensureAuth("login.html");
@@ -217,13 +226,29 @@ async function createEvent(event) {
   const title = getValue("eventTitle");
   const description = getValue("eventDescription");
   const eventType = getValue("eventType");
-  const start = getValue("eventStart");
-  const end = getValue("eventEnd");
   const location = getValue("eventLocation");
+  const oneDay = document.getElementById("eventOneDay")?.checked;
 
   if (!title) {
     setStatus("eventCreateStatus", "Укажи название мероприятия.");
     return;
+  }
+
+  // Дата обязательна — иначе мероприятие не попадёт в календарь.
+  let startISO = null, endISO = null;
+  if (oneDay) {
+    const date = getValue("eventDate");
+    const from = getValue("eventTimeFrom");
+    const to = getValue("eventTimeTo");
+    if (!date) { setStatus("eventCreateStatus", "Выбери дату мероприятия."); return; }
+    startISO = new Date(`${date}T${from || "00:00"}`).toISOString();
+    endISO = to ? new Date(`${date}T${to}`).toISOString() : null;
+  } else {
+    const start = getValue("eventStart");
+    const end = getValue("eventEnd");
+    if (!start) { setStatus("eventCreateStatus", "Укажи дату и время начала."); return; }
+    startISO = new Date(start).toISOString();
+    endISO = end ? new Date(end).toISOString() : null;
   }
 
   try {
@@ -232,8 +257,8 @@ async function createEvent(event) {
       title,
       description: nullIfEmpty(description),
       event_type: nullIfEmpty(eventType),
-      start_datetime: start ? new Date(start).toISOString() : null,
-      end_datetime: end ? new Date(end).toISOString() : null,
+      start_datetime: startISO,
+      end_datetime: endISO,
       location: nullIfEmpty(location)
     };
 
@@ -253,6 +278,8 @@ async function createEvent(event) {
       });
     }
 
+    // Открываем календарь на месяце созданного мероприятия, чтобы оно было видно сразу.
+    if (startISO) localStorage.setItem("paw_calendar_focus", startISO);
     setStatus("eventCreateStatus", "Мероприятие сохранено.");
     setTimeout(() => window.location.href = "calendar.html", 600);
   } catch (err) {
@@ -279,6 +306,13 @@ async function cancelEventRegistration(eventId) {
 }
 
 async function loadCalendarPage() {
+  // Если только что создали мероприятие — открываем календарь на его месяце.
+  const focus = localStorage.getItem("paw_calendar_focus");
+  if (focus) {
+    const d = new Date(focus);
+    if (!Number.isNaN(d.getTime())) currentEventsMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+    localStorage.removeItem("paw_calendar_focus");
+  }
   await renderCalendar();
 }
 

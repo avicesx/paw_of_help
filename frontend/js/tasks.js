@@ -95,10 +95,17 @@ async function renderAnimals() {
       return;
     }
 
+    const mediaUrl = (u) => !u ? "" : (/^https?:/i.test(u) ? u : `${API_URL}${String(u).startsWith("/") ? "" : "/"}${u}`);
+    const cssUrl = (u) => String(u).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\)/g, "\\)");
+
     list.innerHTML = animals
-      .map((animal) => `
+      .map((animal) => {
+        const photo = Array.isArray(animal.photos) && animal.photos.length ? mediaUrl(animal.photos[0]) : "";
+        // фон-лапка перекрыта правилом с !important — поэтому отдаём фото через CSS-переменную
+        const pawStyle = photo ? ` style="--animal-photo:url('${cssUrl(photo)}')"` : "";
+        return `
         <button class="animal-card" type="button" onclick="selectAnimal(${animal.id})">
-          <div class="animal-card-paw" aria-hidden="true"></div>
+          <div class="animal-card-paw${photo ? " has-photo" : ""}" aria-hidden="true"${pawStyle}></div>
           <div>
             <div class="animal-card-name">${escapeHtml(animal.name || "Без имени")}</div>
             <div class="animal-card-sub">
@@ -106,7 +113,8 @@ async function renderAnimals() {
             </div>
           </div>
         </button>
-      `)
+      `;
+      })
       .join("");
   } catch (err) {
     list.innerHTML = `<div class="empty-small">${escapeHtml(err.message || "Ошибка загрузки животных")}</div>`;
@@ -381,6 +389,7 @@ async function renderTasks() {
     }
 
     const animalNames = await buildAnimalNameMap();
+    const me = await getCurrentUserSafe();
 
     list.innerHTML = tasks
       .map((task) => {
@@ -388,17 +397,21 @@ async function renderTasks() {
           ? `Животное: ${escapeHtml(animalNames[task.animal_id] || `ID ${task.animal_id}`)}`
           : "Без привязки к животному";
 
+        const isOwner = me && Number(task.created_by) === Number(me.id);
+        // У своей задачи — пометка «Моя задача» вместо кнопки связи с владельцем.
+        const actionBtn = isOwner
+          ? `<span class="task-own-badge">Моя задача</span>`
+          : `<button class="task-outline-btn" type="button" onclick="event.stopPropagation(); openTaskDetails(${task.id})">Связаться с владельцем</button>`;
+
         return `
-          <article class="task-card" onclick="openTaskDetails(${task.id})">
+          <article class="task-card${isOwner ? " task-card--own" : ""}" onclick="openTaskDetails(${task.id})">
             <div class="task-card-row">
               <div class="task-paw" aria-hidden="true"></div>
               <div class="task-main">
                 <div class="task-title">${escapeHtml(task.title || "Без названия")}</div>
                 <div class="task-animal">${animalText}</div>
                 <div class="task-type-badge">${getTaskTypeLabel(task.task_type)}</div>
-                <button class="task-outline-btn" type="button" onclick="event.stopPropagation(); openTaskDetails(${task.id})">
-                  Связаться с владельцем
-                </button>
+                ${actionBtn}
               </div>
             </div>
           </article>
@@ -437,6 +450,20 @@ async function openTaskDetails(taskId) {
     const animals = await buildAnimalNameMap();
     const animalName = task.animal_id ? (animals[task.animal_id] || `ID ${task.animal_id}`) : "Без профиля животного";
 
+    const me = await getCurrentUserSafe();
+    const isOwner = me && Number(task.created_by) === Number(me.id);
+
+    // Свою задачу нельзя «взять» и нельзя написать самому себе — для владельца
+    // показываем пометку вместо кнопок отклика/связи.
+    const ownerBlock = isOwner
+      ? `<div class="task-detail-own">Это ваша задача — отклики и чат доступны волонтёрам.</div>`
+      : `
+        <button class="task-outline-btn task-detail-contact" type="button" onclick="openTaskChat(${task.id})">Связаться с владельцем</button>
+        <div class="task-detail-actions">
+          <button type="button" onclick="changeTaskStatus(${task.id}, 'in_progress'); closeTaskDetails();">Принять</button>
+          <button type="button" onclick="changeTaskStatus(${task.id}, 'cancelled'); closeTaskDetails();">Отказаться</button>
+        </div>`;
+
     card.innerHTML = `
       <div class="task-detail-top">
         <button class="task-detail-back" type="button" onclick="closeTaskDetails()">⬅</button>
@@ -454,11 +481,7 @@ async function openTaskDetails(taskId) {
         <div class="task-detail-separator"></div>
         <div class="task-detail-label">Компетенции волонтёра</div>
         <div class="task-detail-badge">${getTaskTypeLabel(task.task_type)}</div>
-        <button class="task-outline-btn task-detail-contact" type="button" onclick="openTaskChat(${task.id})">Связаться с владельцем</button>
-        <div class="task-detail-actions">
-          <button type="button" onclick="changeTaskStatus(${task.id}, 'in_progress'); closeTaskDetails();">Принять</button>
-          <button type="button" onclick="changeTaskStatus(${task.id}, 'cancelled'); closeTaskDetails();">Отказаться</button>
-        </div>
+        ${ownerBlock}
       </div>
     `;
   } catch (err) {

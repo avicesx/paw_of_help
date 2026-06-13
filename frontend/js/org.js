@@ -149,7 +149,13 @@ async function loadOrgAnimals(box) {
     const all = (await apiRequest("/animals")).data || [];
     const animals = all.filter((a) => a.owner_type === "organization" && Number(a.owner_id) === Number(_orgCurrent.id));
     box.innerHTML = animals.length
-      ? animals.map((a) => `<button class="org-row" type="button" onclick="location.href='animal-profile.html?id=${a.id}'">${escapeHtml(a.name || "Животное")}</button>`).join("")
+      ? animals.map((a) => {
+          const photo = Array.isArray(a.photos) && a.photos.length ? orgMediaUrl(a.photos[0]) : "";
+          return `<button class="org-row org-animal-row" type="button" onclick="location.href='animal-profile.html?id=${a.id}'">
+            <span class="org-animal-thumb">${photo ? `<img src="${escapeHtml(photo)}" alt="">` : ""}</span>
+            <span>${escapeHtml(a.name || "Животное")}</span>
+          </button>`;
+        }).join("")
       : '<div class="empty-small">Животных пока нет</div>';
   } catch (e) { box.innerHTML = '<div class="empty-small">Не удалось загрузить</div>'; }
 }
